@@ -19,16 +19,6 @@ pre-commit:
       glob: .eslintrc.cjs
       stage_fixed: true
 
-    - name: stylelint
-      run: npx stylelint --fix --cache {staged_files}
-      glob: "*.scss"
-      stage_fixed: true
-
-    - name: stylelint (global)
-      run: npx stylelint --fix '**/*.scss' --cache --ignore-path .gitignore
-      glob: .stylelintrc.json
-      stage_fixed: true
-
 pre-push:
   piped: true
   jobs:
@@ -40,8 +30,6 @@ pre-push:
         jobs:
           - name: eslint
             run: npx eslint --cache
-          - name: stylelint
-            run: npx stylelint '**/*.scss' --cache --ignore-path .gitignore
           - name: tsc
             run: yarn check:tsc
 
