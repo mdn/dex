@@ -237,9 +237,6 @@ jobs:
           # Sign key for code samples
           BUILD_SAMPLE_SIGN_KEY: ${{ secrets.SAMPLE_SIGN_KEY }}
 
-          # Now is not the time to worry about flaws.
-          BUILD_FLAW_LEVELS: "*:ignore"
-
           # This is the Google Analytics measurement ID for:
           # - developer.mozilla.org (GA4)
           # Using measurement ids on other domains is okay, as GA will filter these events.
