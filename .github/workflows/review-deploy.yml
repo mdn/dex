@@ -28,7 +28,7 @@ jobs:
     environment: review
     runs-on: ubuntu-latest
 
-    if: ${{ github.repository == 'mdn/yari' }}
+    if: ${{ github.repository == 'mdn/dex' }}
 
     steps:
       - name: Print information about CPU

@@ -2,13 +2,13 @@
 
 ## Quickstart
 
-Development on `yari` involves updating the machinery that renders MDN content
-or improving the structure and styling of the MDN UI (e.g. the styling of the
+Development on `dex` involves updating the machinery that renders MDN content or
+improving the structure and styling of the MDN UI (e.g. the styling of the
 header). If you are more interested in contributing to the MDN content, you
 should check out the [content](https://github.com/mdn/content) repo README
 instead.
 
-Before you can start working with Yari, you need to:
+Before you can start working with Dex, you need to:
 
 <!-- Peterbe, Feb 2021: There appears to be a bug in Prettier for .md files
     that forces in a second (extra) whitespace after the `1.` here.
@@ -21,32 +21,32 @@ Before you can start working with Yari, you need to:
 
 1.  [Fork](https://docs.github.com/en/github/getting-started-with-github/fork-a-repo)
     the MDN [content](https://github.com/mdn/content) and
-    [yari](https://github.com/mdn/yari) repositories using the Fork button on
+    [dex](https://github.com/mdn/dex) repositories using the Fork button on
     GitHub.
 
 1.  Clone the forked repositories to your computer using the following commands
     (replace `[your account]` with the account you forked the repositories to):
 
         git clone https://github.com/[your_account]/content.git
-        git clone https://github.com/[your_account]/yari.git
+        git clone https://github.com/[your_account]/dex.git
 
 <!-- markdownlint-enable list-marker-space -->
 
-To run Yari locally, you'll first need to install its dependencies and build the
+To run Dex locally, you'll first need to install its dependencies and build the
 app locally. Do this like so:
 
-    cd yari
+    cd dex
     yarn install
 
 See the [troubleshooting](#troubleshooting) section below if you run into
 problems.
 
 See also our [reviewing guide](docs/REVIEWING.md) for information on how to
-review Yari changes.
+review Dex changes.
 
 ### Pull request requirements
 
-Firstly, thank you for your interest in contributing to Yari! We do have a few
+Firstly, thank you for your interest in contributing to Dex! We do have a few
 requirements when it comes to pull requests:
 
 1. Please make use of a
@@ -65,11 +65,11 @@ Thank you for your understanding! We look forward to your contributions.
 ### How to stay up-to-date
 
 Periodically, the code and the content changes. Make sure you stay up-to-date
-with something along the following lines (replace `yari-origin` with whatever
-you called [the remote location](https://git-scm.com/docs/git-remote) of the
-original yari repo):
+with something along the following lines (replace `dex-origin` with whatever you
+called [the remote location](https://git-scm.com/docs/git-remote) of the
+original dex repo):
 
-    git pull yari-origin main
+    git pull dex-origin main
     yarn
     yarn dev
 
@@ -86,7 +86,7 @@ For content, see its
 
 ## Supported Platforms
 
-`yari` runs on Linux in CI, and when building for Production.
+`dex` runs on Linux in CI, and when building for Production.
 
 We also support Windows and MacOS, however we don't aim to proactively catch
 issues with CI on those platforms. If bugs arise, we welcome issues being filed,

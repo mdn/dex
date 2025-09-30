@@ -1154,7 +1154,7 @@ const MISC_REDIRECT_PATTERNS = [
     // which is what we use today.
     colonToSlash: true,
   }),
-  // This takes care of a majority of the 404's that we see in Yari by
+  // This takes care of a majority of the 404's that we see in Dex by
   // simply inserting "/docs/" between the locale and the slug. Further
   // redirects often take over from there, so let's only insert "/docs/"
   // and let any other redirect rules work from that point onwards.
