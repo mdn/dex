@@ -1,30 +1,4 @@
-// @ts-check
-const path = require("node:path");
-const { readGitignoreFiles } = require("eslint-gitignore");
-
-/** @type {string[]} */
-let ignores = [];
-try {
-  ignores = readGitignoreFiles({
-    cwd: path.join(".git", "info"),
-    patterns: ["exclude"],
-  });
-} catch (error) {
-  if (error.code === "ENOTDIR") {
-    console.log(
-      `${path.join(
-        ".git",
-        "info",
-        "exclude"
-      )} dir doesn't exist, we're probably a submodule`
-    );
-  } else {
-    throw error;
-  }
-}
-
 module.exports = {
-  ignorePatterns: ignores,
   env: {
     browser: false,
     commonjs: true,
@@ -72,32 +46,10 @@ module.exports = {
       },
     },
     {
-      files: ["testing/**/*.js"],
-      globals: {
-        page: "readonly",
-        document: "readonly",
-      },
-    },
-    {
       files: ["**/cli.js"],
       rules: {
         "n/shebang": 0,
         "no-process-exit": 0,
-      },
-    },
-    {
-      files: ["ssr/**/*.js"],
-      parserOptions: {
-        sourceType: "module",
-      },
-      rules: {
-        "n/no-unsupported-features/es-syntax": [
-          "error",
-          {
-            ignores: ["modules"],
-          },
-        ],
-        "n/no-unpublished-import": "off",
       },
     },
   ],
