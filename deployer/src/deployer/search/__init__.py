@@ -228,7 +228,7 @@ def to_search(file, _index=None):
         # because it's only an index and thus should appear, individually,
         # elsewhere. Just skip these.
         # E.g. https://developer.allizom.org/en-US/docs/Web/API/Index
-        # See also https://github.com/mdn/yari/issues/1786
+        # See also https://github.com/mdn/dex/issues/1786
         return
     if doc.get("noIndexing"):
         # These are documents that we build but "don't want to be found". For

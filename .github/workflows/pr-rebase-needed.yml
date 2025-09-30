@@ -13,6 +13,6 @@ jobs:
   label-rebase-needed:
     uses: mdn/workflows/.github/workflows/pr-rebase-needed.yml@main
     with:
-      target-repo: "mdn/yari"
+      target-repo: "mdn/dex"
     secrets:
       GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}

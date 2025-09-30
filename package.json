@@ -1,12 +1,12 @@
 {
-  "name": "@mdn/yari",
-  "version": "5.1.2",
-  "repository": "https://github.com/mdn/yari",
+  "name": "@mdn/dex",
+  "version": "0.0.1",
+  "repository": "https://github.com/mdn/dex",
   "license": "MPL-2.0",
   "author": "MDN Web Docs",
   "type": "module",
   "bin": {
-    "yari-filecheck": "filecheck/cli.js"
+    "dex-filecheck": "filecheck/cli.js"
   },
   "scripts": {
     "ai-help-macros": "cross-env NODE_OPTIONS=\"--no-warnings=ExperimentalWarning --loader ts-node/esm\" node scripts/ai-help-macros.ts",

@@ -173,7 +173,7 @@ unicorns_char_filter = char_filter(
     type="mapping",
     mappings=[
         # e.g. https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/Optional_chaining
-        # Also see https://github.com/mdn/yari/issues/3074
+        # Also see https://github.com/mdn/dex/issues/3074
         "?. => Optionalchaining",
         # E.g. https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/Logical_nullish_assignment
         "??= => Logicalnullishassignment",

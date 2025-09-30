@@ -11,7 +11,7 @@ permissions:
 
 jobs:
   build:
-    if: github.repository == 'mdn/yari'
+    if: github.repository == 'mdn/dex'
     runs-on: ubuntu-latest
 
     steps:

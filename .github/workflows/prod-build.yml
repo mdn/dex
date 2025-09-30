@@ -27,7 +27,7 @@ on:
 
       # This is very useful when combined with the "Use workflow from"
       # feature that is built into the "Run workflow" button on
-      # https://github.com/mdn/yari/actions?query=workflow%3A%22Production+Build%22
+      # https://github.com/mdn/dex/actions?query=workflow%3A%22Production+Build%22
       # If you override the deployment prefix to something like the name
       # of the branch, you can deploy that entire branch to its own prefix
       # in S3 which means that it can be fully hosted as its own site.
@@ -64,13 +64,13 @@ jobs:
     runs-on: ubuntu-latest
 
     # Only run the scheduled workflows on the main repo.
-    if: github.repository == 'mdn/yari'
+    if: github.repository == 'mdn/dex'
 
     steps:
       - name: Checkout
         uses: actions/checkout@v5
         with:
-          path: mdn/yari
+          path: mdn/dex
 
       - name: Checkout (content)
         uses: actions/checkout@v5
@@ -187,12 +187,12 @@ jobs:
 
       - name: Install deployer
         if: ${{ ! vars.SKIP_BUILD }}
-        working-directory: mdn/yari/deployer
+        working-directory: mdn/dex/deployer
         run: poetry install
 
       - name: Display Python & Poetry version
         if: ${{ ! vars.SKIP_BUILD }}
-        working-directory: mdn/yari/deployer
+        working-directory: mdn/dex/deployer
         run: |
           python --version
           poetry --version
@@ -218,7 +218,7 @@ jobs:
           BLOG_ROOT: ${{ github.workspace }}/mdn/blog/content/posts
           CURRICULUM_ROOT: ${{ github.workspace }}/mdn/curriculum
           GENERIC_CONTENT_ROOT: ${{ github.workspace }}/mdn/generic-content/files
-          YARI_ROOT: ${{ github.workspace }}/mdn/yari
+          YARI_ROOT: ${{ github.workspace }}/mdn/dex
           BASE_URL: "https://developer.mozilla.org"
 
           # rari
@@ -330,17 +330,17 @@ jobs:
           cp -r "$YARI_ROOT/client/public/assets" "$BUILD_OUT_ROOT"
           cp "$YARI_ROOT/assets/prod/robots.txt" "$BUILD_OUT_ROOT/robots.txt"
 
-      - name: Install yari yarn packages
+      - name: Install dex yarn packages
         if: ${{ ! vars.SKIP_BUILD }}
-        working-directory: mdn/yari
+        working-directory: mdn/dex
         run: yarn --frozen-lockfile
         env:
           # Use a GITHUB_TOKEN to bypass rate limiting for rari.
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Run yari scripts
+      - name: Run dex scripts
         if: ${{ ! vars.SKIP_BUILD }}
-        working-directory: mdn/yari
+        working-directory: mdn/dex
         env:
           FRED_ROOT: ${{ github.workspace }}/mdn/fred
         run: |
@@ -356,7 +356,7 @@ jobs:
 
       - name: Update search index
         if: ${{ ! vars.SKIP_BUILD }}
-        working-directory: mdn/yari/deployer
+        working-directory: mdn/dex/deployer
         env:
           DEPLOYER_ELASTICSEARCH_URL: ${{ secrets.DEPLOYER_PROD_ELASTICSEARCH_URL }}
           FRED_ROOT: ${{ github.workspace }}/mdn/fred
@@ -398,7 +398,7 @@ jobs:
 
       - name: Generate redirects map
         if: ${{ ! vars.SKIP_FUNCTION }}
-        working-directory: mdn/yari/cloud-function
+        working-directory: mdn/dex/cloud-function
         env:
           CONTENT_ROOT: ${{ github.workspace }}/mdn/content/files
           CONTENT_TRANSLATED_ROOT: ${{ github.workspace }}/mdn/translated-content/files
@@ -412,7 +412,7 @@ jobs:
 
       - name: Deploy Function
         if: ${{ ! vars.SKIP_FUNCTION }}
-        working-directory: mdn/yari
+        working-directory: mdn/dex
         run: |-
           set -eo pipefail
 
@@ -456,7 +456,7 @@ jobs:
           done
 
       - name: Update AI Help index with macros
-        working-directory: mdn/yari
+        working-directory: mdn/dex
         run: yarn ai-help-macros update-index "$FRED_ROOT/out/en-us/docs"
         env:
           OPENAI_KEY: ${{ secrets.OPENAI_KEY }}
