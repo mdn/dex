@@ -12,7 +12,7 @@ const LOCALE_URI_WITH_TRAILING_SLASH = new Set(
   [...VALID_LOCALES.keys()].map((locale) => `/${locale}/`)
 );
 // TODO: The code that uses LEGACY_URI_NEEDING_TRAILING_SLASH should be
-//       temporary. For example, when we have moved to the Yari-built
+//       temporary. For example, when we have moved to the Dex-built
 //       account settings page, we should add fundamental redirects
 //       for "/{locale}/account/?" and "/account/?" that redirect to
 //       "/{locale}/settings" and "/settings" respectively. The other

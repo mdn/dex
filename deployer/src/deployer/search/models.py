@@ -41,8 +41,8 @@ code) it won't take effect until you rebuild the index. So you might need to run
 # There are many options to pick and each one needs to be carefully considered.
 # To get a complete list of all the options, see the documentation at:
 # https://www.elastic.co/guide/en/elasticsearch/reference/current/analysis-word-delimiter-tokenfilter.html
-yari_word_delimiter = token_filter(
-    "yari_word_delimiter",
+dex_word_delimiter = token_filter(
+    "dex_word_delimiter",
     type="word_delimiter",
     # When it splits on 'Array.prototype.forEach' it first of all becomes
     # 'array', 'prototype', and 'foreach'. But also, still includes
@@ -211,7 +211,7 @@ text_analyzer = analyzer(
     # typing "bézier" becomes the same as searching for "bezier"
     # https://www.elastic.co/guide/en/elasticsearch/reference/7.9/analysis-asciifolding-tokenfilter.html
     filter=[
-        yari_word_delimiter,
+        dex_word_delimiter,
         # The "elison" token filter removes elisons from the text.
         # For example "l'avion" becomes "avion".
         # https://www.elastic.co/guide/en/elasticsearch/reference/current/analysis-elision-tokenfilter.html
