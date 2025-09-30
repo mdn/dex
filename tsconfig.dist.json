@@ -3,5 +3,5 @@
   "compilerOptions": {
     "noEmit": false
   },
-  "include": ["build", "content", "filecheck", "markdown", "server", "tool"]
+  "include": ["tool"]
 }

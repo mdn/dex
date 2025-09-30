@@ -35,7 +35,6 @@ yarn-error.log*
 /client/build
 /client/src/**/*.js.map
 /content/*.js.map
-/filecheck/*.js.map
 /kumascript/*.js.map
 /markdown/*.js.map
 /server/*.js.map

@@ -8,8 +8,10 @@ export const ORIGIN_MAIN = process.env["ORIGIN_MAIN"] || "localhost";
 /**
  * @import { IncomingMessage, ServerResponse } from "http"
  * @import * as express from "express"
- * @import { Theme } from "../../client/src/types/theme"
- * @import { RunnerDefaults } from "../../client/src/lit/play/types" */
+ * @typedef {"dark" | "light"} Scheme
+ * @typedef {Scheme | "os-default"} Theme
+ * @typedef {"ix-tabbed" | "ix-wat" | "ix-choice"} RunnerDefaults
+ */
 
 /**
  * @typedef State
