@@ -2,9 +2,9 @@
 name = "deployer"
 version = "0.1.0"
 license = "MPL-2.0"
-description = "Upload the files that Yari built"
+description = "Upload the files that Dex built"
 authors = ["MDN Devs <mdn-dev@mozilla.com>"]
-repository = "https://github.com/mdn/yari"
+repository = "https://github.com/mdn/dex"
 readme = "README.md"
 
 [tool.poetry.dependencies]

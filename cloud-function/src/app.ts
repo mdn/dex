@@ -44,7 +44,7 @@ router.all(
   proxyApi
 );
 // Telemetry.
-router.all("/submit/mdn-yari/*", requireOrigin(Origin.main), proxyTelemetry);
+router.all("/submit/mdn-dex/*", requireOrigin(Origin.main), proxyTelemetry);
 router.all("/pong/*", requireOrigin(Origin.main), express.json(), proxyPong);
 router.all("/pimg/*", requireOrigin(Origin.main), proxyPong);
 // Playground.
