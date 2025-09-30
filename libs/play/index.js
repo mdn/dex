@@ -31,7 +31,7 @@ export function withRunnerResponseHeaders(req, res) {
   const headers = new Headers({
     "x-content-type-options": "nosniff",
     // Clear-Site-Data: cache` is slow in Chrome (https://crbug.com/40233601).
-    // See: https://github.com/mdn/yari/issues/12775
+    // See: https://github.com/mdn/dex/issues/12775
     "clear-site-data": req.headers["user-agent"]?.includes("Chrome/")
       ? '"cookies", "storage"'
       : '"cache", "cookies", "storage"',

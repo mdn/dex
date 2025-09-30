@@ -1,4 +1,4 @@
-# Instead of waiting for Yari to be published to npmjs.com and be upgraded
+# Instead of waiting for Dex to be published to npmjs.com and be upgraded
 # inside mdn/content by Dependabot, we do all those steps here using `npm pack`.
 
 name: NPM Publish simulation
@@ -16,34 +16,34 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: (mdn/yari) Checkout
+      - name: (mdn/dex) Checkout
         uses: actions/checkout@v5
         with:
-          path: mdn/yari
+          path: mdn/dex
 
-      - name: (mdn/yari) Setup Node.js
+      - name: (mdn/dex) Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version-file: mdn/yari/.nvmrc
+          node-version-file: mdn/dex/.nvmrc
           cache: yarn
-          cache-dependency-path: mdn/yari/yarn.lock
+          cache-dependency-path: mdn/dex/yarn.lock
 
-      - name: (mdn/yari) Install all yarn packages
-        working-directory: mdn/yari
+      - name: (mdn/dex) Install all yarn packages
+        working-directory: mdn/dex
         run: yarn --frozen-lockfile
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Setup kernel for react native, increase watchers
         run: |
-          # When running Yari on Linux, you might get the
+          # When running Dex on Linux, you might get the
           # "Error: ENOSPC: System limit for number of file watchers reached" error.
           # This, resolves that.
           # Source https://github.com/expo/expo-github-action/issues/20#issuecomment-541676895
           echo fs.inotify.max_user_watches=524288 | sudo tee -a /etc/sysctl.conf && sudo sysctl -p
 
-      - name: (mdn/yari) Prepare to build
-        working-directory: mdn/yari
+      - name: (mdn/dex) Prepare to build
+        working-directory: mdn/dex
         env:
           # The following env vars is what we do in npm-publish.yml
           # Each variable set is documented there.
@@ -60,12 +60,12 @@ jobs:
           repository: mdn/content
           path: mdn/content
 
-      - name: (mdn/yari) Build tarball
+      - name: (mdn/dex) Build tarball
         id: build
-        working-directory: mdn/yari
+        working-directory: mdn/dex
         run: |
           npm pack
-          TARBALL=`ls mdn-yari-*.tgz`
+          TARBALL=`ls mdn-dex-*.tgz`
           echo $TARBALL
           ls -lh $TARBALL
           echo "tarball=$(realpath $TARBALL)" >> "$GITHUB_OUTPUT"
@@ -86,6 +86,6 @@ jobs:
           yarn add file:$TARBALL
           yarn install
 
-      - name: (mdn/content) yarn yari-filecheck --help
+      - name: (mdn/content) yarn dex-filecheck --help
         working-directory: mdn/content
-        run: yarn yari-filecheck --help
+        run: yarn dex-filecheck --help

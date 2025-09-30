@@ -52,7 +52,7 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v5
         with:
-          path: mdn/yari
+          path: mdn/dex
 
       - name: Checkout (content)
         uses: actions/checkout@v5
@@ -119,10 +119,10 @@ jobs:
       - name: Setup Node.js environment
         uses: actions/setup-node@v4
         with:
-          node-version-file: mdn/yari/.nvmrc
+          node-version-file: mdn/dex/.nvmrc
 
       - name: Install all yarn packages
-        working-directory: mdn/yari
+        working-directory: mdn/dex
         run: yarn --frozen-lockfile
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -136,11 +136,11 @@ jobs:
         uses: snok/install-poetry@v1
 
       - name: Install deployer
-        working-directory: mdn/yari/deployer
+        working-directory: mdn/dex/deployer
         run: poetry install
 
       - name: Display Python & Poetry version
-        working-directory: mdn/yari/deployer
+        working-directory: mdn/dex/deployer
         run: |
           python --version
           poetry --version
@@ -154,7 +154,7 @@ jobs:
         run: cat /proc/cpuinfo
 
       - name: Build everything
-        working-directory: mdn/yari
+        working-directory: mdn/dex
         env:
           # Remember, the mdn/content repo got cloned into `pwd` into a
           # sub-folder called "mdn/content"
@@ -209,7 +209,7 @@ jobs:
           yarn tool:legacy whatsdeployed $CONTENT_TRANSLATED_ROOT --output client/build/_whatsdeployed/translated-content.json
 
       - name: Update search index
-        working-directory: mdn/yari/deployer
+        working-directory: mdn/dex/deployer
         env:
           DEPLOYER_ELASTICSEARCH_URL: ${{ secrets.DEPLOYER_DEV_ELASTICSEARCH_URL }}
         run: poetry run deployer search-index ../client/build
@@ -227,7 +227,7 @@ jobs:
       - name: Sync build with GCS
         uses: google-github-actions/upload-cloud-storage@v3
         with:
-          path: mdn/yari/client/build
+          path: mdn/dex/client/build
           destination: "${{ vars.GCP_BUCKET_NAME }}/${{ env.PREFIX }}"
           resumable: false
           concurrency: 500

@@ -122,7 +122,7 @@ body:
       options:
         - label: I have read the [Community Participation Guidelines](https://www.mozilla.org/en-US/about/governance/policies/participation/).
           required: true
-        - label: I have verified that there isn't [already an issue](https://github.com/mdn/yari/issues) that reports the same bug to avoid creating a duplicate.
+        - label: I have verified that there isn't [already an issue](https://github.com/mdn/dex/issues) that reports the same bug to avoid creating a duplicate.
           required: true
         - label: I have checked that this is a concrete bug. For Q&A open a [GitHub Discussion](https://github.com/orgs/mdn/discussions/categories/platform).
           required: true

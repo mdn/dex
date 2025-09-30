@@ -24,4 +24,4 @@ jest.config.js
 .nvmrc
 
 # Don't pack the build.
-mdn-yari-*.tgz
+mdn-dex-*.tgz

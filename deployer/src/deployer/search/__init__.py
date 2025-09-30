@@ -228,7 +228,7 @@ def to_search(file, _index=None):
         # because it's only an index and thus should appear, individually,
         # elsewhere. Just skip these.
         # E.g. https://developer.allizom.org/en-US/docs/Web/API/Index
-        # See also https://github.com/mdn/yari/issues/1786
+        # See also https://github.com/mdn/dex/issues/1786
         return
     if doc.get("noIndexing"):
         # These are documents that we build but "don't want to be found". For
@@ -253,7 +253,7 @@ def to_search(file, _index=None):
         # still as a `keyword` index, but filtering by prefix.
         # E.g. in kuma; ?slug_prefix=weB/Css
         # But this means that a little bit of information is lost. However, when
-        # Yari displays search results, it doesn't use this `slug` value to
+        # Dex displays search results, it doesn't use this `slug` value to
         # make the URLs in the search results listings. It's using the `mdn_url`
         # for that.
         # But all of this means; remember to lowercase your `slug` before using
