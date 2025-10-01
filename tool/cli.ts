@@ -39,7 +39,6 @@ function tryOrExit<T extends ActionParameters>(
 }
 
 program
-  .bin("yarn tool")
   .name("[DEPRECATED] tool")
   .version("0.0.0")
   .disableGlobalOption("--silent")
