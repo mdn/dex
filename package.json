@@ -60,7 +60,7 @@
     "@types/he": "^1.2.3",
     "@types/imagemin": "^9.0.1",
     "@types/jest": "^29.5.14",
-    "@types/node": "^22.16.0",
+    "@types/node": "^24.6.1",
     "cross-env": "^7.0.3",
     "eslint": "^8.57.1",
     "eslint-gitignore": "^0.1.0",
