@@ -3034,13 +3034,13 @@ eslint-plugin-unicorn@^56.0.1:
     semver "^7.6.3"
     strip-indent "^3.0.0"
 
-eslint-plugin-wc@^2.2.1:
-  version "2.2.1"
-  resolved "https://registry.yarnpkg.com/eslint-plugin-wc/-/eslint-plugin-wc-2.2.1.tgz#b10feec2fde1ed4f28b47b4d722a73483d00effb"
-  integrity sha512-KstLqGmyQz088DvFlDYHg0sHih+w2QeulreCi1D1ftr357klO2zqHdG/bbnNMmuQdVFDuNkopNIyNhmG0XCT/g==
+eslint-plugin-wc@^3.0.1:
+  version "3.0.1"
+  resolved "https://registry.yarnpkg.com/eslint-plugin-wc/-/eslint-plugin-wc-3.0.1.tgz#a712030eb295b6dad7bf122955b7fb27afd3ab3e"
+  integrity sha512-0p1wkSlA2Ue3FA4qW+5LZ+15sy0p1nUyVl1eyBMLq4rtN1LtE9IdI49BXNWMz8N8bM/y7Ulx8SWGAni5f8XO5g==
   dependencies:
     is-valid-element-name "^1.0.0"
-    js-levenshtein-esm "^1.2.0"
+    js-levenshtein-esm "^2.0.0"
 
 eslint-scope@^7.2.2:
   version "7.2.2"
@@ -4887,10 +4887,10 @@ jest@^29.7.0:
     import-local "^3.0.2"
     jest-cli "^29.7.0"
 
-js-levenshtein-esm@^1.2.0:
-  version "1.2.0"
-  resolved "https://registry.yarnpkg.com/js-levenshtein-esm/-/js-levenshtein-esm-1.2.0.tgz#96532c34e0c90df198c9419963c64ca3cf43ae92"
-  integrity sha512-fzreKVq1eD7eGcQr7MtRpQH94f8gIfhdrc7yeih38xh684TNMK9v5aAu2wxfIRMk/GpAJRrzcirMAPIaSDaByQ==
+js-levenshtein-esm@^2.0.0:
+  version "2.0.0"
+  resolved "https://registry.yarnpkg.com/js-levenshtein-esm/-/js-levenshtein-esm-2.0.0.tgz#a878b18af18815177b77cc6af14ed415fa59de87"
+  integrity sha512-1n4LEPOL4wRXY8rOQcuA7Iuaphe5xCMayvufCzlLAi+hRsnBRDbSS6XPuV58CBVJxj5D9ApFLyjQ7KzFToyHBw==
 
 js-tokens@^4.0.0:
   version "4.0.0"
