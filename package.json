@@ -61,7 +61,7 @@
     "@types/imagemin": "^9.0.1",
     "@types/jest": "^29.5.14",
     "@types/node": "^22.16.0",
-    "cross-env": "^7.0.3",
+    "cross-env": "^10.1.0",
     "eslint": "^8.57.1",
     "eslint-gitignore": "^0.1.0",
     "eslint-plugin-flowtype": "^8.0.3",
