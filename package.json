@@ -32,7 +32,7 @@
     "@mdn/browser-compat-data": "^6.0.28",
     "accept-language-parser": "^1.5.0",
     "cheerio": "1.0.0-rc.12",
-    "cookie": "^0.7.2",
+    "cookie": "^1.0.2",
     "cookie-parser": "^1.4.7",
     "cross-spawn": "^7.0.6",
     "dotenv": "^17.2.2",
