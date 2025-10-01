@@ -222,6 +222,7 @@ jobs:
           cd mdn/rari
           cargo build --release
           cp target/release/rari ../fred/node_modules/@mdn/rari/bin/
+          rm -rf target
 
       - name: Print information about CPU
         run: cat /proc/cpuinfo
