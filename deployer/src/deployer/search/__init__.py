@@ -93,6 +93,7 @@ def index(
         for success, info in streaming_bulk(
             connection,
             generator(),
+            chunk_size=250,  # default: 500
             max_chunk_bytes=52428800,  # default: 104857600
             max_retries=4,  # default: 0
             # If the bulk indexing failed, it will by default raise a BulkIndexError.
