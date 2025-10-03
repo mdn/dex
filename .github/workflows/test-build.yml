@@ -72,12 +72,18 @@ jobs:
 
     steps:
       - name: Print information about build
+        env:
+          RARI_REF: ${{ github.event.inputs.rari-ref }}
+          CONTENT_REF: ${{ github.event.inputs.content-ref }}
+          TRANSLATED_CONTENT_REF: ${{ github.event.inputs.translated-content-ref }}
+          NOTES: ${{ github.event.inputs.notes || env.DEFAULT_NOTES }}
+          INVALIDATE: ${{ github.event.inputs.invalidate }}
         run: |
-          echo "rari-ref: ${{ github.event.inputs.rari-ref }}"
-          echo "content-ref: ${{ github.event.inputs.content-ref }}"
-          echo "translated-content-ref: ${{ github.event.inputs.translated-content-ref }}"
-          echo "notes: ${{ github.event.inputs.notes || env.DEFAULT_NOTES }}"
-          echo "invalidate: ${{ github.event.inputs.invalidate }}"
+          echo "rari-ref: $RARI_REF"
+          echo "content-ref: $CONTENT_REF"
+          echo "translated-content-ref: $TRANSLATED_CONTENT_REF"
+          echo "notes: $NOTES"
+          echo "invalidate: $INVALIDATE"
 
       - name: Checkout
         uses: actions/checkout@v5
