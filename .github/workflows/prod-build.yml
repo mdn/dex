@@ -71,6 +71,7 @@ jobs:
         uses: actions/checkout@v5
         with:
           path: mdn/dex
+          persist-credentials: false
 
       - name: Checkout (content)
         uses: actions/checkout@v5
@@ -83,6 +84,7 @@ jobs:
           # but for now it's good enough. We'll need all the history
           # so we can figure out each document's last-modified date.
           fetch-depth: 0
+          persist-credentials: false
 
       - name: Checkout (blog)
         uses: actions/checkout@v5
@@ -92,6 +94,7 @@ jobs:
           path: mdn/blog
           lfs: true
           token: ${{ secrets.MDN_STUDIO_PAT }}
+          persist-credentials: false
 
       - name: Checkout (generic-content)
         uses: actions/checkout@v5
@@ -99,6 +102,7 @@ jobs:
         with:
           repository: mdn/generic-content
           path: mdn/generic-content
+          persist-credentials: false
 
       - name: Checkout (curriculum)
         uses: actions/checkout@v5
@@ -106,6 +110,7 @@ jobs:
         with:
           repository: mdn/curriculum
           path: mdn/curriculum
+          persist-credentials: false
 
       # Our usecase is a bit complicated. When the cron schedule runs this workflow,
       # we rely on the env vars defined at the top of the file. But if it's a manual
@@ -130,6 +135,7 @@ jobs:
           path: mdn/translated-content
           # See matching warning for mdn/content checkout step
           fetch-depth: 0
+          persist-credentials: false
 
       - name: Checkout (translated-content-de)
         uses: actions/checkout@v5
@@ -137,6 +143,7 @@ jobs:
         with:
           repository: mdn/translated-content-de
           path: mdn/translated-content-de
+          persist-credentials: false
 
       - name: Move de into translated-content
         if: ${{ ! vars.SKIP_BUILD || ! vars.SKIP_FUNCTION }}
@@ -157,6 +164,7 @@ jobs:
         with:
           repository: mdn/mdn-contributor-spotlight
           path: mdn/mdn-contributor-spotlight
+          persist-credentials: false
 
       - uses: actions/checkout@v5
         if: ${{ ! vars.SKIP_BUILD }}
