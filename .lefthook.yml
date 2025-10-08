@@ -39,8 +39,6 @@ post-merge:
   commands:
     yarn-install:
       run: yarn install --ignore-scripts
-    rari-postinstall:
-      run: npm run postinstall --prefix node_modules/@mdn/rari
 
 output:
   - summary
