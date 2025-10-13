@@ -171,6 +171,7 @@ jobs:
         with:
           repository: mdn/fred
           path: mdn/fred
+          persist-credentials: false
 
       - name: Setup Node.js environment
         if: ${{ ! vars.SKIP_BUILD || ! vars.SKIP_FUNCTION }}
