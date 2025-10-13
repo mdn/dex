@@ -257,6 +257,8 @@ jobs:
           # - developer.mozilla.org (GA4)
           # Using measurement ids on other domains is okay, as GA will filter these events.
           BUILD_GOOGLE_ANALYTICS_MEASUREMENT_ID: G-PWTK27XVWP
+          FRED_GA_ENABLED: true
+          FRED_GA_MEASUREMENT_ID: G-PWTK27XVWP
 
           # This enables the MDN Plus
           REACT_APP_ENABLE_PLUS: true
