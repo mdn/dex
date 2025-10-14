@@ -26,24 +26,24 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version-file: ".nvmrc"
-          cache: yarn
+          cache: npm
           cache-dependency-path: |
-            yarn.lock
+            package-lock.json
             libs/**/*.js
 
-      - name: Install all yarn packages (ROOT)
-        run: yarn --frozen-lockfile
+      - name: Install dependencies
+        run: npm ci
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Lint prettier
-        run: yarn prettier-check
+        run: npm run prettier-check
 
       - name: Lint ESLint
-        run: yarn eslint
+        run: npm run eslint
 
       - name: Check TypeScript
-        run: yarn check:tsc
+        run: npm run check:tsc
 
   test:
     runs-on: ubuntu-latest
@@ -58,12 +58,12 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version-file: ".nvmrc"
-          cache: yarn
+          cache: npm
 
-      - name: Install all yarn packages
-        run: yarn --frozen-lockfile
+      - name: Install all dex dependencies
+        run: npm ci
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Unit testing libs
-        run: yarn test:libs
+        run: npm run test:libs

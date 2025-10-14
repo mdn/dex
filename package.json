@@ -9,14 +9,13 @@
     "ai-help-macros": "cross-env NODE_OPTIONS=\"--no-warnings=ExperimentalWarning --loader ts-node/esm\" node scripts/ai-help-macros.ts",
     "check:tsc": "find . -name 'tsconfig.json' ! -wholename '**/node_modules/**' ! -wholename '**/cloud-function/src/internal/**' -print0 | xargs -n1 -P 2 -0 sh -c 'cd `dirname $0` && echo \"🔄 $(pwd)\" && npx tsc --noEmit && echo \"☑️  $(pwd)\" || exit 255'",
     "eslint": "eslint .",
-    "install:all": "find . -mindepth 2 -name 'yarn.lock' ! -wholename '**/node_modules/**' -print0 | xargs -n1 -0 sh -cx 'yarn --cwd $(dirname $0) install'",
-    "install:all:npm": "find . -mindepth 2 -name 'package-lock.json' ! -wholename '**/node_modules/**' -print0 | xargs -n1 -0 sh -cx 'npm --prefix $(dirname $0) install'",
+    "install:all": "find . -mindepth 2 -name 'package-lock.json' ! -wholename '**/node_modules/**' -print0 | xargs -n1 -0 sh -cx 'npm --prefix $(dirname $0) install'",
     "jest": "node --experimental-vm-modules --expose-gc ./node_modules/.bin/jest --logHeapUsage",
-    "prepare": "yarn install:all && yarn install:all:npm",
+    "prepare": "npm run install:all",
     "prettier-check": "prettier --check .",
     "prettier-format": "prettier --write .",
-    "test": "yarn prettier-check && yarn test:libs",
-    "test:libs": "yarn jest --rootDir libs --env=node",
+    "test": "npm run prettier-check && npm run test:libs",
+    "test:libs": "npm run jest --rootDir libs --env=node",
     "tool:legacy": "cross-env NODE_OPTIONS=\"--no-warnings=ExperimentalWarning --loader ts-node/esm\" node ./tool/cli.ts"
   },
   "resolutions": {

@@ -22,7 +22,7 @@ pre-commit:
 pre-push:
   piped: true
   jobs:
-    - run: yarn install
+    - run: npm install
 
     - name: lint
       group:
@@ -31,14 +31,14 @@ pre-push:
           - name: eslint
             run: npx eslint --cache
           - name: tsc
-            run: yarn check:tsc
+            run: npm run check:tsc
 
 post-merge:
   only:
     - ref: main
   commands:
-    yarn-install:
-      run: yarn install --ignore-scripts
+    npm-install:
+      run: npm install --ignore-scripts
 
 output:
   - summary
