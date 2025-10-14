@@ -41,8 +41,7 @@
     "remark-gfm": "^4.0.1",
     "remark-stringify": "^11.0.0",
     "sanitize-filename": "^1.6.3",
-    "unified": "^11.0.5",
-    "web-features": "^2.40.2"
+    "unified": "^11.0.5"
   },
   "devDependencies": {
     "@babel/core": "^7.28.4",
