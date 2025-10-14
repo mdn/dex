@@ -72,18 +72,25 @@ jobs:
 
     steps:
       - name: Print information about build
+        env:
+          RARI_REF: ${{ github.event.inputs.rari-ref }}
+          CONTENT_REF: ${{ github.event.inputs.content-ref }}
+          TRANSLATED_CONTENT_REF: ${{ github.event.inputs.translated-content-ref }}
+          NOTES: ${{ github.event.inputs.notes || env.DEFAULT_NOTES }}
+          INVALIDATE: ${{ github.event.inputs.invalidate }}
         run: |
-          echo "rari-ref: ${{ github.event.inputs.rari-ref }}"
-          echo "content-ref: ${{ github.event.inputs.content-ref }}"
-          echo "translated-content-ref: ${{ github.event.inputs.translated-content-ref }}"
-          echo "notes: ${{ github.event.inputs.notes || env.DEFAULT_NOTES }}"
-          echo "invalidate: ${{ github.event.inputs.invalidate }}"
+          echo "rari-ref: $RARI_REF"
+          echo "content-ref: $CONTENT_REF"
+          echo "translated-content-ref: $TRANSLATED_CONTENT_REF"
+          echo "notes: $NOTES"
+          echo "invalidate: $INVALIDATE"
 
       - name: Checkout
         uses: actions/checkout@v5
         with:
           fetch-depth: 0
           path: mdn/dex
+          persist-credentials: false
 
       - name: Merge main (if possible)
         working-directory: mdn/dex
@@ -109,6 +116,7 @@ jobs:
           # so we can figure out each document's last-modified date.
           fetch-depth: 0
           ref: ${{ github.event.inputs.content-ref }}
+          persist-credentials: false
 
       - name: Checkout (blog)
         uses: actions/checkout@v5
@@ -118,6 +126,7 @@ jobs:
           path: mdn/blog
           lfs: true
           token: ${{ secrets.MDN_STUDIO_PAT }}
+          persist-credentials: false
 
       - name: Checkout (generic-content)
         uses: actions/checkout@v5
@@ -125,6 +134,7 @@ jobs:
         with:
           repository: mdn/generic-content
           path: mdn/generic-content
+          persist-credentials: false
 
       - name: Checkout (curriculum)
         uses: actions/checkout@v5
@@ -132,6 +142,7 @@ jobs:
         with:
           repository: mdn/curriculum
           path: mdn/curriculum
+          persist-credentials: false
 
       - name: Checkout (translated-content)
         uses: actions/checkout@v5
@@ -142,6 +153,7 @@ jobs:
           # See matching warning for mdn/content checkout step
           fetch-depth: 0
           ref: ${{ github.event.inputs.translated-content-ref }}
+          persist-credentials: false
 
       - name: Checkout (translated-content-de)
         uses: actions/checkout@v5
@@ -149,6 +161,7 @@ jobs:
         with:
           repository: mdn/translated-content-de
           path: mdn/translated-content-de
+          persist-credentials: false
 
       - name: Move de into translated-content
         if: ${{ ! vars.SKIP_BUILD || ! vars.SKIP_FUNCTION }}
@@ -169,6 +182,7 @@ jobs:
         with:
           repository: mdn/mdn-contributor-spotlight
           path: mdn/mdn-contributor-spotlight
+          persist-credentials: false
 
       - uses: actions/checkout@v5
         if: ${{ ! vars.SKIP_BUILD }}
@@ -176,6 +190,7 @@ jobs:
           repository: mdn/fred
           path: mdn/fred
           ref: ${{ github.event.inputs.fred-ref }}
+          persist-credentials: false
 
       - name: Setup Node.js environment
         if: ${{ ! vars.SKIP_BUILD || ! vars.SKIP_FUNCTION }}
@@ -198,6 +213,7 @@ jobs:
           repository: mdn/rari
           path: mdn/rari
           ref: ${{ github.event.inputs.rari-ref }}
+          persist-credentials: false
 
       - name: Cache Cargo registry
         if: ${{ !( vars.SKIP_BUILD || github.event.inputs.rari-ref == '' ) }}

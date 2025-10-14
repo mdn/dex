@@ -71,6 +71,7 @@ jobs:
         uses: actions/checkout@v5
         with:
           path: mdn/dex
+          persist-credentials: false
 
       - name: Checkout (content)
         uses: actions/checkout@v5
@@ -83,6 +84,7 @@ jobs:
           # but for now it's good enough. We'll need all the history
           # so we can figure out each document's last-modified date.
           fetch-depth: 0
+          persist-credentials: false
 
       - name: Checkout (blog)
         uses: actions/checkout@v5
@@ -92,6 +94,7 @@ jobs:
           path: mdn/blog
           lfs: true
           token: ${{ secrets.MDN_STUDIO_PAT }}
+          persist-credentials: false
 
       - name: Checkout (generic-content)
         uses: actions/checkout@v5
@@ -99,6 +102,7 @@ jobs:
         with:
           repository: mdn/generic-content
           path: mdn/generic-content
+          persist-credentials: false
 
       - name: Checkout (curriculum)
         uses: actions/checkout@v5
@@ -106,6 +110,7 @@ jobs:
         with:
           repository: mdn/curriculum
           path: mdn/curriculum
+          persist-credentials: false
 
       # Our usecase is a bit complicated. When the cron schedule runs this workflow,
       # we rely on the env vars defined at the top of the file. But if it's a manual
@@ -115,9 +120,12 @@ jobs:
       # have a dedicate set that conveniently sets these as env vars which we
       # can refer to later in `if: ....` lines or in bash with the `run: ...` blocks.
       - name: Merge dispatch inputs with default env vars
+        env:
+          DEPLOYER_BUCKET_PREFIX: ${{ github.event.inputs.deployment_prefix || env.DEFAULT_DEPLOYMENT_PREFIX }}
+          DEPLOYER_LOG_EACH_SUCCESSFUL_UPLOAD: ${{ github.event.inputs.log_each_successful_upload || env.DEFAULT_LOG_EACH_SUCCESSFUL_UPLOAD }}
         run: |
-          echo "DEPLOYER_BUCKET_PREFIX=${{ github.event.inputs.deployment_prefix || env.DEFAULT_DEPLOYMENT_PREFIX }}" >> $GITHUB_ENV
-          echo "DEPLOYER_LOG_EACH_SUCCESSFUL_UPLOAD=${{ github.event.inputs.log_each_successful_upload || env.DEFAULT_LOG_EACH_SUCCESSFUL_UPLOAD }}" >> $GITHUB_ENV
+          echo "DEPLOYER_BUCKET_PREFIX=$DEPLOYER_BUCKET_PREFIX" >> $GITHUB_ENV
+          echo "DEPLOYER_LOG_EACH_SUCCESSFUL_UPLOAD=$DEPLOYER_LOG_EACH_SUCCESSFUL_UPLOAD" >> $GITHUB_ENV
 
       - name: Checkout (translated-content)
         uses: actions/checkout@v5
@@ -127,6 +135,7 @@ jobs:
           path: mdn/translated-content
           # See matching warning for mdn/content checkout step
           fetch-depth: 0
+          persist-credentials: false
 
       - name: Checkout (translated-content-de)
         uses: actions/checkout@v5
@@ -134,6 +143,7 @@ jobs:
         with:
           repository: mdn/translated-content-de
           path: mdn/translated-content-de
+          persist-credentials: false
 
       - name: Move de into translated-content
         if: ${{ ! vars.SKIP_BUILD || ! vars.SKIP_FUNCTION }}
@@ -154,12 +164,14 @@ jobs:
         with:
           repository: mdn/mdn-contributor-spotlight
           path: mdn/mdn-contributor-spotlight
+          persist-credentials: false
 
       - uses: actions/checkout@v5
         if: ${{ ! vars.SKIP_BUILD }}
         with:
           repository: mdn/fred
           path: mdn/fred
+          persist-credentials: false
 
       - name: Setup Node.js environment
         if: ${{ ! vars.SKIP_BUILD || ! vars.SKIP_FUNCTION }}
@@ -198,10 +210,14 @@ jobs:
           poetry --version
 
       - name: Print information about build
+        env:
+          NOTES: ${{ github.event.inputs.notes || env.DEFAULT_NOTES }}
+          LOG_EACH_SUCCESSFUL_UPLOAD: ${{ github.event.inputs.log_each_successful_upload || env.DEFAULT_LOG_EACH_SUCCESSFUL_UPLOAD }}
+          DEPLOYMENT_PREFIX: ${{ github.event.inputs.deployment_prefix || env.DEFAULT_DEPLOYMENT_PREFIX }}
         run: |
-          echo "notes: ${{ github.event.inputs.notes || env.DEFAULT_NOTES }}"
-          echo "log_each_successful_upload: ${{ github.event.inputs.log_each_successful_upload || env.DEFAULT_LOG_EACH_SUCCESSFUL_UPLOAD }}"
-          echo "deployment_prefix: ${{ github.event.inputs.deployment_prefix || env.DEFAULT_DEPLOYMENT_PREFIX }}"
+          echo "notes: $NOTES"
+          echo "log_each_successful_upload: $LOG_EACH_SUCCESSFUL_UPLOAD"
+          echo "deployment_prefix: $DEPLOYMENT_PREFIX"
 
       - name: Print information about CPU
         run: cat /proc/cpuinfo
@@ -241,6 +257,8 @@ jobs:
           # - developer.mozilla.org (GA4)
           # Using measurement ids on other domains is okay, as GA will filter these events.
           BUILD_GOOGLE_ANALYTICS_MEASUREMENT_ID: G-PWTK27XVWP
+          FRED_GA_ENABLED: true
+          FRED_GA_MEASUREMENT_ID: G-PWTK27XVWP
 
           # This enables the MDN Plus
           REACT_APP_ENABLE_PLUS: true
