@@ -201,6 +201,7 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version-file: mdn/fred/.nvmrc
+          package-manager-cache: false
 
       - name: Install all fred packages
         if: ${{ ! vars.SKIP_BUILD }}
