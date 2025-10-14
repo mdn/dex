@@ -1,9 +1,5 @@
 import { type Locale } from "./core.js";
 
-// web-features doesn't export this type directly so we need to do a little typescript magic:
-import type { features } from "web-features";
-type SupportStatus = (typeof features)[keyof typeof features]["status"];
-
 export interface Source {
   folder: string;
   github_url: string;
@@ -152,7 +148,6 @@ export interface DocMetadata {
   popularity?: number; // Used for search.
   noIndexing?: boolean;
   browserCompat?: string[];
-  baseline?: SupportStatus;
   hash?: string;
   pageType: string;
 }
