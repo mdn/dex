@@ -283,6 +283,8 @@ jobs:
           # - developer.allizom.org (GA4)
           # Using measurement ids on other domains is okay, as GA will filter these events.
           BUILD_GOOGLE_ANALYTICS_MEASUREMENT_ID: G-ZG5HNVZRY0
+          FRED_GA_ENABLED: true
+          FRED_GA_MEASUREMENT_ID: G-ZG5HNVZRY0
 
           # This enables the Plus call-to-action banner and the Plus landing page
           REACT_APP_ENABLE_PLUS: true
