@@ -1,3 +1,5 @@
+import { describe, it } from "node:test";
+import assert from "node:assert/strict";
 import {
   createRegExpFromExtensions,
   ANY_ATTACHMENT_REGEXP,
@@ -8,48 +10,48 @@ describe("createRegExpFromExt", () => {
   const regexp = createRegExpFromExtensions("foo");
 
   it("accepts the extension", () => {
-    expect(regexp.test("test.foo")).toEqual(true);
+    assert.strictEqual(regexp.test("test.foo"), true);
   });
 
   it("accepts uppercase", () => {
-    expect(regexp.test("test.FOO")).toEqual(true);
+    assert.strictEqual(regexp.test("test.FOO"), true);
   });
 
   it("rejects intermediate extensions", () => {
-    expect(regexp.test("test.foo.bar")).toEqual(false);
+    assert.strictEqual(regexp.test("test.foo.bar"), false);
   });
 
   it("rejects other extensions", () => {
-    expect(regexp.test("test.bar")).toEqual(false);
+    assert.strictEqual(regexp.test("test.bar"), false);
   });
 
   it("rejects extensions starting with it", () => {
-    expect(regexp.test("test.foob")).toEqual(false);
+    assert.strictEqual(regexp.test("test.foob"), false);
   });
 
   it("rejects extensions ending with it", () => {
-    expect(regexp.test("test.afoo")).toEqual(false);
+    assert.strictEqual(regexp.test("test.afoo"), false);
   });
 });
 
 describe("ANY_ATTACHMENT_REGEXP", () => {
   const regexp = ANY_ATTACHMENT_REGEXP;
   it("accepts audio files", () => {
-    expect(regexp.test("audio.mp3")).toEqual(true);
+    assert.strictEqual(regexp.test("audio.mp3"), true);
   });
 
   it("accepts video files", () => {
-    expect(regexp.test("video.mp4")).toEqual(true);
+    assert.strictEqual(regexp.test("video.mp4"), true);
   });
 
   it("accepts font files", () => {
-    expect(regexp.test("diagram.svg")).toEqual(true);
+    assert.strictEqual(regexp.test("diagram.svg"), true);
   });
 
   ["index.html", "index.json", "index.md", "contributors.txt"].forEach(
     (filename) =>
       it(`rejects ${filename}`, () => {
-        expect(regexp.test(filename)).toEqual(false);
+        assert.strictEqual(regexp.test(filename), false);
       })
   );
 });
@@ -57,6 +59,6 @@ describe("ANY_ATTACHMENT_REGEXP", () => {
 describe("BINARY_ATTACHMENT_REGEXP", () => {
   const regexp = BINARY_ATTACHMENT_REGEXP;
   it("rejects svg files", () => {
-    expect(regexp.test("diagram.svg")).toEqual(false);
+    assert.strictEqual(regexp.test("diagram.svg"), false);
   });
 });
