@@ -174,7 +174,8 @@ jobs:
           path: mdn/mdn-contributor-spotlight
           persist-credentials: false
 
-      - uses: actions/checkout@v5
+      - name: Checkout (fred)
+        uses: actions/checkout@v5
         if: ${{ ! vars.SKIP_BUILD }}
         with:
           repository: mdn/fred
