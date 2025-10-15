@@ -32,7 +32,7 @@ on:
       notes:
         description: "Notes"
         required: false
-        default: ${DEFAULT_NOTES}
+        default: ""
 
       invalidate:
         description: "Invalidate CDN (use only in exceptional circumstances)"
@@ -76,7 +76,7 @@ jobs:
           RARI_REF: ${{ github.event.inputs.rari-ref }}
           CONTENT_REF: ${{ github.event.inputs.content-ref }}
           TRANSLATED_CONTENT_REF: ${{ github.event.inputs.translated-content-ref }}
-          NOTES: ${{ github.event.inputs.notes || env.DEFAULT_NOTES }}
+          NOTES: ${{ github.event.inputs.notes }}
           INVALIDATE: ${{ github.event.inputs.invalidate }}
         run: |
           echo "rari-ref: $RARI_REF"

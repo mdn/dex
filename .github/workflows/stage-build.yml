@@ -9,11 +9,6 @@ name: Stage Build
 #  https://docs.google.com/spreadsheets/d/1VnnEl-iTtKYmlyN02FiEXygxZCgE4o_ZO8wSleebne4/edit?usp=sharing
 #
 
-env:
-  DEFAULT_DEPLOYMENT_PREFIX: "main"
-  DEFAULT_NOTES: ""
-  DEFAULT_LOG_EACH_SUCCESSFUL_UPLOAD: "false"
-
 on:
   schedule:
     - cron: "0 0 * * *"
@@ -23,23 +18,7 @@ on:
       notes:
         description: "Notes"
         required: false
-        default: ${DEFAULT_NOTES}
-
-      # This is very useful when combined with the "Use workflow from"
-      # feature that is built into the "Run workflow" button on
-      # https://github.com/mdn/dex/actions?query=workflow%3A%22Production+Build%22
-      # If you override the deployment prefix to something like the name
-      # of the branch, you can deploy that entire branch to its own prefix
-      # in S3 which means that it can be fully hosted as its own site.
-      deployment_prefix:
-        description: "Deployment prefix"
-        required: false
-        default: ${DEFAULT_DEPLOYMENT_PREFIX}
-
-      log_each_successful_upload:
-        description: "Deployer logs each success"
-        required: false
-        default: ${DEFAULT_LOG_EACH_SUCCESSFUL_UPLOAD}
+        default: ""
 
       invalidate:
         description: "Invalidate CDN (use only in exceptional circumstances)"
@@ -221,13 +200,9 @@ jobs:
 
       - name: Print information about build
         env:
-          NOTES: ${{ github.event.inputs.notes || env.DEFAULT_NOTES }}
-          LOG_EACH_SUCCESSFUL_UPLOAD: ${{ github.event.inputs.log_each_successful_upload || env.DEFAULT_LOG_EACH_SUCCESSFUL_UPLOAD }}
-          DEPLOYMENT_PREFIX: ${{ github.event.inputs.deployment_prefix || env.DEFAULT_DEPLOYMENT_PREFIX }}
+          NOTES: ${{ github.event.inputs.notes }}
         run: |
           echo "notes: $NOTES"
-          echo "log_each_successful_upload: $LOG_EACH_SUCCESSFUL_UPLOAD"
-          echo "deployment_prefix: $DEPLOYMENT_PREFIX"
 
       - name: Print information about CPU
         run: cat /proc/cpuinfo
