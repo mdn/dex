@@ -9,11 +9,6 @@ name: Stage Build
 #  https://docs.google.com/spreadsheets/d/1VnnEl-iTtKYmlyN02FiEXygxZCgE4o_ZO8wSleebne4/edit?usp=sharing
 #
 
-env:
-  DEFAULT_DEPLOYMENT_PREFIX: "main"
-  DEFAULT_NOTES: ""
-  DEFAULT_LOG_EACH_SUCCESSFUL_UPLOAD: "false"
-
 on:
   schedule:
     - cron: "0 0 * * *"
@@ -23,23 +18,7 @@ on:
       notes:
         description: "Notes"
         required: false
-        default: ${DEFAULT_NOTES}
-
-      # This is very useful when combined with the "Use workflow from"
-      # feature that is built into the "Run workflow" button on
-      # https://github.com/mdn/dex/actions?query=workflow%3A%22Production+Build%22
-      # If you override the deployment prefix to something like the name
-      # of the branch, you can deploy that entire branch to its own prefix
-      # in S3 which means that it can be fully hosted as its own site.
-      deployment_prefix:
-        description: "Deployment prefix"
-        required: false
-        default: ${DEFAULT_DEPLOYMENT_PREFIX}
-
-      log_each_successful_upload:
-        description: "Deployer logs each success"
-        required: false
-        default: ${DEFAULT_LOG_EACH_SUCCESSFUL_UPLOAD}
+        default: ""
 
       invalidate:
         description: "Invalidate CDN (use only in exceptional circumstances)"
@@ -77,21 +56,6 @@ jobs:
     if: ${{ github.repository == 'mdn/dex' && github.ref_name == 'next' }}
 
     steps:
-      # Our usecase is a bit complicated. When the cron schedule runs this workflow,
-      # we rely on the env vars defined at the top of the file. But if it's a manual
-      # trigger we rely on the inputs and only the inputs. That way, the user can
-      # opt to type in 'false'.
-      # It's not possible to express this with GitHub Workflow syntax, so we
-      # have a dedicate set that conveniently sets these as env vars which we
-      # can refer to later in `if: ....` lines or in bash with the `run: ...` blocks.
-      - name: Merge dispatch inputs with default env vars
-        env:
-          DEPLOYER_BUCKET_PREFIX: ${{ github.event.inputs.deployment_prefix || env.DEFAULT_DEPLOYMENT_PREFIX }}
-          DEPLOYER_LOG_EACH_SUCCESSFUL_UPLOAD: ${{ github.event.inputs.log_each_successful_upload || env.DEFAULT_LOG_EACH_SUCCESSFUL_UPLOAD }}
-        run: |
-          echo "DEPLOYER_BUCKET_PREFIX=$DEPLOYER_BUCKET_PREFIX" >> $GITHUB_ENV
-          echo "DEPLOYER_LOG_EACH_SUCCESSFUL_UPLOAD=$DEPLOYER_LOG_EACH_SUCCESSFUL_UPLOAD" >> $GITHUB_ENV
-
       - name: Checkout
         uses: actions/checkout@v5
         with:
@@ -189,7 +153,8 @@ jobs:
           path: mdn/mdn-contributor-spotlight
           persist-credentials: false
 
-      - uses: actions/checkout@v5
+      - name: Checkout (fred)
+        uses: actions/checkout@v5
         if: ${{ ! vars.SKIP_BUILD }}
         with:
           repository: mdn/fred
@@ -235,13 +200,9 @@ jobs:
 
       - name: Print information about build
         env:
-          NOTES: ${{ github.event.inputs.notes || env.DEFAULT_NOTES }}
-          LOG_EACH_SUCCESSFUL_UPLOAD: ${{ github.event.inputs.log_each_successful_upload || env.DEFAULT_LOG_EACH_SUCCESSFUL_UPLOAD }}
-          DEPLOYMENT_PREFIX: ${{ github.event.inputs.deployment_prefix || env.DEFAULT_DEPLOYMENT_PREFIX }}
+          NOTES: ${{ github.event.inputs.notes }}
         run: |
           echo "notes: $NOTES"
-          echo "log_each_successful_upload: $LOG_EACH_SUCCESSFUL_UPLOAD"
-          echo "deployment_prefix: $DEPLOYMENT_PREFIX"
 
       - name: Print information about CPU
         run: cat /proc/cpuinfo
