@@ -3,10 +3,9 @@ module.exports = {
     browser: false,
     commonjs: true,
     es2020: true,
-    "jest/globals": true,
   },
   extends: ["eslint:recommended", "plugin:n/recommended"],
-  plugins: ["jest", "unicorn"],
+  plugins: ["unicorn"],
   globals: {
     Atomics: "readonly",
     SharedArrayBuffer: "readonly",
@@ -34,12 +33,6 @@ module.exports = {
           { ignoreRestSiblings: true },
         ],
         "n/no-deprecated-api": "off",
-        "n/no-extraneous-import": [
-          "error",
-          {
-            allowModules: ["@jest/globals"],
-          },
-        ],
         "n/no-missing-import": "off",
         "n/no-unpublished-import": "off",
         "n/hashbang": "off",
