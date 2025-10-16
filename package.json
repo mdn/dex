@@ -27,7 +27,7 @@
     "@mdn/browser-compat-data": "^6.0.28",
     "cheerio": "1.1.2",
     "fdir": "^6.5.0",
-    "openai": "^5.18.1",
+    "openai": "^6.3.0",
     "pg": "^8.16.3",
     "pgvector": "^0.2.1",
     "rehype-parse": "^9.0.1",
