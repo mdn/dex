@@ -159,6 +159,7 @@ jobs:
         with:
           repository: mdn/fred
           path: mdn/fred
+          ref: fix-ga
           persist-credentials: false
 
       - name: Setup Node.js environment
