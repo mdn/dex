@@ -18,7 +18,11 @@ export async function whatsdeployed(
         encoding: "utf-8",
       },
       (error: child_process.ExecException, stdout: string) => {
-        error ? reject(error) : resolve(stdout);
+        if (error) {
+          reject(error);
+        } else {
+          resolve(stdout);
+        }
       }
     )
   );

@@ -1,4 +1,0 @@
-libs/
-cloud-function/src/internal/
-cloud-function/**/*.js
-tool/*.js

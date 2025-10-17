@@ -10,7 +10,7 @@ on:
       notes:
         description: "Notes"
         required: false
-        default: ${DEFAULT_NOTES}
+        default: ""
 
   workflow_call:
     secrets:
@@ -36,11 +36,14 @@ jobs:
 
       - name: Checkout
         uses: actions/checkout@v5
+        with:
+          persist-credentials: false
 
       - name: Setup Node.js environment
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v6
         with:
           node-version-file: ".nvmrc"
+          package-manager-cache: false
 
       - name: Prepare Cloud Function
         working-directory: cloud-function
