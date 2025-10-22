@@ -50,6 +50,7 @@
     "@types/http-proxy": "^1.17.16",
     "@types/http-server": "^0.12.4",
     "cross-env": "^7.0.3",
+    "foreman": "^3.0.1",
     "http-proxy": "^1.18.1",
     "http-server": "^14.1.1",
     "nodemon": "^3.1.10",
