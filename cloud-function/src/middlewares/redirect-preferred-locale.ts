@@ -10,6 +10,9 @@ export async function redirectPreferredLocale(
   // Check 1: Does the user prefer a locale and has redirect enabled?
 
   const preferredLocale = req.cookies["preferredlocale"];
+  if (req.header("X-Fastly")) {
+    res.vary("Cookie");
+  }
 
   if (!preferredLocale) {
     next();
