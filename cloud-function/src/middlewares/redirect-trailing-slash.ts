@@ -1,7 +1,7 @@
 import { NextFunction, Request, Response } from "express";
 
 import { THIRTY_DAYS } from "../constants.js";
-import { VALID_LOCALES } from "../internal/constants/index.js";
+import { VALID_LOCALES } from "../constants/index.js";
 import { redirect } from "../utils.js";
 
 // Note that the keys of "VALID_LOCALES" are lowercase locales.

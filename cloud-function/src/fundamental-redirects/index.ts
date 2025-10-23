@@ -4,7 +4,7 @@ import {
   VALID_LOCALES,
   LOCALE_ALIASES,
   RETIRED_LOCALES,
-} from "../internal/constants/index.js";
+} from "../constants/index.js";
 
 const startRe = /^\^?\/?/;
 const startTemplate = /^\//;

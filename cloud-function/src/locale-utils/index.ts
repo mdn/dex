@@ -7,7 +7,7 @@ import {
   DEFAULT_LOCALE,
   VALID_LOCALES,
   PREFERRED_LOCALE_COOKIE_NAME,
-} from "../internal/constants/index.js";
+} from "../constants/index.js";
 
 const VALID_LOCALES_LIST = [...VALID_LOCALES.values()];
 

@@ -28,7 +28,6 @@
   },
   "dependencies": {
     "@adzerk/decision-sdk": "^1.0.0-beta.28",
-    "@dex-internal/constants": "file:src/internal/constants",
     "@dex-internal/play": "file:src/internal/play",
     "@google-cloud/functions-framework": "^3.5.1",
     "@sentry/google-cloud-serverless": "^8.55.0",

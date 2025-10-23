@@ -1,3 +1,4 @@
+/* eslint-disable unicorn/no-array-sort */
 export const VALID_LOCALES = new Map(
   ["de", "en-US", "es", "fr", "ja", "ko", "pt-BR", "ru", "zh-CN", "zh-TW"].map(
     (x) => [x.toLowerCase(), x]
@@ -195,7 +196,7 @@ export const CSP_DIRECTIVES = {
   "worker-src": ["'self'"],
 };
 
-export const cspToString = (csp) =>
+export const cspToString = (csp: Record<string, string[]>) =>
   Object.entries(csp)
     .map(([directive, values]) => `${directive} ${values.join(" ")};`)
     .join(" ");
@@ -223,7 +224,7 @@ export const ANY_ATTACHMENT_EXT = [
   ...VIDEO_EXT,
 ].sort();
 
-export function createRegExpFromExtensions(...extensions) {
+export function createRegExpFromExtensions(...extensions: string[]) {
   return new RegExp(`\\.(${extensions.join("|")})$`, "i");
 }
 

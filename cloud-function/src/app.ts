@@ -2,7 +2,7 @@ import cookieParser from "cookie-parser";
 import express, { Request, Response } from "express";
 import { Router } from "express";
 
-import { ANY_ATTACHMENT_EXT } from "./internal/constants/index.js";
+import { ANY_ATTACHMENT_EXT } from "./constants/index.js";
 
 import { Origin } from "./env.js";
 import { proxyContent } from "./handlers/proxy-content.js";
