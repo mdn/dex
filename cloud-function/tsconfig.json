@@ -25,6 +25,5 @@
   "ts-node": {
     "esm": true,
     "swc": true
-  },
-  "exclude": ["src/internal/*"]
+  }
 }
