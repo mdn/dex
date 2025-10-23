@@ -28,7 +28,6 @@
   },
   "dependencies": {
     "@adzerk/decision-sdk": "^1.0.0-beta.28",
-    "@dex-internal/play": "file:src/internal/play",
     "@google-cloud/functions-framework": "^3.5.1",
     "@sentry/google-cloud-serverless": "^8.55.0",
     "accept-language-parser": "^1.5.0",
@@ -45,6 +44,7 @@
     "@types/accept-language-parser": "^1.5.7",
     "@types/cookie": "^0.6.0",
     "@types/cookie-parser": "^1.4.7",
+    "@types/he": "^1.2.3",
     "@types/http-proxy": "^1.17.16",
     "@types/http-server": "^0.12.4",
     "cross-env": "^7.0.3",

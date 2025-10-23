@@ -1,3 +1,4 @@
+// @ts-nocheck
 import * as crypto from "node:crypto";
 
 import he from "he";

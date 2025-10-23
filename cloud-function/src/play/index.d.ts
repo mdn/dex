@@ -57,6 +57,6 @@ export type State = {
   js: string;
   src?: string | undefined;
 };
-import type { IncomingMessage } from "http";
-import type { ServerResponse } from "http";
+import type { IncomingMessage } from "node:http";
+import type { ServerResponse } from "node:http";
 import type * as express from "express";

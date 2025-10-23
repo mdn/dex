@@ -1,3 +1,4 @@
+// @ts-nocheck
 /* global fetch */
 export async function fetchImage(src) {
   const res = await fetch(src);
