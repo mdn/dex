@@ -29,7 +29,6 @@
   "dependencies": {
     "@adzerk/decision-sdk": "^1.0.0-beta.20",
     "@dex-internal/constants": "file:src/internal/constants",
-    "@dex-internal/fundamental-redirects": "file:src/internal/fundamental-redirects",
     "@dex-internal/play": "file:src/internal/play",
     "@dex-internal/pong": "file:src/internal/pong",
     "@dex-internal/slug-utils": "file:src/internal/slug-utils",

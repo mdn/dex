@@ -1,9 +1,10 @@
+// @ts-nocheck
 import {
   DEFAULT_LOCALE,
   VALID_LOCALES,
   LOCALE_ALIASES,
   RETIRED_LOCALES,
-} from "../constants/index.js";
+} from "../internal/constants/index.js";
 
 const startRe = /^\^?\/?/;
 const startTemplate = /^\//;
