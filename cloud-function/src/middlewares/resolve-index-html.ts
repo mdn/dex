@@ -2,7 +2,7 @@ import * as path from "node:path";
 
 import { NextFunction, Request, Response } from "express";
 
-import { slugToFolder } from "../internal/slug-utils/index.js";
+import { slugToFolder } from "../slug-utils/index.js";
 import { isAsset } from "../utils.js";
 
 export async function resolveIndexHTML(

@@ -62,27 +62,6 @@ updates:
         exclude-patterns:
           - "@mdn/*"
 
-  - package-ecosystem: npm
-    directory: "/libs/slug-utils"
-    schedule:
-      interval: weekly
-    open-pull-requests-limit: 10
-    groups:
-      prod:
-        dependency-type: production
-        update-types:
-          - minor
-          - patch
-        exclude-patterns:
-          - "@mdn/*"
-      dev:
-        dependency-type: development
-        update-types:
-          - minor
-          - patch
-        exclude-patterns:
-          - "@mdn/*"
-
     # This forces the Dependabot commit messages to conform to something
     # our auto-merge workflow can always cope with.
     # See https://github.com/ahmadnassri/action-dependabot-auto-merge/issues/31#issuecomment-718779806
