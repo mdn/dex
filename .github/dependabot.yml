@@ -63,27 +63,6 @@ updates:
           - "@mdn/*"
 
   - package-ecosystem: npm
-    directory: "/libs/pong"
-    schedule:
-      interval: weekly
-    open-pull-requests-limit: 10
-    groups:
-      prod:
-        dependency-type: production
-        update-types:
-          - minor
-          - patch
-        exclude-patterns:
-          - "@mdn/*"
-      dev:
-        dependency-type: development
-        update-types:
-          - minor
-          - patch
-        exclude-patterns:
-          - "@mdn/*"
-
-  - package-ecosystem: npm
     directory: "/libs/slug-utils"
     schedule:
       interval: weekly
