@@ -1,12 +1,12 @@
 import type { Request, Response } from "express";
 
-import { Coder } from "../pong/index.js";
+import { Coder } from "../internal/pong/index.js";
 import {
   createPong2GetHandler,
   createPong2ClickHandler,
   createPong2ViewedHandler,
   fetchImage,
-} from "../pong/index.js";
+} from "../internal/pong/index.js";
 
 import stagePlusLookup from "../stripe-plans/stage.js";
 import prodPlusLookup from "../stripe-plans/prod.js";

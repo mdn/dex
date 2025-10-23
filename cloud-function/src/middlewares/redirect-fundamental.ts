@@ -1,7 +1,7 @@
 import { NextFunction, Request, Response } from "express";
 
 import { THIRTY_DAYS } from "../constants.js";
-import { resolveFundamental } from "../fundamental-redirects/index.js";
+import { resolveFundamental } from "../internal/fundamental-redirects/index.js";
 import { redirect } from "../utils.js";
 
 export async function redirectFundamental(

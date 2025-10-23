@@ -3,7 +3,7 @@ import { Request, Response } from "express";
 import {
   ANY_ATTACHMENT_EXT,
   createRegExpFromExtensions,
-} from "./constants/index.js";
+} from "./internal/constants/index.js";
 
 import { DEFAULT_COUNTRY } from "./constants.js";
 

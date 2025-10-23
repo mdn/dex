@@ -1,13 +1,13 @@
 import { Client } from "@adzerk/decision-sdk";
 import type { Request, Response } from "express";
 
-import { Coder } from "../pong/index.js";
+import { Coder } from "../internal/pong/index.js";
 import {
   createPongGetHandler,
   createPongClickHandler,
   createPongViewedHandler,
   fetchImage,
-} from "../pong/index.js";
+} from "../internal/pong/index.js";
 
 import stagePlusLookup from "../stripe-plans/stage.js";
 import prodPlusLookup from "../stripe-plans/prod.js";

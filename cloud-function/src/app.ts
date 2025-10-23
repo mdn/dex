@@ -2,7 +2,7 @@ import cookieParser from "cookie-parser";
 import express, { Request, Response } from "express";
 import { Router } from "express";
 
-import { ANY_ATTACHMENT_EXT } from "./constants/index.js";
+import { ANY_ATTACHMENT_EXT } from "./internal/constants/index.js";
 
 import { Origin } from "./env.js";
 import { proxyContent } from "./handlers/proxy-content.js";
@@ -23,7 +23,7 @@ import { requireOrigin } from "./middlewares/require-origin.js";
 import { notFound } from "./middlewares/not-found.js";
 import { stripForwardedHostHeaders } from "./middlewares/stripForwardedHostHeaders.js";
 import { proxyPong } from "./handlers/proxy-pong.js";
-import { handleRunner } from "./play/index.js";
+import { handleRunner } from "./internal/play/index.js";
 import { proxyContentAssets } from "./handlers/proxy-content-assets.js";
 import { proxySharedAssets } from "./handlers/proxy-shared-assets.js";
 

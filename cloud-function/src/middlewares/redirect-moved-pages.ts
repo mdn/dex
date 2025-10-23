@@ -2,7 +2,7 @@ import { createRequire } from "node:module";
 
 import { NextFunction, Request, Response } from "express";
 
-import { decodePath } from "../slug-utils/index.js";
+import { decodePath } from "../internal/slug-utils/index.js";
 import { THIRTY_DAYS } from "../constants.js";
 import { redirect } from "../utils.js";
 

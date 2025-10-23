@@ -1,6 +1,6 @@
 import type { IncomingMessage, ServerResponse } from "node:http";
 
-import { CSP_VALUE } from "./constants/index.js";
+import { CSP_VALUE } from "./internal/constants/index.js";
 import { isLiveSampleURL } from "./utils.js";
 import { ORIGIN_TRIAL_TOKEN, WILDCARD_ENABLED } from "./env.js";
 

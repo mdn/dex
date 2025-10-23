@@ -8,7 +8,7 @@ import {
 import { withContentResponseHeaders } from "../headers.js";
 import { Source, sourceUri, WILDCARD_ENABLED } from "../env.js";
 import { PROXY_TIMEOUT } from "../constants.js";
-import { ACTIVE_LOCALES } from "../constants/index.js";
+import { ACTIVE_LOCALES } from "../internal/constants/index.js";
 
 const target = sourceUri(Source.content);
 
