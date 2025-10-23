@@ -1,17 +1,19 @@
 import { parse } from "cookie";
 import acceptLanguageParser from "accept-language-parser";
 
+import { Request } from "express";
+
 import {
   DEFAULT_LOCALE,
   VALID_LOCALES,
   PREFERRED_LOCALE_COOKIE_NAME,
-} from "../constants/index.js";
+} from "../internal/constants/index.js";
 
 const VALID_LOCALES_LIST = [...VALID_LOCALES.values()];
 
 // From https://github.com/aws-samples/cloudfront-authorization-at-edge/blob/01c1bc843d478977005bde86f5834ce76c479eec/src/lambda-edge/shared/shared.ts#L216
 // but rewritten in JavaScript (from TypeScript).
-function extractCookiesFromHeaders(headers) {
+function extractCookiesFromHeaders(headers: { cookie?: any }) {
   let value = headers["cookie"];
 
   // Cookies are present in the HTTP header "Cookie" that may be present multiple times.
@@ -30,19 +32,21 @@ function extractCookiesFromHeaders(headers) {
     ];
   }
 
+  // eslint-disable-next-line unicorn/no-array-reduce
   const cookies = value.reduce(
-    (reduced, header) => Object.assign(reduced, parse(header.value)),
+    (reduced: Record<string, string>, header: { value: any }) =>
+      Object.assign(reduced, parse(header.value)),
     {}
   );
 
   return cookies;
 }
 
-function getCookie(request, cookieKey) {
-  return extractCookiesFromHeaders(request.headers)[cookieKey];
+function getCookie(request: Request, cookieKey: string) {
+  return extractCookiesFromHeaders(request.headers as any)[cookieKey];
 }
 
-function getAcceptLanguage(request) {
+function getAcceptLanguage(request: Request) {
   const acceptLangHeaders = request.headers["accept-language"];
 
   if (typeof acceptLangHeaders === "string") {
@@ -54,14 +58,14 @@ function getAcceptLanguage(request) {
   return value;
 }
 
-export function getLocale(request, fallback = DEFAULT_LOCALE) {
+export function getLocale(request: Request, fallback = DEFAULT_LOCALE) {
   // First try by cookie.
   const cookieLocale = getCookie(request, PREFERRED_LOCALE_COOKIE_NAME);
-  if (cookieLocale) {
-    // If it's valid, stick to it.
-    if (VALID_LOCALES.has(cookieLocale.toLowerCase())) {
-      return VALID_LOCALES.get(cookieLocale.toLowerCase());
-    }
+  if (
+    cookieLocale && // If it's valid, stick to it.
+    VALID_LOCALES.has(cookieLocale.toLowerCase())
+  ) {
+    return VALID_LOCALES.get(cookieLocale.toLowerCase());
   }
 
   // Each header in request.headers is always a list of objects.
@@ -72,6 +76,6 @@ export function getLocale(request, fallback = DEFAULT_LOCALE) {
   return locale || fallback;
 }
 
-export function isValidLocale(locale) {
+export function isValidLocale(locale: any) {
   return typeof locale === "string" && VALID_LOCALES.has(locale.toLowerCase());
 }

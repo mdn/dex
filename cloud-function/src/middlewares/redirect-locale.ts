@@ -1,6 +1,6 @@
 import { NextFunction, Request, Response } from "express";
 
-import { getLocale } from "../internal/locale-utils/index.js";
+import { getLocale } from "../locale-utils/index.js";
 import { VALID_LOCALES } from "../internal/constants/index.js";
 import { redirect } from "../utils.js";
 
