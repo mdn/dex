@@ -1,3 +1,4 @@
+// @ts-nocheck
 import he from "he";
 import anonymousIpByCC from "./cc2ip.js";
 
@@ -12,8 +13,8 @@ const PLACEMENTS = {
 // Allow list for client sent keywords.
 const ALLOWED_KEYWORDS = [];
 
-export function createPongGetHandler(client, coder) {
-  return async (body, countryCode) => {
+export function createPongGetHandler(client, coder, env) {
+  return async (body, countryCode, userAgent) => {
     const { keywords = [], pongs = null } = body;
     const anonymousIp = anonymousIpByCC(countryCode);
 

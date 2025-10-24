@@ -20,7 +20,7 @@ import {
   SimpleSupportStatement,
   VersionValue,
 } from "@mdn/browser-compat-data/types";
-import { h2mSync } from "../markdown/index.js";
+import { h2mSync } from "../libs/markdown/index.js";
 import { Doc as JSONDoc } from "../libs/types/document.js";
 
 const EMBEDDING_MODEL = "text-embedding-3-small";

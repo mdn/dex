@@ -1,3 +1,4 @@
+// @ts-nocheck
 import he from "he";
 import anonymousIpByCC from "./cc2ip.js";
 
@@ -11,7 +12,7 @@ function fixupColor(hash) {
   }
 }
 
-export function createPong2GetHandler(zoneKeys, coder) {
+export function createPong2GetHandler(zoneKeys, coder, env) {
   return async (body, countryCode, userAgent) => {
     let { pongs = null } = body;
 

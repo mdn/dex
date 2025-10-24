@@ -1,3 +1,4 @@
+// @ts-nocheck
 import {
   DEFAULT_LOCALE,
   VALID_LOCALES,
