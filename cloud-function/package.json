@@ -38,12 +38,12 @@
     "sanitize-filename": "^1.6.3"
   },
   "devDependencies": {
-    "@swc/core": "^1.11.22",
-    "@types/accept-language-parser": "^1.5.7",
+    "@swc/core": "^1.13.21",
+    "@types/accept-language-parser": "^1.5.8",
     "@types/cookie": "^0.6.0",
-    "@types/cookie-parser": "^1.4.7",
+    "@types/cookie-parser": "^1.4.10",
     "@types/he": "^1.2.3",
-    "@types/http-proxy": "^1.17.16",
+    "@types/http-proxy": "^1.17.17",
     "@types/http-server": "^0.12.4",
     "cross-env": "^7.0.3",
     "foreman": "^3.0.1",
@@ -52,7 +52,7 @@
     "nodemon": "^3.1.10",
     "npm-run-all": "^4.1.5",
     "ts-node": "^10.9.2",
-    "typescript": "^5.8.3"
+    "typescript": "^5.9.3"
   },
   "engines": {
     "node": ">=20.0.0"
