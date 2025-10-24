@@ -67,7 +67,7 @@ export const CSP_SCRIPT_SRC_VALUES = [
 
   // GA4.
   "https://www.google-analytics.com/analytics.js",
-  "https://www.googletagmanager.com/gtag/js",
+  "https://*.googletagmanager.com",
 
   "assets.codepen.io",
   "production-assets.codepen.io",
