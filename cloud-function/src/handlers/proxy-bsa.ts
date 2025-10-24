@@ -46,7 +46,7 @@ export async function proxyBSA(req: Request, res: Response) {
       userAgent
     );
 
-    payload.plusAvailable = plusAvailable;
+    payload["plusAvailable"] = plusAvailable;
 
     return res
       .status(status)
