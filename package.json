@@ -38,11 +38,11 @@
     "unified": "^11.0.5"
   },
   "devDependencies": {
-    "@babel/core": "^7.28.4",
-    "@babel/preset-env": "^7.28.3",
+    "@babel/core": "^7.28.5",
+    "@babel/preset-env": "^7.28.5",
     "@eslint/js": "^9.38.0",
     "@types/express": "^4.17.21",
-    "@types/node": "^22.18.11",
+    "@types/node": "^22.18.12",
     "eslint": "^9.38.0",
     "eslint-plugin-import": "^2.32.0",
     "eslint-plugin-n": "^17.23.1",
