@@ -8,17 +8,16 @@
   "type": "module",
   "main": "src/index.js",
   "scripts": {
-    "build": "tsc -b",
-    "build-canonicals": "cross-env NODE_OPTIONS='--no-warnings=ExperimentalWarning --loader ts-node/esm' node src/build-canonicals.ts",
-    "build-redirects": "cross-env NODE_OPTIONS='--no-warnings=ExperimentalWarning --loader ts-node/esm' node src/build-redirects.ts",
-    "gcp-build": "npm run build",
-    "proxy": "cross-env NODE_OPTIONS='--no-warnings=ExperimentalWarning --loader ts-node/esm' node src/proxy.ts",
-    "server": "npm run build && functions-framework --target=mdnHandler --ignored-routes \"\"",
+    "build-canonicals": "node src/build-canonicals.js",
+    "build-redirects": "node src/build-redirects.js",
+    "check": "tsc --noEmit",
+    "proxy": "node src/proxy.js",
+    "server": "functions-framework --target=mdnHandler --ignored-routes \"\"",
     "server:watch": "nodemon --exec npm run server",
     "start": "nf start"
   },
   "nodemonConfig": {
-    "ext": "json,ts",
+    "ext": "json,js",
     "watch": [
       ".env",
       "src"
@@ -38,20 +37,18 @@
     "sanitize-filename": "^1.6.3"
   },
   "devDependencies": {
-    "@swc/core": "^1.13.21",
     "@types/accept-language-parser": "^1.5.8",
     "@types/cookie": "^0.6.0",
     "@types/cookie-parser": "^1.4.10",
+    "@types/express": "^4.17.21",
     "@types/he": "^1.2.3",
     "@types/http-proxy": "^1.17.17",
     "@types/http-server": "^0.12.4",
-    "cross-env": "^7.0.3",
     "foreman": "^3.0.1",
     "http-proxy": "^1.18.1",
     "http-server": "^14.1.1",
     "nodemon": "^3.1.10",
     "npm-run-all": "^4.1.5",
-    "ts-node": "^10.9.2",
     "typescript": "^5.9.3"
   },
   "engines": {

@@ -1,6 +1,5 @@
 {
   "$schema": "https://json.schemastore.org/tsconfig",
-  "display": "Node 18 + ESM + Strictest",
   "compilerOptions": {
     "lib": ["es2022", "DOM"],
     "module": "NodeNext",
@@ -20,10 +19,9 @@
     "noUncheckedIndexedAccess": true,
     "noUnusedLocals": true,
     "noUnusedParameters": true,
-    "checkJs": true
-  },
-  "ts-node": {
-    "esm": true,
-    "swc": true
+    "checkJs": true,
+    "allowJs": true,
+    "maxNodeModuleJsDepth": 0,
+    "noEmit": true
   }
 }
