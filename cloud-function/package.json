@@ -45,7 +45,7 @@
     "@types/he": "^1.2.3",
     "@types/http-proxy": "^1.17.17",
     "@types/http-server": "^0.12.4",
-    "cross-env": "^7.0.3",
+    "cross-env": "^10.1.0",
     "foreman": "^3.0.1",
     "http-proxy": "^1.18.1",
     "http-server": "^14.1.1",
