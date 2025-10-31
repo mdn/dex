@@ -4,4 +4,3 @@ node_modules
 *.log
 canonicals.json
 redirects.json
-src/**/*.js
