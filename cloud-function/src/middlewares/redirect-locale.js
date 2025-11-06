@@ -2,10 +2,20 @@
 
 import { getLocale } from "../internal/locale-utils/index.js";
 import { VALID_LOCALES } from "../internal/constants/index.js";
-import { redirect } from "../utils.js";
+import { redirect, normalizePath } from "../utils.js";
+import { CANONICALS } from "../canonicals.js";
 
 const NEEDS_LOCALE =
   /^\/(?:blog|curriculum|docs|play|search|settings|plus)(?:$|\/)/;
+
+/**
+ * Finds all locales where a given path (without locale) is available.
+ * @param {string} path - The path without locale prefix (e.g., "/docs/Web/API")
+ * @returns {string[]} Array of locale codes where the page exists
+ */
+function getLocalesWithPath(path) {
+  return [...VALID_LOCALES.values()].filter(locale => CANONICALS[normalizePath(`/${locale}${path}`)]);
+}
 
 /**
  * Middleware that handles locale-related redirects.
@@ -31,8 +41,12 @@ export async function redirectLocale(req, res, next) {
     const path = requestURI.endsWith("/")
       ? requestURI.slice(0, -1)
       : requestURI;
+
+    const locales = getLocalesWithPath(path || "/");
+
     // Note that "getLocale" only returns valid locales, never a retired locale.
-    const locale = getLocale(req);
+    const locale = getLocale(req, { locales: locales.length > 0 ? locales : VALID_LOCALES });
+
     // The only time we actually want a trailing slash is when the URL is just
     // the locale. E.g. `/en-US/` (not `/en-US`)
     return redirect(res, `/${locale}${path || "/"}` + qs);
