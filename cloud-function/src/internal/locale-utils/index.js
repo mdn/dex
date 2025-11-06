@@ -9,8 +9,6 @@ import {
   PREFERRED_LOCALE_COOKIE_NAME,
 } from "../constants/index.js";
 
-const VALID_LOCALES_LIST = [...VALID_LOCALES.values()];
-
 /**
  * From https://github.com/aws-samples/cloudfront-authorization-at-edge/blob/01c1bc843d478977005bde86f5834ce76c479eec/src/lambda-edge/shared/shared.ts#L216
  * but rewritten in JavaScript (from TypeScript).
@@ -77,24 +75,29 @@ function getAcceptLanguage(request) {
 
 /**
  * @param {Request} request
- * @param {string} [fallback]
+ * @param {object} options
+ * @param {string} [options.fallback]
+ * @param {Map<string, string> | Iterable<string>} [options.locales] - Optional set of valid locales to choose from (defaults to VALID_LOCALES)
  * @returns {string}
  */
-export function getLocale(request, fallback = DEFAULT_LOCALE) {
+export function getLocale(request, { fallback = DEFAULT_LOCALE, locales = VALID_LOCALES}) {
+  const validLocalesMap = locales instanceof Map ? locales : new Map([...locales].map(l => [l.toLowerCase(), l]));
+  const validLocalesList = [...validLocalesMap.values()];
+
   // First try by cookie.
   const cookieLocale = getCookie(request, PREFERRED_LOCALE_COOKIE_NAME);
   if (
     cookieLocale && // If it's valid, stick to it.
-    VALID_LOCALES.has(cookieLocale.toLowerCase())
+    validLocalesMap.has(cookieLocale.toLowerCase())
   ) {
-    return /** @type {string} */ (VALID_LOCALES.get(cookieLocale.toLowerCase()));
+    return /** @type {string} */ (validLocalesMap.get(cookieLocale.toLowerCase()));
   }
 
   // Each header in request.headers is always a list of objects.
   const value = getAcceptLanguage(request);
   const locale =
     value &&
-    acceptLanguageParser.pick(VALID_LOCALES_LIST, value, { loose: true });
+    acceptLanguageParser.pick(validLocalesList, value, { loose: true });
   return locale || fallback;
 }
 
