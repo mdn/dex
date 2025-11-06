@@ -24,7 +24,7 @@
   "dependencies": {
     "@caporal/core": "^2.0.7",
     "@mdn/bcd-utils-api": "^0.0.9",
-    "@mdn/browser-compat-data": "^7.1.16",
+    "@mdn/browser-compat-data": "^7.1.18",
     "cheerio": "1.1.2",
     "fdir": "^6.5.0",
     "openai": "^6.7.0",
@@ -40,19 +40,18 @@
   "devDependencies": {
     "@babel/core": "^7.28.5",
     "@babel/preset-env": "^7.28.5",
-    "@eslint/js": "^9.38.0",
-    "@types/express": "^4.17.21",
-    "@types/node": "^22.18.12",
-    "eslint": "^9.38.0",
+    "@eslint/js": "^9.39.1",
+    "@types/node": "^22.19.0",
+    "eslint": "^9.39.1",
     "eslint-plugin-import": "^2.32.0",
     "eslint-plugin-n": "^17.23.1",
     "eslint-plugin-unicorn": "^62.0.0",
-    "globals": "^16.4.0",
-    "lefthook": "^2.0.1",
+    "globals": "^16.5.0",
+    "lefthook": "^2.0.2",
     "prettier": "^3.6.2",
     "prettier-plugin-packagejson": "^2.5.19",
     "typescript": "^5.9.3",
-    "typescript-eslint": "^8.46.2"
+    "typescript-eslint": "^8.46.3"
   },
   "engines": {
     "node": ">=22"
