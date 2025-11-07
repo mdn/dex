@@ -38,8 +38,6 @@ updates:
       interval: weekly
     groups:
       pip:
-        patterns:
-          - "*"
         update-types:
           - minor
           - patch
