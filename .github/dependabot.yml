@@ -20,13 +20,17 @@ updates:
           - patch
         exclude-patterns:
           - "@mdn/*"
+    commit-message:
+      prefix: chore
+      include: scope
 
   - package-ecosystem: "github-actions"
     directory: "/"
     schedule:
       interval: weekly
     commit-message:
-      prefix: "ci(deps): "
+      prefix: ci
+      include: scope
 
   - package-ecosystem: "pip"
     directory: "/deployer"
@@ -39,6 +43,9 @@ updates:
         update-types:
           - "minor"
           - "patch"
+    commit-message:
+      prefix: chore
+      include: scope
 
   - package-ecosystem: npm
     directory: "/cloud-function"
@@ -59,11 +66,6 @@ updates:
           - patch
         exclude-patterns:
           - "@mdn/*"
-
-    # This forces the Dependabot commit messages to conform to something
-    # our auto-merge workflow can always cope with.
-    # See https://github.com/ahmadnassri/action-dependabot-auto-merge/issues/31#issuecomment-718779806
     commit-message:
-      prefix: build
-      prefix-development: chore
+      prefix: chore
       include: scope
