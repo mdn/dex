@@ -94,16 +94,12 @@ export function sourceUri(source) {
 /** @type {string | undefined} */
 export const ORIGIN_TRIAL_TOKEN = process.env["ORIGIN_TRIAL_TOKEN"];
 
-// Kevel.
-export const KEVEL_SITE_ID = Number(process.env["KEVEL_SITE_ID"] ?? 0);
-export const KEVEL_NETWORK_ID = Number(process.env["KEVEL_NETWORK_ID"] ?? 0);
+// Placements.
 export const SIGN_SECRET = process.env["SIGN_SECRET"] ?? "";
 export const BSA_ZONE_KEYS = Object.fromEntries(
   (process.env["BSA_ZONE_KEYS"] ?? "").split(";").map((k) => k.split(":"))
 );
-export const BSA_ENABLED = Boolean(
-  JSON.parse(process.env["BSA_ENABLED"] || "false")
-);
+
 export const WILDCARD_ENABLED = Boolean(
   JSON.parse(process.env["WILDCARD_ENABLED"] || "false")
 );
