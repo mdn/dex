@@ -2,7 +2,7 @@ version: 2
 
 updates:
   - package-ecosystem: npm
-    directory: "/"
+    directory: /
     schedule:
       interval: weekly
     groups:
@@ -24,16 +24,16 @@ updates:
       prefix: chore
       include: scope
 
-  - package-ecosystem: "github-actions"
-    directory: "/"
+  - package-ecosystem: github-actions
+    directory: /
     schedule:
       interval: weekly
     commit-message:
       prefix: ci
       include: scope
 
-  - package-ecosystem: "pip"
-    directory: "/deployer"
+  - package-ecosystem: pip
+    directory: /deployer
     schedule:
       interval: weekly
     groups:
@@ -41,14 +41,14 @@ updates:
         patterns:
           - "*"
         update-types:
-          - "minor"
-          - "patch"
+          - minor
+          - patch
     commit-message:
       prefix: chore
       include: scope
 
   - package-ecosystem: npm
-    directory: "/cloud-function"
+    directory: /cloud-function
     schedule:
       interval: weekly
     groups:
