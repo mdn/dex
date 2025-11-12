@@ -19,20 +19,48 @@ import {
   SimpleSupportStatement,
   VersionValue,
 } from "@mdn/browser-compat-data/types";
-import {
-  JSONDocMetadata,
-  JSONDoc,
-  IndexedDoc,
-  Doc,
-  FormattingUpdate,
-  EmbeddingUpdate,
-} from "./types.js";
+import * as Rari from "@mdn/rari";
 import { h2mSync } from "./libs/markdown.js";
 
 const EMBEDDING_MODEL = "text-embedding-3-small";
 const EMBEDDING_MODEL_NEXT = "text-embedding-3-small";
 
 const { program } = caporal;
+
+interface IndexedDoc {
+  id: number;
+  mdn_url: string;
+  title: string;
+  token_count: number | null;
+  has_embedding: boolean;
+  has_embedding_next: boolean;
+  markdown_hash: string;
+  text_hash: string;
+}
+
+interface Doc {
+  mdn_url: string;
+  title: string;
+  title_short: string;
+  markdown: string;
+  markdown_hash: string;
+  text?: string;
+  text_hash?: string;
+}
+
+type FormattingUpdate = Pick<
+  Doc,
+  "mdn_url" | "title" | "title_short" | "markdown" | "markdown_hash"
+>;
+
+type EmbeddingUpdate = Pick<Doc, "mdn_url" | "text"> & {
+  has_embedding: boolean;
+  has_embedding_next: boolean;
+};
+
+type DocMetadata = Pick<Rari.Doc, "title" | "short_title" | "mdn_url"> & {
+  hash: string;
+};
 
 export async function updateEmbeddings(
   directory: string,
@@ -383,7 +411,7 @@ async function* builtDocs(directory: string, usePlainHtml: boolean) {
       const raw = await readFile(metadataPath, "utf-8");
       const { title, short_title, mdn_url, hash } = JSON.parse(
         raw
-      ) as JSONDocMetadata;
+      ) as DocMetadata;
       let $: CheerioAPI;
 
       if (usePlainHtml) {
@@ -395,7 +423,7 @@ async function* builtDocs(directory: string, usePlainHtml: boolean) {
       } else {
         const jsonPath = path.join(path.dirname(metadataPath), "index.json");
         const json = JSON.parse(await readFile(jsonPath, "utf-8"));
-        const doc = json.doc as JSONDoc;
+        const doc = json.doc as Rari.Doc;
 
         // Assemble the interim HTML from the json data
         $ = cheerio("<html><head></head><body></body></html>");
