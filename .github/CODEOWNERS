@@ -1,9 +1,8 @@
 # ----------------------------------------------------------------------------
-# MDN Dex CODEOWNERS
+# CODEOWNERS
 # ----------------------------------------------------------------------------
 # Order is important. The last matching pattern takes precedence.
-# For more detailed information, see:
-# https://docs.github.com/en/repositories/managing-your-repositorys-settings-and-features/customizing-your-repository/about-code-owners
+# See: https://docs.github.com/en/repositories/managing-your-repositorys-settings-and-features/customizing-your-repository/about-code-owners
 # ----------------------------------------------------------------------------
 
 * @mdn/engineering
