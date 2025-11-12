@@ -19,7 +19,6 @@ import {
   SimpleSupportStatement,
   VersionValue,
 } from "@mdn/browser-compat-data/types";
-import { h2mSync } from "../libs/markdown/index.js";
 import {
   JSONDocMetadata,
   JSONDoc,
@@ -28,6 +27,7 @@ import {
   FormattingUpdate,
   EmbeddingUpdate,
 } from "./types.js";
+import { h2mSync } from "./libs/markdown.js";
 
 const EMBEDDING_MODEL = "text-embedding-3-small";
 const EMBEDDING_MODEL_NEXT = "text-embedding-3-small";
