@@ -20,7 +20,7 @@ optional = true
 [tool.poetry.group.dev.dependencies]
 black = "^25.11"
 flake8 = "^7.3.0"
-pytest = "^9.0.0"
+pytest = "^9.0.1"
 
 [tool.poetry.scripts]
 deployer = "deployer.main:cli"
