@@ -8,7 +8,7 @@ import { fdir } from "fdir";
 import OpenAI from "openai";
 import { load as cheerio, CheerioAPI } from "cheerio";
 
-import { BUILD_OUT_ROOT, OPENAI_KEY, PG_URI } from "../libs/env/index.js";
+import { BUILD_OUT_ROOT, OPENAI_KEY, PG_URI } from "./env.js";
 import {
   getBCDDataForPath,
   SimpleSupportStatementExtended,
