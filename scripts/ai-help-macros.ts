@@ -8,7 +8,6 @@ import { fdir } from "fdir";
 import OpenAI from "openai";
 import { load as cheerio, CheerioAPI } from "cheerio";
 
-import { DocMetadata } from "../libs/types/document.js";
 import { BUILD_OUT_ROOT, OPENAI_KEY, PG_URI } from "../libs/env/index.js";
 import {
   getBCDDataForPath,
@@ -21,43 +20,19 @@ import {
   VersionValue,
 } from "@mdn/browser-compat-data/types";
 import { h2mSync } from "../libs/markdown/index.js";
-import { Doc as JSONDoc } from "../libs/types/document.js";
+import {
+  JSONDocMetadata,
+  JSONDoc,
+  IndexedDoc,
+  Doc,
+  FormattingUpdate,
+  EmbeddingUpdate,
+} from "./types.js";
 
 const EMBEDDING_MODEL = "text-embedding-3-small";
 const EMBEDDING_MODEL_NEXT = "text-embedding-3-small";
 
 const { program } = caporal;
-
-interface IndexedDoc {
-  id: number;
-  mdn_url: string;
-  title: string;
-  token_count: number | null;
-  has_embedding: boolean;
-  has_embedding_next: boolean;
-  markdown_hash: string;
-  text_hash: string;
-}
-
-interface Doc {
-  mdn_url: string;
-  title: string;
-  title_short: string;
-  markdown: string;
-  markdown_hash: string;
-  text?: string;
-  text_hash?: string;
-}
-
-type FormattingUpdate = Pick<
-  Doc,
-  "mdn_url" | "title" | "title_short" | "markdown" | "markdown_hash"
->;
-
-type EmbeddingUpdate = Pick<Doc, "mdn_url" | "text"> & {
-  has_embedding: boolean;
-  has_embedding_next: boolean;
-};
 
 export async function updateEmbeddings(
   directory: string,
@@ -408,7 +383,7 @@ async function* builtDocs(directory: string, usePlainHtml: boolean) {
       const raw = await readFile(metadataPath, "utf-8");
       const { title, short_title, mdn_url, hash } = JSON.parse(
         raw
-      ) as DocMetadata;
+      ) as JSONDocMetadata;
       let $: CheerioAPI;
 
       if (usePlainHtml) {
