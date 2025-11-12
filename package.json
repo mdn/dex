@@ -26,6 +26,7 @@
     "@mdn/bcd-utils-api": "^0.0.9",
     "@mdn/browser-compat-data": "^7.1.20",
     "cheerio": "1.1.2",
+    "dotenv": "^17.2.3",
     "fdir": "^6.5.0",
     "openai": "^6.8.1",
     "pg": "^8.16.3",
