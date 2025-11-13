@@ -182,5 +182,7 @@ export const cc2ip = {
  * @returns {string}
  */
 export default function anonymousIpByCC(countryCode) {
-  return cc2ip[countryCode] ?? "10.10.10.10";
+  return (
+    /** @type {Record<string, string>} */ (cc2ip)[countryCode] ?? "10.10.10.10"
+  );
 }
