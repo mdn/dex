@@ -1,5 +1,3 @@
-// eslint-disable-next-line @typescript-eslint/ban-ts-comment
-// @ts-nocheck
 export const cc2ip = {
   AD: "194.158.64.0",
   AE: "86.96.130.0",
