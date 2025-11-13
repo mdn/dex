@@ -34,7 +34,7 @@ export function createPong2GetHandler(zoneKeys, coder, env) {
     // Sanitize.
     pongs = pongs.filter((p) => p in zoneKeys);
 
-    if (pongs.length == 0) {
+    if (pongs.length === 0) {
       return { statusCode: 400, payload: { status: "empty" } };
     }
 
