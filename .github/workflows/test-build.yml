@@ -245,7 +245,7 @@ jobs:
       - name: Print information about CPU
         run: cat /proc/cpuinfo
 
-      - name: Build everything
+      - name: Build (rari)
         if: ${{ ! vars.SKIP_BUILD }}
         working-directory: mdn/fred
         env:
@@ -257,24 +257,39 @@ jobs:
           BLOG_ROOT: ${{ github.workspace }}/mdn/blog/content/posts
           CURRICULUM_ROOT: ${{ github.workspace }}/mdn/curriculum
           GENERIC_CONTENT_ROOT: ${{ github.workspace }}/mdn/generic-content/files
-          DEX_ROOT: ${{ github.workspace }}/mdn/dex
-          BASE_URL: "https://test.developer.allizom.org"
 
           # rari
+          BASE_URL: "https://test.developer.allizom.org"
           BUILD_OUT_ROOT: "out"
           LIVE_SAMPLES_BASE_URL: https://live.test.mdnyalp.dev
           INTERACTIVE_EXAMPLES_BASE_URL: https://interactive-examples.mdn.allizom.net
           ADDITIONAL_LOCALES_FOR_GENERICS_AND_SPAS: de
 
+          # Increase GitHub API rate limit.
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set -eo pipefail
+
+          # Info about which CONTENT_* environment variables were set and to what.
+          echo "CONTENT_ROOT=$CONTENT_ROOT"
+          echo "CONTENT_TRANSLATED_ROOT=$CONTENT_TRANSLATED_ROOT"
+          echo "BLOG_ROOT=$BLOG_ROOT"
+
+          npm run rari content sync-translated-content
+          npm run rari git-history
+
+          npm run rari build -- --all --issues "$BUILD_OUT_ROOT/issues.json" --templ-stats
+
+      - name: Build (fred)
+        if: ${{ ! vars.SKIP_BUILD }}
+        working-directory: mdn/fred
+        env:
+          DEX_ROOT: ${{ github.workspace }}/mdn/dex
+          BASE_URL: "https://test.developer.allizom.org"
+          BUILD_OUT_ROOT: "out"
+
           FRED_ROBOTS_GLOBAL_ALLOW: false
           FRED_BCD_BASE_URL: https://bcd.developer.allizom.org
-
-          # The default for this environment variable is geared for writers
-          # (aka. local development). Usually defaults are supposed to be for
-          # secure production but this is an exception and default
-          # is not insecure.
-          BUILD_LIVE_SAMPLES_BASE_URL: https://live.test.mdnyalp.dev
-          BUILD_LEGACY_LIVE_SAMPLES_BASE_URL: https://live.test.mdnyalp.dev
 
           # This enables the Plus call-to-action banner and the Plus landing page
           REACT_APP_ENABLE_PLUS: true
@@ -330,16 +345,6 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           set -eo pipefail
-
-          # Info about which CONTENT_* environment variables were set and to what.
-          echo "CONTENT_ROOT=$CONTENT_ROOT"
-          echo "CONTENT_TRANSLATED_ROOT=$CONTENT_TRANSLATED_ROOT"
-          echo "BLOG_ROOT=$BLOG_ROOT"
-
-          npm run rari content sync-translated-content
-          npm run rari git-history
-
-          npm run rari build -- --all --issues "$BUILD_OUT_ROOT/issues.json" --templ-stats
 
           # SSR all pages
           npm run build
