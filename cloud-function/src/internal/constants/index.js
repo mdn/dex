@@ -233,7 +233,7 @@ export const ANY_ATTACHMENT_EXT = [
  * @returns {RegExp}
  */
 export function createRegExpFromExtensions(...extensions) {
-  return new RegExp(`\\.(${extensions.join("|")})$`, "i");
+  return new RegExp(String.raw`\.(${extensions.join("|")})$`, "i");
 }
 
 export const ANY_ATTACHMENT_REGEXP = createRegExpFromExtensions(

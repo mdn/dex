@@ -88,7 +88,7 @@ for (const locale of VALID_LOCALES.keys()) {
     fixableLocales.set(locale.replace("-", "_").toLowerCase(), locale);
   } else {
     // E.g. `fr` becomes alias `fr-XX`
-    fixableLocales.set(`${locale}-\\w{2}`.toLowerCase(), locale);
+    fixableLocales.set(String.raw`${locale}-\w{2}`.toLowerCase(), locale);
   }
 }
 
@@ -858,7 +858,10 @@ const zoneRedirects = [
  * @returns {RegExp}
  */
 const zonePatternFmt = (prefix, zoneRootPattern) =>
-  new RegExp(`^${prefix}${zoneRootPattern}(?:\\/?|(?<subPath>[\\/$].+))$`, "i");
+  new RegExp(
+    String.raw`^${prefix}${zoneRootPattern}(?:\/?|(?<subPath>[\/$].+))$`,
+    "i"
+  );
 
 /**
  * @param {string} prefix
@@ -1087,7 +1090,7 @@ for (const [aoPath, ewPath] of [
 ]) {
   WEBEXTENSIONS_REDIRECT_PATTERNS.push(
     externalRedirect(
-      new RegExp(`docs\\/Mozilla\\/Add-ons\\/${aoPath}$`, "i"),
+      new RegExp(String.raw`docs\/Mozilla\/Add-ons\/${aoPath}$`, "i"),
       `https://extensionworkshop.com/documentation/${ewPath}`
     )
   );
