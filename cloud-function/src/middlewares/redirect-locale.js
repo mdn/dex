@@ -14,7 +14,9 @@ const NEEDS_LOCALE =
  * @returns {string[]} Array of locale codes where the page exists
  */
 function getLocalesWithPath(path) {
-  return [...VALID_LOCALES.values()].filter(locale => CANONICALS[normalizePath(`/${locale}${path}`)]);
+  return [...VALID_LOCALES.values()].filter(
+    (locale) => CANONICALS[normalizePath(`/${locale}${path}`)]
+  );
 }
 
 /**
@@ -45,7 +47,9 @@ export async function redirectLocale(req, res, next) {
     const locales = getLocalesWithPath(path || "/");
 
     // Note that "getLocale" only returns valid locales, never a retired locale.
-    const locale = getLocale(req, { locales: locales.length > 0 ? locales : VALID_LOCALES });
+    const locale = getLocale(req, {
+      locales: locales.length > 0 ? locales : VALID_LOCALES,
+    });
 
     // The only time we actually want a trailing slash is when the URL is just
     // the locale. E.g. `/en-US/` (not `/en-US`)

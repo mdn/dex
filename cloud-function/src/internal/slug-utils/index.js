@@ -29,7 +29,10 @@ export function slugToFolder(slug, joiner = "/") {
  * @returns {string}
  */
 export function decodePath(path) {
-  const decoded = path.split("/").map((element) => decodeURIComponent(element)).join("/");
+  const decoded = path
+    .split("/")
+    .map((element) => decodeURIComponent(element))
+    .join("/");
   return decoded;
 }
 
@@ -38,6 +41,9 @@ export function decodePath(path) {
  * @returns {string}
  */
 export function encodePath(path) {
-  const decoded = path.split("/").map((element) => encodeURIComponent(element)).join("/");
+  const decoded = path
+    .split("/")
+    .map((element) => encodeURIComponent(element))
+    .join("/");
   return decoded;
 }
