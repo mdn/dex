@@ -219,7 +219,6 @@ jobs:
           BLOG_ROOT: ${{ github.workspace }}/mdn/blog/content/posts
           CURRICULUM_ROOT: ${{ github.workspace }}/mdn/curriculum
           GENERIC_CONTENT_ROOT: ${{ github.workspace }}/mdn/generic-content/files
-          DEX_ROOT: ${{ github.workspace }}/mdn/dex
           BASE_URL: "https://developer.allizom.org"
 
           # rari
@@ -227,9 +226,6 @@ jobs:
           LIVE_SAMPLES_BASE_URL: https://live.mdnyalp.dev
           INTERACTIVE_EXAMPLES_BASE_URL: https://interactive-examples.mdn.allizom.net
           ADDITIONAL_LOCALES_FOR_GENERICS_AND_SPAS: de
-
-          FRED_ROBOTS_GLOBAL_ALLOW: false
-          FRED_BCD_BASE_URL: https://bcd.developer.allizom.org
 
           # The default for this environment variable is geared for writers
           # (aka. local development). Usually defaults are supposed to be for
@@ -240,67 +236,6 @@ jobs:
 
           # Sign key for code samples
           BUILD_SAMPLE_SIGN_KEY: ${{ secrets.SAMPLE_SIGN_KEY }}
-
-          # This is the Google Analytics measurement ID for:
-          # - developer.allizom.org (GA4)
-          # Using measurement ids on other domains is okay, as GA will filter these events.
-          BUILD_GOOGLE_ANALYTICS_MEASUREMENT_ID: G-ZG5HNVZRY0
-          FRED_GA_ENABLED: true
-          FRED_GA_MEASUREMENT_ID: G-ZG5HNVZRY0
-
-          # This enables the Plus call-to-action banner and the Plus landing page
-          REACT_APP_ENABLE_PLUS: true
-
-          # This adds the ability to sign in (stage only for now)
-          REACT_APP_DISABLE_AUTH: false
-
-          # Use the stage version of interactive examples in react app
-          REACT_APP_INTERACTIVE_EXAMPLES_BASE_URL: https://interactive-examples.mdn.allizom.net
-
-          # Offline updates
-          REACT_APP_UPDATES_BASE_URL: https://updates.developer.allizom.org
-
-          # Firefox Accounts and SubPlat settings
-          REACT_APP_FXA_SIGNIN_URL: /users/fxa/login/authenticate/
-          REACT_APP_FXA_SETTINGS_URL: https://accounts.stage.mozaws.net/settings/
-          REACT_APP_MDN_PLUS_SUBSCRIBE_URL: https://accounts.stage.mozaws.net/subscriptions/products/prod_Jtbg9tyGyLRuB0
-          REACT_APP_MDN_PLUS_5M_PLAN: price_1JFoTYKb9q6OnNsLalexa03p
-          REACT_APP_MDN_PLUS_5Y_PLAN: price_1JpIPwKb9q6OnNsLJLsIqMp7
-          REACT_APP_MDN_PLUS_10M_PLAN: price_1K6X7gKb9q6OnNsLi44HdLcC
-          REACT_APP_MDN_PLUS_10Y_PLAN: price_1K6X8VKb9q6OnNsLFlUcEiu4
-
-          # Support for SP3
-          REACT_APP_MDN_PLUS_SUBSCRIBE_URL_SP3_BASE: https://payments-next.allizom.org
-          REACT_APP_MDN_PLUS_5M_SP3_ID: mdnplus5mstage
-          REACT_APP_MDN_PLUS_5Y_SP3_ID: mdnplus5ystage
-          REACT_APP_MDN_PLUS_10M_SP3_ID: mdnsupporter10mstage
-          REACT_APP_MDN_PLUS_10Y_SP3_ID: mdnsupporter10ystage
-
-          # Surveys.
-          REACT_APP_SURVEY_START_JS_PROPOSALS_2025: 0 # stage
-          REACT_APP_SURVEY_END_JS_PROPOSALS_2025: 1745971200000 # new Date("2025-04-30Z").getTime()
-          REACT_APP_SURVEY_RATE_FROM_JS_PROPOSALS_2025: 0.0
-          REACT_APP_SURVEY_RATE_TILL_JS_PROPOSALS_20255: 0.05 # 5%
-
-          # Telemetry.
-          REACT_APP_GLEAN_CHANNEL: stage
-          REACT_APP_GLEAN_ENABLED: true
-          FRED_GLEAN_CHANNEL: stage
-          FRED_GLEAN_ENABLED: true
-
-          # Newsletter
-          REACT_APP_NEWSLETTER_ENABLED: true
-
-          # Placement
-          REACT_APP_PLACEMENT_ENABLED: true
-
-          # Playground
-          REACT_APP_PLAYGROUND_BASE_HOST: mdnyalp.dev
-          FRED_PLAYGROUND_BASE_HOST: mdnyalp.dev
-
-          # Observatory
-          REACT_APP_OBSERVATORY_API_URL: https://observatory-api.mdn.allizom.net
-          FRED_OBSERVATORY_API_URL: https://observatory-api.mdn.allizom.net
 
           # Sentry.
           SENTRY_DSN_BUILD: ${{ secrets.SENTRY_DSN_BUILD }}
