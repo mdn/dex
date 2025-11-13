@@ -8,7 +8,7 @@ import anonymousIpByCC from "./cc2ip.js";
  */
 function fixupColor(hash) {
   if (typeof hash !== "string" && typeof hash !== "number") {
-    return undefined;
+    return;
   } else if (hash?.startsWith?.("rgb") || hash?.startsWith?.("#")) {
     return hash;
   } else {
