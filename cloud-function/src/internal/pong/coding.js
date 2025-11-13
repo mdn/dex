@@ -1,5 +1,3 @@
-// eslint-disable-next-line @typescript-eslint/ban-ts-comment
-// @ts-nocheck
 import { createHmac } from "node:crypto";
 
 export class Coder {
@@ -37,7 +35,9 @@ export class Coder {
       return null;
     }
     const [encoded, digest] = tuple.split(".");
-    const s = Buffer.from(encoded, "base64").toString("utf-8");
+    const s = Buffer.from(/** @type {string} */ (encoded), "base64").toString(
+      "utf-8"
+    );
     const hmac = createHmac("sha256", this.signSecret);
     hmac.update(s);
     if (hmac.digest("base64") == digest) {
