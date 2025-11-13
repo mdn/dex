@@ -1,5 +1,5 @@
+// eslint-disable-next-line @typescript-eslint/ban-ts-comment
 // @ts-nocheck
-/* global fetch */
 /**
  * @param {string} src
  * @returns {Promise<{status: number, buf: ArrayBuffer, contentType: string | null}>}

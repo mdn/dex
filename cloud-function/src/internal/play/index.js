@@ -1,3 +1,4 @@
+// eslint-disable-next-line @typescript-eslint/ban-ts-comment
 // @ts-nocheck
 import * as crypto from "node:crypto";
 
@@ -603,13 +604,12 @@ export async function decompressFromBase64(base64String) {
   }
   const bytes = Buffer.from(base64String, "base64");
   const hashBuffer = await crypto.subtle.digest("SHA-256", bytes);
-  const hashArray = Array.from(new Uint8Array(hashBuffer)).slice(0, 20);
+  const hashArray = [...new Uint8Array(hashBuffer)].slice(0, 20);
   const hash = hashArray.map((b) => b.toString(16).padStart(2, "0")).join("");
 
   // eslint-disable-next-line n/no-unsupported-features/node-builtins
   const decompressionStream = new DecompressionStream("deflate-raw");
 
-  // eslint-disable-next-line n/no-unsupported-features/node-builtins
   const decompressedStream = new Response(
     new Blob([bytes]).stream().pipeThrough(decompressionStream)
   ).arrayBuffer();
