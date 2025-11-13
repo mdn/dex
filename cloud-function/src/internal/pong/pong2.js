@@ -1,3 +1,4 @@
+// eslint-disable-next-line @typescript-eslint/ban-ts-comment
 // @ts-nocheck
 import he from "he";
 import anonymousIpByCC from "./cc2ip.js";
@@ -8,7 +9,7 @@ import anonymousIpByCC from "./cc2ip.js";
  */
 function fixupColor(hash) {
   if (typeof hash !== "string" && typeof hash !== "number") {
-    return undefined;
+    return;
   } else if (hash?.startsWith?.("rgb") || hash?.startsWith?.("#")) {
     return hash;
   } else {
@@ -19,10 +20,9 @@ function fixupColor(hash) {
 /**
  * @param {any} zoneKeys
  * @param {any} coder
- * @param {any} env
  * @returns {Function}
  */
-export function createPong2GetHandler(zoneKeys, coder, env) {
+export function createPong2GetHandler(zoneKeys, coder) {
   return async (body, countryCode, userAgent) => {
     let { pongs = null } = body;
 
@@ -34,7 +34,7 @@ export function createPong2GetHandler(zoneKeys, coder, env) {
     // Sanitize.
     pongs = pongs.filter((p) => p in zoneKeys);
 
-    if (pongs.length == 0) {
+    if (pongs.length === 0) {
       return { statusCode: 400, payload: { status: "empty" } };
     }
 
@@ -170,7 +170,6 @@ export function createPong2GetHandler(zoneKeys, coder, env) {
     // Typically, without a successful sidedoor request, this will be "side", "top" and "bottom" zones.
     // With sidedoor data, typically only "bottom" remains.
     const requests = placements.map(async ({ name, zoneKey }) => {
-      // eslint-disable-next-line n/no-unsupported-features/node-builtins
       const response = await fetch(
         `https://srv.buysellads.com/ads/${zoneKey}.json?forwardedip=${encodeURIComponent(
           anonymousIp
@@ -335,7 +334,6 @@ export function createPong2ClickHandler(coder) {
     clickURL.searchParams.set("forwardedip", anonymousIp);
     clickURL.searchParams.set("useragent", userAgent);
 
-    // eslint-disable-next-line n/no-unsupported-features/node-builtins
     const res = await fetch(clickURL, {
       redirect: "manual",
     });
@@ -367,7 +365,6 @@ export function createPong2ViewedHandler(coder) {
       viewURL.searchParams.set("forwardedip", anonymousIp);
       viewURL.searchParams.set("useragent", userAgent);
 
-      // eslint-disable-next-line n/no-unsupported-features/node-builtins
       await fetch(viewURL, {
         redirect: "manual",
       });

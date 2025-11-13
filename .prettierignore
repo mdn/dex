@@ -2,5 +2,3 @@
 *~
 # exclude these files
 /node_modules/
-/cloud-function/src/internal/
-/cloud-function/**/*.js

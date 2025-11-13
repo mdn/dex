@@ -1,3 +1,4 @@
+// eslint-disable-next-line @typescript-eslint/ban-ts-comment
 // @ts-nocheck
 import {
   DEFAULT_LOCALE,
@@ -88,7 +89,7 @@ for (const locale of VALID_LOCALES.keys()) {
     fixableLocales.set(locale.replace("-", "_").toLowerCase(), locale);
   } else {
     // E.g. `fr` becomes alias `fr-XX`
-    fixableLocales.set(`${locale}-\\w{2}`.toLowerCase(), locale);
+    fixableLocales.set(String.raw`${locale}-\w{2}`.toLowerCase(), locale);
   }
 }
 
@@ -101,9 +102,7 @@ const LOCALE_PATTERNS = [
   // All things like `/en_Us/docs/...` -> `/en-US/docs/...`
   redirect(
     new RegExp(
-      `^(?<locale>${Array.from(fixableLocales.keys()).join(
-        "|"
-      )})(/(?<suffix>.*)|$)`,
+      `^(?<locale>${[...fixableLocales.keys()].join("|")})(/(?<suffix>.*)|$)`,
       "i"
     ),
     ({ locale, suffix }) => {
@@ -123,9 +122,7 @@ const LOCALE_PATTERNS = [
   // Retired locales
   redirect(
     new RegExp(
-      `^(?<locale>${Array.from(RETIRED_LOCALES.keys()).join(
-        "|"
-      )})(/(?<suffix>.*)|$)`,
+      `^(?<locale>${[...RETIRED_LOCALES.keys()].join("|")})(/(?<suffix>.*)|$)`,
       "i"
     ),
     ({ suffix }) => {
@@ -858,7 +855,10 @@ const zoneRedirects = [
  * @returns {RegExp}
  */
 const zonePatternFmt = (prefix, zoneRootPattern) =>
-  new RegExp(`^${prefix}${zoneRootPattern}(?:\\/?|(?<subPath>[\\/$].+))$`, "i");
+  new RegExp(
+    String.raw`^${prefix}${zoneRootPattern}(?:\/?|(?<subPath>[\/$].+))$`,
+    "i"
+  );
 
 /**
  * @param {string} prefix
@@ -1087,7 +1087,7 @@ for (const [aoPath, ewPath] of [
 ]) {
   WEBEXTENSIONS_REDIRECT_PATTERNS.push(
     externalRedirect(
-      new RegExp(`docs\\/Mozilla\\/Add-ons\\/${aoPath}$`, "i"),
+      new RegExp(String.raw`docs\/Mozilla\/Add-ons\/${aoPath}$`, "i"),
       `https://extensionworkshop.com/documentation/${ewPath}`
     )
   );
@@ -1169,13 +1169,9 @@ const MISC_REDIRECT_PATTERNS = [
   localeRedirect(/^profile(?:|\/edit)\/?$/i, "/settings", {
     permanent: false,
   }),
-  localeRedirect(
-    /^profiles\/(?:[^\/]+)(?:|\/edit|\/delete)\/?$/i,
-    "/settings",
-    {
-      permanent: false,
-    }
-  ),
+  localeRedirect(/^profiles\/(?:[^/]+)(?:|\/edit|\/delete)\/?$/i, "/settings", {
+    permanent: false,
+  }),
   localeRedirect(/^docs\/Core_JavaScript_1.5_/i, "/docs/Web/JavaScript/", {
     permanent: true,
     // This will convert :
@@ -1207,33 +1203,31 @@ const MISC_REDIRECT_PATTERNS = [
   ),
 ];
 
-const REDIRECT_PATTERNS = [].concat(
-  SCL3_REDIRECT_PATTERNS,
-  ZONE_REDIRECT_PATTERNS,
-  MARIONETTE_REDIRECT_PATTERNS,
-  WEBEXTENSIONS_REDIRECT_PATTERNS,
-  FIREFOX_ACCOUNTS_REDIRECT_PATTERNS,
-  FIREFOX_SOURCE_DOCS_REDIRECT_PATTERNS,
-  [
-    localeRedirect(
-      /^fellowship.*/i,
-      "/docs/Archive/2015_MDN_Fellowship_Program",
-      {
-        permanent: true,
-      }
-    ),
-    localeRedirect(
-      /^docs\/(ServerJS|CommonJS)(?<subPath>$|\/.+)/i,
-      ({ subPath }) => `https://wiki.mozilla.org/docs/ServerJS${subPath}`,
-      { prependLocale: false, permanent: true }
-    ),
-    localeRedirect(/advertising\/with_us/i, "/advertising", {
+const REDIRECT_PATTERNS = [
+  ...SCL3_REDIRECT_PATTERNS,
+  ...ZONE_REDIRECT_PATTERNS,
+  ...MARIONETTE_REDIRECT_PATTERNS,
+  ...WEBEXTENSIONS_REDIRECT_PATTERNS,
+  ...FIREFOX_ACCOUNTS_REDIRECT_PATTERNS,
+  ...FIREFOX_SOURCE_DOCS_REDIRECT_PATTERNS,
+  localeRedirect(
+    /^fellowship.*/i,
+    "/docs/Archive/2015_MDN_Fellowship_Program",
+    {
       permanent: true,
-    }),
-  ],
-  LOCALE_PATTERNS,
-  MISC_REDIRECT_PATTERNS
-);
+    }
+  ),
+  localeRedirect(
+    /^docs\/(ServerJS|CommonJS)(?<subPath>$|\/.+)/i,
+    ({ subPath }) => `https://wiki.mozilla.org/docs/ServerJS${subPath}`,
+    { prependLocale: false, permanent: true }
+  ),
+  localeRedirect(/advertising\/with_us/i, "/advertising", {
+    permanent: true,
+  }),
+  ...LOCALE_PATTERNS,
+  ...MISC_REDIRECT_PATTERNS,
+];
 
 const STARTING_SLASH = /^\//;
 const ABSOLUTE_URL = /^https?:\/\/.*/;
@@ -1243,7 +1237,7 @@ const ABSOLUTE_URL = /^https?:\/\/.*/;
  * @returns {Object}
  */
 export function resolveFundamental(path) {
-  if (ABSOLUTE_URL.exec(path)) {
+  if (ABSOLUTE_URL.test(path)) {
     return {};
   }
   const trimmedPath = path.replace(STARTING_SLASH, "");

@@ -1,4 +1,3 @@
-/* eslint-disable n/no-unsupported-features/node-builtins */
 import { describe, it } from "node:test";
 import { strictEqual } from "node:assert/strict";
 import {
