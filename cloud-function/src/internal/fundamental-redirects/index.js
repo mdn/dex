@@ -101,9 +101,7 @@ const LOCALE_PATTERNS = [
   // All things like `/en_Us/docs/...` -> `/en-US/docs/...`
   redirect(
     new RegExp(
-      `^(?<locale>${Array.from(fixableLocales.keys()).join(
-        "|"
-      )})(/(?<suffix>.*)|$)`,
+      `^(?<locale>${[...fixableLocales.keys()].join("|")})(/(?<suffix>.*)|$)`,
       "i"
     ),
     ({ locale, suffix }) => {
@@ -123,9 +121,7 @@ const LOCALE_PATTERNS = [
   // Retired locales
   redirect(
     new RegExp(
-      `^(?<locale>${Array.from(RETIRED_LOCALES.keys()).join(
-        "|"
-      )})(/(?<suffix>.*)|$)`,
+      `^(?<locale>${[...RETIRED_LOCALES.keys()].join("|")})(/(?<suffix>.*)|$)`,
       "i"
     ),
     ({ suffix }) => {
@@ -1210,33 +1206,31 @@ const MISC_REDIRECT_PATTERNS = [
   ),
 ];
 
-const REDIRECT_PATTERNS = [].concat(
-  SCL3_REDIRECT_PATTERNS,
-  ZONE_REDIRECT_PATTERNS,
-  MARIONETTE_REDIRECT_PATTERNS,
-  WEBEXTENSIONS_REDIRECT_PATTERNS,
-  FIREFOX_ACCOUNTS_REDIRECT_PATTERNS,
-  FIREFOX_SOURCE_DOCS_REDIRECT_PATTERNS,
-  [
-    localeRedirect(
-      /^fellowship.*/i,
-      "/docs/Archive/2015_MDN_Fellowship_Program",
-      {
-        permanent: true,
-      }
-    ),
-    localeRedirect(
-      /^docs\/(ServerJS|CommonJS)(?<subPath>$|\/.+)/i,
-      ({ subPath }) => `https://wiki.mozilla.org/docs/ServerJS${subPath}`,
-      { prependLocale: false, permanent: true }
-    ),
-    localeRedirect(/advertising\/with_us/i, "/advertising", {
+const REDIRECT_PATTERNS = [
+  ...SCL3_REDIRECT_PATTERNS,
+  ...ZONE_REDIRECT_PATTERNS,
+  ...MARIONETTE_REDIRECT_PATTERNS,
+  ...WEBEXTENSIONS_REDIRECT_PATTERNS,
+  ...FIREFOX_ACCOUNTS_REDIRECT_PATTERNS,
+  ...FIREFOX_SOURCE_DOCS_REDIRECT_PATTERNS,
+  localeRedirect(
+    /^fellowship.*/i,
+    "/docs/Archive/2015_MDN_Fellowship_Program",
+    {
       permanent: true,
-    }),
-  ],
-  LOCALE_PATTERNS,
-  MISC_REDIRECT_PATTERNS
-);
+    }
+  ),
+  localeRedirect(
+    /^docs\/(ServerJS|CommonJS)(?<subPath>$|\/.+)/i,
+    ({ subPath }) => `https://wiki.mozilla.org/docs/ServerJS${subPath}`,
+    { prependLocale: false, permanent: true }
+  ),
+  localeRedirect(/advertising\/with_us/i, "/advertising", {
+    permanent: true,
+  }),
+  ...LOCALE_PATTERNS,
+  ...MISC_REDIRECT_PATTERNS,
+];
 
 const STARTING_SLASH = /^\//;
 const ABSOLUTE_URL = /^https?:\/\/.*/;
