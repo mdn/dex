@@ -214,10 +214,6 @@ jobs:
         run: |
           set -eo pipefail
 
-          # Info about which CONTENT_* environment variables were set and to what.
-          echo "CONTENT_ROOT=$CONTENT_ROOT"
-          echo "CONTENT_TRANSLATED_ROOT=$CONTENT_TRANSLATED_ROOT"
-
           npm run rari content sync-translated-content
           npm run rari git-history
 
