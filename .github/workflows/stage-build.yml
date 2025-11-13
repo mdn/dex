@@ -261,35 +261,12 @@ jobs:
         if: ${{ ! vars.SKIP_BUILD }}
         working-directory: mdn/fred
         env:
-          # Remember, the mdn/content repo got cloned into `pwd` into a
-          # sub-folder called "mdn/content"
-          CONTENT_ROOT: ${{ github.workspace }}/mdn/content/files
-          CONTENT_TRANSLATED_ROOT: ${{ github.workspace }}/mdn/translated-content/files
-          CONTRIBUTOR_SPOTLIGHT_ROOT: ${{ github.workspace }}/mdn/mdn-contributor-spotlight/contributors
-          BLOG_ROOT: ${{ github.workspace }}/mdn/blog/content/posts
-          CURRICULUM_ROOT: ${{ github.workspace }}/mdn/curriculum
-          GENERIC_CONTENT_ROOT: ${{ github.workspace }}/mdn/generic-content/files
           DEX_ROOT: ${{ github.workspace }}/mdn/dex
           BASE_URL: "https://developer.allizom.org"
-
-          # rari
           BUILD_OUT_ROOT: "out"
-          LIVE_SAMPLES_BASE_URL: https://live.mdnyalp.dev
-          INTERACTIVE_EXAMPLES_BASE_URL: https://interactive-examples.mdn.allizom.net
-          ADDITIONAL_LOCALES_FOR_GENERICS_AND_SPAS: de
 
           FRED_ROBOTS_GLOBAL_ALLOW: false
           FRED_BCD_BASE_URL: https://bcd.developer.allizom.org
-
-          # The default for this environment variable is geared for writers
-          # (aka. local development). Usually defaults are supposed to be for
-          # secure production but this is an exception and default
-          # is not insecure.
-          BUILD_LIVE_SAMPLES_BASE_URL: https://live.mdnyalp.dev
-          BUILD_LEGACY_LIVE_SAMPLES_BASE_URL: https://live.mdnyalp.dev
-
-          # Sign key for code samples
-          BUILD_SAMPLE_SIGN_KEY: ${{ secrets.SAMPLE_SIGN_KEY }}
 
           # This is the Google Analytics measurement ID for:
           # - developer.allizom.org (GA4)
@@ -303,9 +280,6 @@ jobs:
 
           # This adds the ability to sign in (stage only for now)
           REACT_APP_DISABLE_AUTH: false
-
-          # Use the stage version of interactive examples in react app
-          REACT_APP_INTERACTIVE_EXAMPLES_BASE_URL: https://interactive-examples.mdn.allizom.net
 
           # Offline updates
           REACT_APP_UPDATES_BASE_URL: https://updates.developer.allizom.org
