@@ -40,8 +40,7 @@ function extractCookiesFromHeaders(headers) {
      * @param {Record<string, string>} reduced
      * @param {{ value: string }} header
      */
-    (reduced, header) =>
-      Object.assign(reduced, parse(header.value)),
+    (reduced, header) => Object.assign(reduced, parse(header.value)),
     /** @type {Record<string, string>} */ ({})
   );
 
@@ -80,8 +79,14 @@ function getAcceptLanguage(request) {
  * @param {Map<string, string> | Iterable<string>} [options.locales] - Optional set of valid locales to choose from (defaults to VALID_LOCALES)
  * @returns {string}
  */
-export function getLocale(request, { fallback = DEFAULT_LOCALE, locales = VALID_LOCALES}) {
-  const validLocalesMap = locales instanceof Map ? locales : new Map([...locales].map(l => [l.toLowerCase(), l]));
+export function getLocale(
+  request,
+  { fallback = DEFAULT_LOCALE, locales = VALID_LOCALES }
+) {
+  const validLocalesMap =
+    locales instanceof Map
+      ? locales
+      : new Map([...locales].map((l) => [l.toLowerCase(), l]));
   const validLocalesList = [...validLocalesMap.values()];
 
   // First try by cookie.
@@ -90,7 +95,9 @@ export function getLocale(request, { fallback = DEFAULT_LOCALE, locales = VALID_
     cookieLocale && // If it's valid, stick to it.
     validLocalesMap.has(cookieLocale.toLowerCase())
   ) {
-    return /** @type {string} */ (validLocalesMap.get(cookieLocale.toLowerCase()));
+    return /** @type {string} */ (
+      validLocalesMap.get(cookieLocale.toLowerCase())
+    );
   }
 
   // Each header in request.headers is always a list of objects.
