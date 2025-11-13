@@ -48,6 +48,7 @@ export default [
       "unicorn/prefer-top-level-await": "off",
       "unicorn/prevent-abbreviations": "off",
       "unicorn/switch-case-braces": "off",
+      "unicorn/template-indent": "off",
       "unicorn/text-encoding-identifier-case": "off",
       "unicorn/throw-new-error": "off",
     },
