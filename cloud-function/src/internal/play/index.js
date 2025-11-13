@@ -609,7 +609,6 @@ export async function decompressFromBase64(base64String) {
   // eslint-disable-next-line n/no-unsupported-features/node-builtins
   const decompressionStream = new DecompressionStream("deflate-raw");
 
-  // eslint-disable-next-line n/no-unsupported-features/node-builtins
   const decompressedStream = new Response(
     new Blob([bytes]).stream().pipeThrough(decompressionStream)
   ).arrayBuffer();

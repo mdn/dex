@@ -1,5 +1,4 @@
 // @ts-nocheck
-/* global fetch */
 /**
  * @param {string} src
  * @returns {Promise<{status: number, buf: ArrayBuffer, contentType: string | null}>}
