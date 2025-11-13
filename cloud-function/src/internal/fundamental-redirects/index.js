@@ -1240,7 +1240,7 @@ const ABSOLUTE_URL = /^https?:\/\/.*/;
  * @returns {Object}
  */
 export function resolveFundamental(path) {
-  if (ABSOLUTE_URL.exec(path)) {
+  if (ABSOLUTE_URL.test(path)) {
     return {};
   }
   const trimmedPath = path.replace(STARTING_SLASH, "");
