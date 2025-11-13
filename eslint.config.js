@@ -12,12 +12,7 @@ export default [
   importPlugin.flatConfigs.recommended,
   ...tseslint.configs.recommended,
   {
-    ignores: [
-      "libs/",
-      "cloud-function/src/internal/",
-      "cloud-function/**/*.js",
-      "tool/*.js",
-    ],
+    ignores: ["libs/", "tool/*.js"],
   },
   {
     languageOptions: {
