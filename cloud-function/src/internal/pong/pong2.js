@@ -19,10 +19,9 @@ function fixupColor(hash) {
 /**
  * @param {any} zoneKeys
  * @param {any} coder
- * @param {any} env
  * @returns {Function}
  */
-export function createPong2GetHandler(zoneKeys, coder, env) {
+export function createPong2GetHandler(zoneKeys, coder) {
   return async (body, countryCode, userAgent) => {
     let { pongs = null } = body;
 
