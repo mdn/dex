@@ -19,9 +19,9 @@ function fixupColor(hash) {
 }
 
 /**
- * @param {any} zoneKeys
- * @param {any} coder
- * @returns {Function}
+ * @param {Record<string, string> & { sidedoor: string }} zoneKeys
+ * @param {import("./coding.js").Coder} coder
+ * @returns {(body: string, countryCode: string, userAgent: string) => Promise<{statusCode: number, payload: { [index: string]: import("./types.js").Payload | boolean }}>}
  */
 export function createPong2GetHandler(zoneKeys, coder) {
   return async (
@@ -322,21 +322,18 @@ export function createPong2GetHandler(zoneKeys, coder) {
 }
 
 /**
- * @param {any} coder
- * @returns {Function}
+ * @param {import("./coding.js").Coder} coder
+ * @returns {(params: URLSearchParams, countryCode: string, userAgent: string) => Promise<{ status: number, location: string | null }>}
  */
 export function createPong2ClickHandler(coder) {
-  return async (
-    /** @type {any} */ params,
-    /** @type {string} */ countryCode,
-    /** @type {string} */ userAgent
-  ) => {
+  return async (params, countryCode, userAgent) => {
     const code = params.get("code");
 
     if (!code) {
       console.warn("[pong/click] Missing code parameter");
       return {
         status: 400,
+        location: null,
       };
     }
 
@@ -346,6 +343,7 @@ export function createPong2ClickHandler(coder) {
       console.warn("[pong/click] Invalid code value");
       return {
         status: 404,
+        location: null,
       };
     }
 
