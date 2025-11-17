@@ -17,9 +17,6 @@ MDN's deployment infrastructure.
   Function serving MDN
 - [`/deployer`](./deployer) contains the code that populates MDN's full-text
   search index
-- [`/libs`](./libs) contains reusable libraries
-- [`/markdown/h2m`](./markdown/h2m) contains a function to convert HTML to
-  Markdown
 - [`/scripts`](./scripts) contains the following scripts:
   - `ai-help-macros.ts` updates the AI Help index
   - `reorder-search-index.mjs` reorders one search index based on another
