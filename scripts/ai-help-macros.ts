@@ -8,8 +8,7 @@ import { fdir } from "fdir";
 import OpenAI from "openai";
 import { load as cheerio, CheerioAPI } from "cheerio";
 
-import { DocMetadata } from "../libs/types/document.js";
-import { BUILD_OUT_ROOT, OPENAI_KEY, PG_URI } from "../libs/env/index.js";
+import { BUILD_OUT_ROOT, OPENAI_KEY, PG_URI } from "./env.js";
 import {
   getBCDDataForPath,
   SimpleSupportStatementExtended,
@@ -20,8 +19,8 @@ import {
   SimpleSupportStatement,
   VersionValue,
 } from "@mdn/browser-compat-data/types";
-import { h2mSync } from "../libs/markdown/index.js";
-import { Doc as JSONDoc } from "../libs/types/document.js";
+import * as Rari from "@mdn/rari";
+import { h2mSync } from "./libs/markdown.js";
 
 const EMBEDDING_MODEL = "text-embedding-3-small";
 const EMBEDDING_MODEL_NEXT = "text-embedding-3-small";
@@ -57,6 +56,10 @@ type FormattingUpdate = Pick<
 type EmbeddingUpdate = Pick<Doc, "mdn_url" | "text"> & {
   has_embedding: boolean;
   has_embedding_next: boolean;
+};
+
+type DocMetadata = Pick<Rari.Doc, "title" | "short_title" | "mdn_url"> & {
+  hash: string;
 };
 
 export async function updateEmbeddings(
@@ -420,7 +423,7 @@ async function* builtDocs(directory: string, usePlainHtml: boolean) {
       } else {
         const jsonPath = path.join(path.dirname(metadataPath), "index.json");
         const json = JSON.parse(await readFile(jsonPath, "utf-8"));
-        const doc = json.doc as JSONDoc;
+        const doc = json.doc as Rari.Doc;
 
         // Assemble the interim HTML from the json data
         $ = cheerio("<html><head></head><body></body></html>");
