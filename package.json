@@ -24,7 +24,7 @@
   "dependencies": {
     "@caporal/core": "^2.0.7",
     "@mdn/bcd-utils-api": "^0.0.9",
-    "@mdn/browser-compat-data": "^7.1.21",
+    "@mdn/browser-compat-data": "^7.1.22",
     "@mdn/rari": "^0.2.1",
     "cheerio": "1.1.2",
     "dotenv": "^17.2.3",
