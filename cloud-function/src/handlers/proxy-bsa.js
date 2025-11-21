@@ -17,7 +17,7 @@ import { getRequestCountry } from "../utils.js";
 const { SIGN_SECRET, BSA_ZONE_KEYS, ORIGIN_MAIN } = env;
 
 const coder = new Coder(SIGN_SECRET);
-const handleGet = createPong2GetHandler(BSA_ZONE_KEYS, coder, env);
+const handleGet = createPong2GetHandler(BSA_ZONE_KEYS, coder);
 const handleClick = createPong2ClickHandler(coder);
 const handleViewed = createPong2ViewedHandler(coder);
 const plusLookup =
@@ -81,7 +81,7 @@ export async function proxyBSA(req, res) {
 
     const params = new URLSearchParams(search);
     try {
-      const { status, location } = await handleClick(
+      const { status, location = null } = await handleClick(
         params,
         countryCode,
         userAgent
