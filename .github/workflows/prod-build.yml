@@ -184,7 +184,7 @@ jobs:
       - name: Print information about CPU
         run: cat /proc/cpuinfo
 
-      - name: Build everything
+      - name: Build (rari)
         if: ${{ ! vars.SKIP_BUILD }}
         working-directory: mdn/fred
         env:
@@ -196,24 +196,35 @@ jobs:
           BLOG_ROOT: ${{ github.workspace }}/mdn/blog/content/posts
           CURRICULUM_ROOT: ${{ github.workspace }}/mdn/curriculum
           GENERIC_CONTENT_ROOT: ${{ github.workspace }}/mdn/generic-content/files
-          DEX_ROOT: ${{ github.workspace }}/mdn/dex
-          BASE_URL: "https://developer.mozilla.org"
 
           # rari
+          BASE_URL: "https://developer.mozilla.org"
           BUILD_OUT_ROOT: "out"
           LIVE_SAMPLES_BASE_URL: https://live.mdnplay.dev
           INTERACTIVE_EXAMPLES_BASE_URL: https://interactive-examples.mdn.mozilla.net
           ADDITIONAL_LOCALES_FOR_GENERICS_AND_SPAS: de
 
-          # The default for this environment variable is geared for writers
-          # (aka. local development). Usually defaults are supposed to be for
-          # secure production but this is an exception and default
-          # is not insecure.
-          BUILD_LIVE_SAMPLES_BASE_URL: https://live.mdnplay.dev
-          BUILD_LEGACY_LIVE_SAMPLES_BASE_URL: https://live.mdnplay.dev
+          # Sentry.
+          SENTRY_DSN_BUILD: ${{ secrets.SENTRY_DSN_BUILD }}
+          SENTRY_ENVIRONMENT: prod
+          SENTRY_RELEASE: ${{ github.sha }}
 
-          # Sign key for code samples
-          BUILD_SAMPLE_SIGN_KEY: ${{ secrets.SAMPLE_SIGN_KEY }}
+          # Increase GitHub API rate limit.
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set -eo pipefail
+
+          npm run rari content sync-translated-content
+          npm run rari git-history
+
+          npm run rari build -- --all --issues "$BUILD_OUT_ROOT/issues.json" --templ-stats
+
+      - name: Build (fred)
+        if: ${{ ! vars.SKIP_BUILD }}
+        working-directory: mdn/fred
+        env:
+          DEX_ROOT: ${{ github.workspace }}/mdn/dex
+          BUILD_OUT_ROOT: "out"
 
           # This is the Google Analytics measurement ID for:
           # - developer.mozilla.org (GA4)
@@ -290,15 +301,6 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           set -eo pipefail
-
-          # Info about which CONTENT_* environment variables were set and to what.
-          echo "CONTENT_ROOT=$CONTENT_ROOT"
-          echo "CONTENT_TRANSLATED_ROOT=$CONTENT_TRANSLATED_ROOT"
-
-          npm run rari content sync-translated-content
-          npm run rari git-history
-
-          npm run rari build -- --all --issues "$BUILD_OUT_ROOT/issues.json" --templ-stats
 
           # SSR all pages
           npm run build
