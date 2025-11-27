@@ -247,7 +247,6 @@ jobs:
         working-directory: mdn/fred
         env:
           DEX_ROOT: ${{ github.workspace }}/mdn/dex
-          BASE_URL: "https://developer.allizom.org"
           BUILD_OUT_ROOT: "out"
 
           FRED_ROBOTS_GLOBAL_ALLOW: false
