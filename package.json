@@ -22,10 +22,10 @@
     "lodash": ">=4.17.15"
   },
   "dependencies": {
-    "@caporal/core": "^2.0.7",
     "@mdn/bcd-utils-api": "^0.0.9",
     "@mdn/browser-compat-data": "^7.1.22",
     "@mdn/rari": "^0.2.1",
+    "@types/yargs": "^17.0.35",
     "cheerio": "1.1.2",
     "dotenv": "^17.2.3",
     "fdir": "^6.5.0",
@@ -37,7 +37,8 @@
     "remark-gfm": "^4.0.1",
     "remark-stringify": "^11.0.0",
     "tsx": "^4.20.6",
-    "unified": "^11.0.5"
+    "unified": "^11.0.5",
+    "yargs": "^18.0.0"
   },
   "devDependencies": {
     "@babel/core": "^7.28.5",

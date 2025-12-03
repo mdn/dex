@@ -1,7 +1,8 @@
 import { createHash } from "node:crypto";
 import { readFile } from "node:fs/promises";
 
-import caporal from "@caporal/core";
+import yargs from "yargs";
+import { hideBin } from "yargs/helpers";
 import pg from "pg";
 import pgvector from "pgvector/pg";
 import { fdir } from "fdir";
@@ -24,8 +25,6 @@ import { h2mSync } from "./libs/markdown.js";
 
 const EMBEDDING_MODEL = "text-embedding-3-small";
 const EMBEDDING_MODEL_NEXT = "text-embedding-3-small";
-
-const { program } = caporal;
 
 interface IndexedDoc {
   id: number;
@@ -707,45 +706,56 @@ async function fetchAllExistingDocs(pgClient): Promise<IndexedDoc[]> {
 }
 
 // CLI.
-program
+yargs(hideBin(process.argv))
   .command(
-    "update-index",
-    "Generates OpenAI embeddings for all documents and uploads them to Supabase."
+    "update-index [directory]",
+    "Generates OpenAI embeddings for all documents and uploads them to Supabase.",
+    (yargs) => {
+      return yargs
+        .positional("directory", {
+          describe: "Path in which to execute it",
+          type: "string",
+          default: path.join(BUILD_OUT_ROOT, "en-us", "docs"),
+        })
+        .option("use-plain-html", {
+          describe: "Use `plain.html` files instead of `index.json` files.",
+          type: "boolean",
+          default: false,
+        })
+        .option("update-formatting", {
+          describe:
+            "Even if hashes match, update without generating a new embedding.",
+          type: "boolean",
+          default: false,
+        });
+    },
+    async (argv) => {
+      const { directory, updateFormatting, usePlainHtml } = argv;
+      return updateEmbeddings(directory, updateFormatting, usePlainHtml);
+    }
   )
-  .argument("<directory>", "Path in which to execute it", {
-    default: path.join(BUILD_OUT_ROOT, "en-us", "docs"),
-  })
-  .option(
-    "--use-plain-html",
-    "Use `plain.html` files instead of `index.json` files."
+  .command(
+    "format-docs [directory]",
+    "Generates formatted docs for local debugging",
+    (yargs) => {
+      return yargs
+        .positional("directory", {
+          describe: "Path in which to execute it",
+          type: "string",
+          default: path.join(BUILD_OUT_ROOT, "en-us", "docs"),
+        })
+        .option("use-plain-html", {
+          describe: "Use `plain.html` files instead of `index.json` files.",
+          type: "boolean",
+          default: false,
+        });
+    },
+    async (argv) => {
+      const { directory, usePlainHtml } = argv;
+      return formatDocs(directory, usePlainHtml);
+    }
   )
-  .option(
-    "--update-formatting",
-    "Even if hashes match, update without generating a new embedding."
-  )
-  .action(function (params) {
-    const { directory } = params.args as { directory: string };
-    const { updateFormatting, usePlainHtml } = params.options as {
-      updateFormatting: boolean;
-      usePlainHtml: boolean;
-    };
-    return updateEmbeddings(directory, updateFormatting, usePlainHtml);
-  })
-
-  .command("format-docs", "Generates formatted docs for local debugging")
-  .argument("<directory>", "Path in which to execute it", {
-    default: path.join(BUILD_OUT_ROOT, "en-us", "docs"),
-  })
-  .option(
-    "--use-plain-html",
-    "Use `plain.html` files instead of `index.json` files."
-  )
-  .action(function (params) {
-    const { directory, usePlainHtml } = params.args as {
-      directory: string;
-      usePlainHtml: boolean;
-    };
-    return formatDocs(directory, usePlainHtml);
-  });
-
-program.run();
+  .demandCommand(1, "You need at least one command before moving on")
+  .help()
+  .alias("help", "h")
+  .parse();
