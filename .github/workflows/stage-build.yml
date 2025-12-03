@@ -223,7 +223,6 @@ jobs:
           BASE_URL: "https://developer.allizom.org"
           BUILD_OUT_ROOT: "out"
           LIVE_SAMPLES_BASE_URL: https://live.mdnyalp.dev
-          INTERACTIVE_EXAMPLES_BASE_URL: https://interactive-examples.mdn.allizom.net
           ADDITIONAL_LOCALES_FOR_GENERICS_AND_SPAS: de
 
           # Sentry.
