@@ -261,7 +261,6 @@ jobs:
           BASE_URL: "https://test.developer.allizom.org"
           BUILD_OUT_ROOT: "out"
           LIVE_SAMPLES_BASE_URL: https://live.test.mdnyalp.dev
-          INTERACTIVE_EXAMPLES_BASE_URL: https://interactive-examples.mdn.allizom.net
           ADDITIONAL_LOCALES_FOR_GENERICS_AND_SPAS: de
 
           # Increase GitHub API rate limit.
@@ -289,9 +288,6 @@ jobs:
 
           # This adds the ability to sign in (stage only for now)
           REACT_APP_DISABLE_AUTH: false
-
-          # Use the stage version of interactive examples in react app
-          REACT_APP_INTERACTIVE_EXAMPLES_BASE_URL: https://interactive-examples.mdn.allizom.net
 
           # Offline updates
           REACT_APP_UPDATES_BASE_URL: https://updates.developer.allizom.org
