@@ -135,11 +135,7 @@ export const CSP_DIRECTIVES = {
   "frame-src": [
     "'self'",
 
-    "interactive-examples.mdn.mozilla.net",
-    "interactive-examples.mdn.allizom.net",
     "mdn.github.io",
-    "live-samples.mdn.mozilla.net",
-    "live-samples.mdn.allizom.net",
     "*.mdnplay.dev",
     "*.mdnyalp.dev",
     "*.play.test.mdn.allizom.net",
@@ -167,8 +163,6 @@ export const CSP_DIRECTIVES = {
 
     "developer.mozilla.org",
     "mdn.dev",
-    "interactive-examples.mdn.mozilla.net",
-    "interactive-examples.mdn.allizom.net",
 
     "wikipedia.org",
     "upload.wikimedia.org",
