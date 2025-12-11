@@ -192,14 +192,14 @@ jobs:
           ref: ${{ github.event.inputs.fred-ref }}
           persist-credentials: false
 
-      - name: Setup Node.js environment
+      - name: Setup Node (fred)
         if: ${{ ! vars.SKIP_BUILD || ! vars.SKIP_FUNCTION }}
         uses: actions/setup-node@395ad3262231945c25e8478fd5baf05154b1d79f # v6.1.0
         with:
           node-version-file: mdn/fred/.nvmrc
           package-manager-cache: false
 
-      - name: Install all fred packages
+      - name: Install (fred)
         if: ${{ ! vars.SKIP_BUILD }}
         working-directory: mdn/fred
         env:
@@ -342,7 +342,7 @@ jobs:
           cp -r "$DEX_ROOT/client/public/assets" "$BUILD_OUT_ROOT"
           cp "$DEX_ROOT/assets/nonprod/robots.txt" "$BUILD_OUT_ROOT/robots.txt"
 
-      - name: Install all dex dependencies
+      - name: Install (dex)
         if: ${{ ! vars.SKIP_BUILD }}
         working-directory: mdn/dex
         run: npm ci
