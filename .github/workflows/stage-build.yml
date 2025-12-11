@@ -57,7 +57,7 @@ jobs:
 
     steps:
       - name: Checkout
-        uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5.0.0
+        uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 # v6.0.1
         with:
           fetch-depth: 0
           path: mdn/dex
@@ -75,7 +75,7 @@ jobs:
           git merge main --no-edit || git merge --abort
 
       - name: Checkout (content)
-        uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5.0.0
+        uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 # v6.0.1
         if: ${{ ! vars.SKIP_BUILD || ! vars.SKIP_FUNCTION }}
         with:
           repository: mdn/content
@@ -88,7 +88,7 @@ jobs:
           persist-credentials: false
 
       - name: Checkout (blog)
-        uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5.0.0
+        uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 # v6.0.1
         if: ${{ ! vars.SKIP_BUILD }}
         with:
           repository: mdn/blog
@@ -98,7 +98,7 @@ jobs:
           persist-credentials: false
 
       - name: Checkout (generic-content)
-        uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5.0.0
+        uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 # v6.0.1
         if: ${{ ! vars.SKIP_BUILD }}
         with:
           repository: mdn/generic-content
@@ -106,7 +106,7 @@ jobs:
           persist-credentials: false
 
       - name: Checkout (curriculum)
-        uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5.0.0
+        uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 # v6.0.1
         if: ${{ ! vars.SKIP_BUILD }}
         with:
           repository: mdn/curriculum
@@ -114,7 +114,7 @@ jobs:
           persist-credentials: false
 
       - name: Checkout (translated-content)
-        uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5.0.0
+        uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 # v6.0.1
         if: ${{ ! vars.SKIP_BUILD || ! vars.SKIP_FUNCTION }}
         with:
           repository: mdn/translated-content
@@ -124,7 +124,7 @@ jobs:
           persist-credentials: false
 
       - name: Checkout (translated-content-de)
-        uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5.0.0
+        uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 # v6.0.1
         if: ${{ ! vars.SKIP_BUILD || ! vars.SKIP_FUNCTION }}
         with:
           repository: mdn/translated-content-de
@@ -145,7 +145,7 @@ jobs:
           git -c user.name='MDN' -c user.email='mdn-dev@mozilla.com' commit -m 'de'
 
       - name: Checkout (mdn-contributor-spotlight)
-        uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5.0.0
+        uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 # v6.0.1
         if: ${{ ! vars.SKIP_BUILD }}
         with:
           repository: mdn/mdn-contributor-spotlight
@@ -153,7 +153,7 @@ jobs:
           persist-credentials: false
 
       - name: Checkout (fred)
-        uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5.0.0
+        uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 # v6.0.1
         if: ${{ ! vars.SKIP_BUILD }}
         with:
           repository: mdn/fred
@@ -162,7 +162,7 @@ jobs:
 
       - name: Setup Node.js environment
         if: ${{ ! vars.SKIP_BUILD || ! vars.SKIP_FUNCTION }}
-        uses: actions/setup-node@2028fbc5c25fe9cf00d9f06a71cc4710d4507903 # v6.0.0
+        uses: actions/setup-node@395ad3262231945c25e8478fd5baf05154b1d79f # v6.1.0
         with:
           node-version-file: mdn/fred/.nvmrc
           package-manager-cache: false
@@ -177,7 +177,7 @@ jobs:
 
       - name: Install Python
         if: ${{ ! vars.SKIP_BUILD }}
-        uses: actions/setup-python@e797f83bcb11b83ae66e0230d6156d7c80228e7c # v6.0.0
+        uses: actions/setup-python@83679a892e2d95755f2dac6acb0bfd1e9ac5d548 # v6.1.0
         with:
           python-version: "3.10"
 
@@ -223,7 +223,6 @@ jobs:
           BASE_URL: "https://developer.allizom.org"
           BUILD_OUT_ROOT: "out"
           LIVE_SAMPLES_BASE_URL: https://live.mdnyalp.dev
-          INTERACTIVE_EXAMPLES_BASE_URL: https://interactive-examples.mdn.allizom.net
           ADDITIONAL_LOCALES_FOR_GENERICS_AND_SPAS: de
 
           # Sentry.
@@ -415,7 +414,7 @@ jobs:
           for region in europe-west1 us-west1 asia-east1; do
             gcloud beta functions deploy mdn-nonprod-stage-$region \
             --gen2 \
-            --runtime=nodejs22 \
+            --runtime=nodejs24 \
             --region=$region \
             --source=cloud-function \
             --trigger-http \
