@@ -1,5 +1,3 @@
-// eslint-disable-next-line @typescript-eslint/ban-ts-comment
-// @ts-nocheck
 import {
   DEFAULT_LOCALE,
   VALID_LOCALES,
@@ -20,7 +18,7 @@ const LOCALE_PATTERN = "(?:[a-zA-Z]{2}|eng)(?:-[a-zA-Z]{2})?";
  * @returns {Function}
  */
 function redirect(pattern, template, options = {}) {
-  return (path) => {
+  return (/** @type {string} */ path) => {
     const match = pattern.exec(path);
     if (match === null) {
       return null;
@@ -45,6 +43,8 @@ function redirect(pattern, template, options = {}) {
  * @param {string | Function} template
  * @param {Object} [options={}]
  * @param {boolean} [options.prependLocale=true]
+ * @param {boolean} [options.permanent]
+ * @param {boolean} [options.colonToSlash]
  * @returns {Function}
  */
 function localeRedirect(
@@ -59,7 +59,12 @@ function localeRedirect(
   const patternWithLocale = new RegExp(patternStrWithLocale, pattern.flags);
   let _template = template;
   if (prependLocale) {
-    _template = ({ locale, ...group } = {}) =>
+    _template = (
+      /** @type {{ locale?: string, [key: string]: any }} */ {
+        locale,
+        ...group
+      } = {}
+    ) =>
       `/${locale ? `${locale}` : ""}${(typeof template === "string"
         ? template
         : template(group)
@@ -105,15 +110,17 @@ const LOCALE_PATTERNS = [
       `^(?<locale>${[...fixableLocales.keys()].join("|")})(/(?<suffix>.*)|$)`,
       "i"
     ),
-    ({ locale, suffix }) => {
+    (/** @type {{ locale: string, suffix: string }} */ { locale, suffix }) => {
       locale = locale.toLowerCase();
       if (fixableLocales.has(locale)) {
         // E.g. it was something like `en_Us`
-        locale = VALID_LOCALES.get(fixableLocales.get(locale).toLowerCase());
+        locale = /** @type {string} */ (
+          VALID_LOCALES.get(fixableLocales.get(locale).toLowerCase())
+        );
       } else {
         // E.g. it was something like `Fr-sW` (Swiss French)
-        locale = locale.split("-")[0];
-        locale = VALID_LOCALES.get(locale);
+        locale = /** @type {string} */ (locale.split("-")[0]);
+        locale = /** @type {string} */ (VALID_LOCALES.get(locale));
       }
       return `/${locale}/${suffix || ""}`;
     },
@@ -125,7 +132,7 @@ const LOCALE_PATTERNS = [
       `^(?<locale>${[...RETIRED_LOCALES.keys()].join("|")})(/(?<suffix>.*)|$)`,
       "i"
     ),
-    ({ suffix }) => {
+    (/** @type {{ suffix: string }} */ { suffix }) => {
       return `/${DEFAULT_LOCALE}/${suffix || ""}`;
     }
   ),
@@ -137,38 +144,39 @@ const SCL3_REDIRECT_PATTERNS = [
   // /static/build/styles/$2.css [L,R=301]
   redirect(
     /^media\/(?:redesign\/)?css\/(?<doc>.*)-min.css$/i,
-    ({ doc }) => `/static/build/styles/${doc}.css`,
+    (/** @type {{ doc: string }} */ { doc }) =>
+      `/static/build/styles/${doc}.css`,
     { permanent: true }
   ),
   // RewriteRule ^/media/(redesign/)?js/(.*)-min.js$ /static/build/js/$2.js
   // [L,R=301]
   redirect(
     /^media\/(?:redesign\/)?js\/(?<doc>.*)-min.js$/i,
-    ({ doc }) => `/static/build/js/${doc}.js`,
+    (/** @type {{ doc: string }} */ { doc }) => `/static/build/js/${doc}.js`,
     { permanent: true }
   ),
   // RewriteRule ^/media/(redesign/)?img(.*) /static/img$2 [L,R=301]
   redirect(
     /^media\/(?:redesign\/)?img(?<suffix>.*)$/i,
-    ({ suffix }) => `/static/img${suffix}`,
+    (/** @type {{ suffix: string }} */ { suffix }) => `/static/img${suffix}`,
     { permanent: true }
   ),
   // RewriteRule ^/media/(redesign/)?css(.*) /static/styles$2 [L,R=301]
   redirect(
     /^media\/(?:redesign\/)?css(?<suffix>.*)$/i,
-    ({ suffix }) => `/static/styles${suffix}`,
+    (/** @type {{ suffix: string }} */ { suffix }) => `/static/styles${suffix}`,
     { permanent: true }
   ),
   // RewriteRule ^/media/(redesign/)?js(.*) /static/js$2 [L,R=301]
   redirect(
     /^media\/(?:redesign\/)?js(?<suffix>.*)$/i,
-    ({ suffix }) => `/static/js${suffix}`,
+    (/** @type {{ suffix: string }} */ { suffix }) => `/static/js${suffix}`,
     { permanent: true }
   ),
   // RewriteRule ^/media/(redesign/)?fonts(.*) /static/fonts$2 [L,R=301]
   redirect(
     /^media\/(?:redesign\/)?fonts(?<suffix>.*)$/i,
-    ({ suffix }) => `/static/fonts${suffix}`,
+    (/** @type {{ suffix: string }} */ { suffix }) => `/static/fonts${suffix}`,
     { permanent: true }
   ),
   // RedirectMatch 302 /media/uploads/demos/(.*)$
@@ -182,13 +190,24 @@ const SCL3_REDIRECT_PATTERNS = [
   // RewriteRule ^(.*)//(.*)//(.*)$ $1_$2_$3 [R=301,L,NC]
   redirect(
     /^(?<one>.*)\/\/(?<two>.*)\/\/(?<three>.*)$/i,
-    ({ one, two, three }) => `/${one}_${two}_${three}`,
+    (
+      /** @type {{ one: string, two: string, three: string }} */ {
+        one,
+        two,
+        three,
+      }
+    ) => `/${one}_${two}_${three}`,
     { permanent: true }
   ),
   // RewriteRule ^(.*)//(.*)$ $1_$2 [R=301,L,NC]
-  redirect(/^(?<one>.*)\/\/(?<two>.*)$/i, ({ one, two }) => `/${one}_${two}`, {
-    permanent: true,
-  }),
+  redirect(
+    /^(?<one>.*)\/\/(?<two>.*)$/i,
+    (/** @type {{ one: string, two: string }} */ { one, two }) =>
+      `/${one}_${two}`,
+    {
+      permanent: true,
+    }
+  ),
   // The remaining redirects don't show explicit RewriteRule as comments,
   // as they're all in the style of "static URL A now points at static URL B"
   // Bug 1078186 - Redirect old static canvas examples to wiki pages
@@ -628,7 +647,7 @@ const SCL3_REDIRECT_PATTERNS = [
   // the media domain (ATTACHMENTS_AWS_S3_CUSTOM_DOMAIN).
   redirect(
     /^samples\/(?<sample_path>.*)$/i,
-    ({ sample_path }) =>
+    (/** @type {{ sample_path: string }} */ { sample_path }) =>
       `https://mdn.dev/archives/media/samples/${sample_path}`,
     { permanent: false }
   ),
@@ -672,14 +691,16 @@ const SCL3_REDIRECT_PATTERNS = [
   // en-US/docs/JavaScript/Reference/Global_Objects/$1 [R=301,L,NC]
   redirect(
     /^En\/Core_JavaScript_1\.5_Reference\/Objects\/(?<suffix>.*)$/i,
-    ({ suffix }) => `/en-US/docs/JavaScript/Reference/Global_Objects/${suffix}`,
+    (/** @type {{ suffix: string }} */ { suffix }) =>
+      `/en-US/docs/JavaScript/Reference/Global_Objects/${suffix}`,
     { permanent: true }
   ),
   // RewriteRule ^En/Core_JavaScript_1\.5_Reference/(.*)
   // en-US/docs/JavaScript/Reference/$1 [R=301,L,NC]
   redirect(
     /^En\/Core_JavaScript_1\.5_Reference\/(?<suffix>.*)$/i,
-    ({ suffix }) => `/en-US/docs/JavaScript/Reference/${suffix}`,
+    (/** @type {{ suffix: string }} */ { suffix }) =>
+      `/en-US/docs/JavaScript/Reference/${suffix}`,
     { permanent: true }
   ),
   // RewriteRule ^([\w\-]*)/HTML5$ $1/docs/HTML/HTML5 [R=301,L,NC]
@@ -867,11 +888,15 @@ const zonePatternFmt = (prefix, zoneRootPattern) =>
  */
 const subPathFmt =
   (prefix, wikiSlug) =>
-  ({ subPath = "" } = {}) =>
+  (/** @type {{ subPath?: string }} */ { subPath = "" } = {}) =>
     `/${prefix}docs/${wikiSlug}${subPath}`;
 
 const ZONE_REDIRECT_PATTERNS = [];
-for (const [zoneRoot, wikiSlug, locales] of zoneRedirects) {
+for (const [
+  zoneRoot,
+  wikiSlug,
+  locales,
+] of /** @type {[string, string, (string | null)[]][]} */ (zoneRedirects)) {
   for (const locale of locales) {
     let zoneRootPattern = zoneRoot;
     if (zoneRoot !== wikiSlug) {
@@ -882,8 +907,14 @@ for (const [zoneRoot, wikiSlug, locales] of zoneRedirects) {
     // 404 response and redirect to the proper locale, the path would be
     // considered invalid.
     const prefix = locale ? locale + "/" : "";
-    const pattern = zonePatternFmt(prefix, zoneRootPattern);
-    const subPath = subPathFmt(prefix, wikiSlug);
+    const pattern = zonePatternFmt(
+      /** @type {string} */ (prefix),
+      /** @type {string} */ (zoneRootPattern)
+    );
+    const subPath = subPathFmt(
+      /** @type {string} */ (prefix),
+      /** @type {string} */ (wikiSlug)
+    );
     ZONE_REDIRECT_PATTERNS.push(
       redirect(
         pattern,
@@ -949,7 +980,7 @@ const MARIONETTE_REDIRECT_PATTERNS = [
 ];
 
 const WEBEXTENSIONS_REDIRECT_PATTERNS = [];
-for (const [aoPath, ewPath] of [
+for (const [aoPath, ewPath] of /** @type {[string, string][]} */ ([
   [
     "WebExtensions/Security_best_practices",
     "develop/build-a-secure-extension/",
@@ -1084,7 +1115,7 @@ for (const [aoPath, ewPath] of [
     "publish/what-does-review-rejection-mean-to-users/",
   ],
   ["AMO/Policy/Featured", "publish/recommended-extensions/"],
-]) {
+])) {
   WEBEXTENSIONS_REDIRECT_PATTERNS.push(
     externalRedirect(
       new RegExp(String.raw`docs\/Mozilla\/Add-ons\/${aoPath}$`, "i"),
@@ -1110,7 +1141,7 @@ const FIREFOX_ACCOUNTS_REDIRECT_PATTERNS = [
 
 const FIREFOX_SOURCE_DOCS_ROOT_URL = "https://firefox-source-docs.mozilla.org";
 const FIREFOX_SOURCE_DOCS_REDIRECT_PATTERNS = [];
-for (const [pattern, path] of [
+for (const [pattern, path] of /** @type {[RegExp, string][]} */ ([
   [
     /(?:docs\/)?Mozilla\/Memory_Sanitizer(?:\/|$)/i,
     "/tools/sanitizer/memory_sanitizer.html#memory-sanitizer",
@@ -1139,7 +1170,7 @@ for (const [pattern, path] of [
     /(?:docs\/)?Debugging\/Record_and_Replay_Debugging_Firefox(?:\/|$)/i,
     "/contributing/debugging/debugging_firefox_with_rr.html",
   ],
-]) {
+])) {
   FIREFOX_SOURCE_DOCS_REDIRECT_PATTERNS.push(
     externalRedirect(pattern, FIREFOX_SOURCE_DOCS_ROOT_URL + path)
   );
@@ -1189,14 +1220,23 @@ const MISC_REDIRECT_PATTERNS = [
   // and let any other redirect rules work from that point onwards.
   localeRedirect(
     /^(?<prefix>AJAX|CSS|DOM|DragDrop|ECMAScript_DontEnum_attribute|HTML|JavaScript|JavaScript_typed_arrays|Media_formats_supported_by_the_audio_and_video_elements|SVG|Tools|Using_audio_and_video_in_Firefox|Using_files_from_web_applications|Web|XMLHttpRequest|Security)(?<subPath>\/.+?)?\/?$/i,
-    ({ prefix, subPath = "" }) => `/docs/${prefix}${subPath}`,
+    (
+      /** @type {{ prefix: string, subPath?: string }} */ {
+        prefix,
+        subPath = "",
+      }
+    ) => `/docs/${prefix}${subPath}`,
     { permanent: true }
   ),
   // Content archived as part of the GCP migration.
   redirect(
     /^(?<prefix>diagrams|presentations|samples)(?<subPath>\/.*)?$/i,
-    ({ prefix, subPath = "" }) =>
-      `https://mdn.dev/archives/media/${prefix}${subPath}`,
+    (
+      /** @type {{ prefix: string, subPath?: string }} */ {
+        prefix,
+        subPath = "",
+      }
+    ) => `https://mdn.dev/archives/media/${prefix}${subPath}`,
     {
       permanent: false,
     }
@@ -1219,7 +1259,8 @@ const REDIRECT_PATTERNS = [
   ),
   localeRedirect(
     /^docs\/(ServerJS|CommonJS)(?<subPath>$|\/.+)/i,
-    ({ subPath }) => `https://wiki.mozilla.org/docs/ServerJS${subPath}`,
+    (/** @type {{ subPath: string }} */ { subPath }) =>
+      `https://wiki.mozilla.org/docs/ServerJS${subPath}`,
     { prependLocale: false, permanent: true }
   ),
   localeRedirect(/advertising\/with_us/i, "/advertising", {
