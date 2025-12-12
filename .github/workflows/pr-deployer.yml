@@ -19,7 +19,7 @@ jobs:
         with:
           persist-credentials: false
 
-      - name: Install Python
+      - name: Setup Python
         id: setup-python
         uses: actions/setup-python@83679a892e2d95755f2dac6acb0bfd1e9ac5d548 # v6.1.0
         with:
@@ -38,13 +38,13 @@ jobs:
           path: ~/.local
           key: dotlocal-${{ runner.os }}-${{ hashFiles('.github/workflows/pr-deployer.yml') }}-${{ steps.setup-python.outputs.python-version }}
 
-      - name: Install Python poetry
+      - name: Setup Poetry
         uses: snok/install-poetry@76e04a911780d5b312d89783f7b1cd627778900a # v1.4.1
         with:
           virtualenvs-create: true
           virtualenvs-in-project: true
 
-      - name: Install deployer
+      - name: Install (deployer)
         run: |
           cd deployer
           poetry install --with dev
