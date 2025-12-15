@@ -27,13 +27,13 @@ jobs:
 
       - name: Load cached venv
         id: cached-poetry-dependencies
-        uses: actions/cache@0057852bfaa89a56745cba8c7296529d2fc39830 # v4.3.0
+        uses: actions/cache@9255dc7a253b0ccc959486e2bca901246202afeb # v5.0.1
         with:
           path: deployer/.venv
           key: venv-${{ runner.os }}-${{ hashFiles('**/poetry.lock') }}-${{ hashFiles('.github/workflows/pr-deployer.yml') }}-${{ steps.setup-python.outputs.python-version }}
 
       - name: Load cached .local
-        uses: actions/cache@0057852bfaa89a56745cba8c7296529d2fc39830 # v4.3.0
+        uses: actions/cache@9255dc7a253b0ccc959486e2bca901246202afeb # v5.0.1
         with:
           path: ~/.local
           key: dotlocal-${{ runner.os }}-${{ hashFiles('.github/workflows/pr-deployer.yml') }}-${{ steps.setup-python.outputs.python-version }}
