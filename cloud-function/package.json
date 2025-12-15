@@ -29,7 +29,7 @@
   "dependencies": {
     "@adzerk/decision-sdk": "^1.0.0-beta.28",
     "@google-cloud/functions-framework": "^4.0.0",
-    "@sentry/google-cloud-serverless": "^10.29.0",
+    "@sentry/google-cloud-serverless": "^10.30.0",
     "accept-language-parser": "^1.5.0",
     "cookie": "^1.1.1",
     "cookie-parser": "^1.4.7",
