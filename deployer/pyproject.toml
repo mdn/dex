@@ -18,7 +18,7 @@ selectolax = "^0.4.1"
 optional = true
 
 [tool.poetry.group.dev.dependencies]
-black = "^25.12"
+black = "^26.1"
 flake8 = "^7.3.0"
 pytest = "^9.0.2"
 
