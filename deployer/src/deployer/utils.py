@@ -5,7 +5,6 @@ from pathlib import Path
 
 import click
 
-
 ClickLogger = namedtuple("ClickLogger", "info success warning error")
 
 
