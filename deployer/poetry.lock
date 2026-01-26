@@ -537,6 +537,7 @@ files = [
     {file = "typing_extensions-4.15.0-py3-none-any.whl", hash = "sha256:f0fa19c6845758ab08074a0cfa8b7aecb71c999ca73d62883bc25cc018c4e548"},
     {file = "typing_extensions-4.15.0.tar.gz", hash = "sha256:0cea48d173cc12fa28ecabc3b837ea3cf6f38c6d1136f85cbaaf598984861466"},
 ]
+markers = {dev = "python_version == \"3.10\""}
 
 [[package]]
 name = "urllib3"
@@ -558,4 +559,4 @@ socks = ["PySocks (>=1.5.6,!=1.5.7,<2.0)"]
 [metadata]
 lock-version = "2.1"
 python-versions = "^3.10"
-content-hash = "3e164b37ccd41247783cf93ae9ebe0bf97b2053c3406f6d6e0358d18b3cc3952"
+content-hash = "66e95ef677fcde540f88b1f117ec7a9d77fca11a22bde4d0aa6e180111ff7b6c"
