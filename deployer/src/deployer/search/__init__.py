@@ -6,8 +6,8 @@ from collections import Counter
 
 import click
 from elasticsearch.helpers import streaming_bulk
-from elasticsearch_dsl import Index
-from elasticsearch_dsl.connections import connections
+from elasticsearch.dsl import Index
+from elasticsearch.dsl.connections import connections
 from selectolax.parser import HTMLParser
 
 from .models import Document, INDEX_ALIAS_NAME
@@ -65,7 +65,7 @@ def index(
         root = Path(buildroot)
         for doc in walk(root):
             # The reason for specifying the exact index name is that we might
-            # be doing an update and if you don't specify it, elasticsearch_dsl
+            # be doing an update and if you don't specify it, elasticsearch.dsl
             # will fall back to using whatever Document._meta.Index automatically
             # becomes in this moment.
             search_doc = to_search(doc, _index=document_index._name)
@@ -149,7 +149,7 @@ def index(
                     alias_updates.append({"remove_index": {"index": index_name}})
                     click.echo(f"Delete old index {index_name!r}")
 
-        connection.indices.update_aliases({"actions": alias_updates})
+        connection.indices.update_aliases(actions=alias_updates)
         click.echo(
             f"Reassign the {INDEX_ALIAS_NAME!r} alias from old index "
             f"to {document_index._name}"

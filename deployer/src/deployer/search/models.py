@@ -1,6 +1,6 @@
 import datetime
 
-from elasticsearch_dsl import (
+from elasticsearch.dsl import (
     Document as ESDocument,
     Float,
     Keyword,
