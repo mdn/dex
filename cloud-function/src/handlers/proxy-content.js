@@ -16,126 +16,109 @@ const notFoundBufferCache = {};
 const target = sourceUri(Source.content);
 
 /**
+ * Router function that handles wildcard subdomain targeting
+ * @param {import("http").IncomingMessage} req
+ */
+const router = (req) => {
+  let actualTarget = target;
+
+  if (WILDCARD_ENABLED) {
+    const { host } = req.headers;
+
+    if (typeof host === "string") {
+      const subdomain = host.split(".")[0];
+      actualTarget = `${target}${subdomain}/`;
+    }
+  }
+
+  req.headers["target"] = actualTarget;
+
+  return actualTarget;
+};
+
+/**
+ * Creates a content proxy middleware with custom response handling
+ * @param {Parameters<typeof responseInterceptor>[0]} interceptor
+ */
+const createContentProxyMiddleware = (interceptor) =>
+  createProxyMiddleware({
+    changeOrigin: true,
+    autoRewrite: true,
+    router,
+    proxyTimeout: PROXY_TIMEOUT,
+    xfwd: true,
+    selfHandleResponse: true,
+    on: {
+      proxyReq: fixRequestBody,
+      proxyRes: responseInterceptor(interceptor),
+    },
+  });
+
+/**
  * Proxy middleware for content requests
  * Handles MDN content with 404 fallback logic and wildcard subdomain support
  */
-export const proxyContent = createProxyMiddleware({
-  changeOrigin: true,
-  autoRewrite: true,
-  router: (req) => {
-    let actualTarget = target;
+export const proxyContent = createContentProxyMiddleware(
+  async (responseBuffer, proxyRes, req, res) => {
+    const { target } = req.headers;
 
-    if (WILDCARD_ENABLED) {
-      const { host } = req.headers;
+    withContentResponseHeaders(proxyRes, req, res);
+    if (proxyRes.statusCode === 404 && !isLiveSampleURL(req.url ?? "")) {
+      const tryHtml = await fetch(`${target}${req.url?.slice(1)}/index.html`);
 
-      if (typeof host === "string") {
-        const subdomain = host.split(".")[0];
-        actualTarget = `${target}${subdomain}/`;
+      if (tryHtml.ok) {
+        res.statusCode = 200;
+        res.setHeader("Content-Type", "text/html");
+        return Buffer.from(await tryHtml.arrayBuffer());
       }
+
+      res.setHeader("Content-Type", "text/html");
+      const locale = req.url?.match(/[^/]+/)?.[0] ?? "en-us";
+      return get404ForLocale(locale);
     }
 
-    req.headers["target"] = actualTarget;
-
-    return actualTarget;
-  },
-  proxyTimeout: PROXY_TIMEOUT,
-  xfwd: true,
-  selfHandleResponse: true,
-  on: {
-    proxyReq: fixRequestBody,
-    proxyRes: responseInterceptor(
-      async (responseBuffer, proxyRes, req, res) => {
-        const { target } = req.headers;
-
-        withContentResponseHeaders(proxyRes, req, res);
-        if (proxyRes.statusCode === 404 && !isLiveSampleURL(req.url ?? "")) {
-          const tryHtml = await fetch(
-            `${target}${req.url?.slice(1)}/index.html`
-          );
-
-          if (tryHtml.ok) {
-            res.statusCode = 200;
-            res.setHeader("Content-Type", "text/html");
-            return Buffer.from(await tryHtml.arrayBuffer());
-          }
-
-          res.setHeader("Content-Type", "text/html");
-          const locale = req.url?.match(/[^/]+/)?.[0] ?? "en-us";
-          return get404ForLocale(locale);
-        }
-
-        return responseBuffer;
-      }
-    ),
-  },
-});
+    return responseBuffer;
+  }
+);
 
 /**
  * Proxy middleware for content assets (attachments, media, fonts)
  * Falls back to en-US assets for non-English locales, then to production if needed
  */
-export const proxyContentAssets = createProxyMiddleware({
-  changeOrigin: true,
-  autoRewrite: true,
-  router: (req) => {
-    let actualTarget = target;
+export const proxyContentAssets = createContentProxyMiddleware(
+  async (responseBuffer, proxyRes, req, res) => {
+    const { target } = req.headers;
 
-    if (WILDCARD_ENABLED) {
-      const { host } = req.headers;
-
-      if (typeof host === "string") {
-        const subdomain = host.split(".")[0];
-        actualTarget = `${target}${subdomain}/`;
+    withContentResponseHeaders(proxyRes, req, res);
+    const [, locale] = req.url?.split("/") || [];
+    if (
+      proxyRes.statusCode === 404 &&
+      locale &&
+      locale != "en-US" &&
+      ACTIVE_LOCALES.has(locale.toLowerCase())
+    ) {
+      const enUsAsset = await fetch(
+        `${target}${req.url?.slice(1).replace(locale, "en-us")}`
+      );
+      if (enUsAsset?.ok) {
+        res.statusCode = enUsAsset.status;
+        enUsAsset.headers.forEach((value, key) => res.setHeader(key, value));
+        return Buffer.from(await enUsAsset.arrayBuffer());
+      } else if (WILDCARD_ENABLED) {
+        // Fallback to prod.
+        const prodUrl = new URL(
+          req.url ?? "",
+          "https://developer.mozilla.org/"
+        );
+        res.statusCode = 303;
+        res.setHeader("location", prodUrl.toString());
+        return "";
       }
     }
 
-    req.headers["target"] = actualTarget;
-
-    return actualTarget;
-  },
-  proxyTimeout: PROXY_TIMEOUT,
-  xfwd: true,
-  selfHandleResponse: true,
-  on: {
-    proxyReq: fixRequestBody,
-    proxyRes: responseInterceptor(
-      async (responseBuffer, proxyRes, req, res) => {
-        const { target } = req.headers;
-
-        withContentResponseHeaders(proxyRes, req, res);
-        const [, locale] = req.url?.split("/") || [];
-        if (
-          proxyRes.statusCode === 404 &&
-          locale &&
-          locale != "en-US" &&
-          ACTIVE_LOCALES.has(locale.toLowerCase())
-        ) {
-          const enUsAsset = await fetch(
-            `${target}${req.url?.slice(1).replace(locale, "en-us")}`
-          );
-          if (enUsAsset?.ok) {
-            res.statusCode = enUsAsset.status;
-            enUsAsset.headers.forEach((value, key) =>
-              res.setHeader(key, value)
-            );
-            return Buffer.from(await enUsAsset.arrayBuffer());
-          } else if (WILDCARD_ENABLED) {
-            // Fallback to prod.
-            const target = new URL(
-              req.url ?? "",
-              "https://developer.mozilla.org/"
-            );
-            res.statusCode = 303;
-            res.setHeader("location", target.toString());
-            return "";
-          }
-        }
-
-        return responseBuffer;
-      }
-    ),
-  },
-});
+    return responseBuffer;
+  }
+);
 
 /**
  * Fetches the 404 page for a given locale with caching
