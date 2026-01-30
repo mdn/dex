@@ -37,10 +37,18 @@ const router = (req) => {
 };
 
 /**
- * Creates a content proxy middleware with custom response handling
- * @param {Parameters<typeof responseInterceptor>[0]} interceptor
+ * @typedef {object} NotFoundHandlerContext
+ * @property {string} target - The resolved target path
+ * @property {import("http").IncomingMessage} req
+ * @property {import("http").ServerResponse} res
  */
-const createContentProxyMiddleware = (interceptor) =>
+
+/**
+ * Creates a content proxy middleware with custom 404 handling
+ * @param {(context: NotFoundHandlerContext) => Promise<Buffer | string | null>} handleNotFound
+ *   Called when the upstream returns 404. Return replacement content, or null to use the original 404 response.
+ */
+const createContentProxyMiddleware = (handleNotFound) =>
   createProxyMiddleware({
     changeOrigin: true,
     autoRewrite: true,
@@ -53,7 +61,19 @@ const createContentProxyMiddleware = (interceptor) =>
       proxyRes: responseInterceptor(
         async (responseBuffer, proxyRes, req, res) => {
           withContentResponseHeaders(proxyRes, req, res);
-          return interceptor(responseBuffer, proxyRes, req, res);
+
+          if (proxyRes.statusCode === 404) {
+            const result = await handleNotFound({
+              target: /** @type {string} */ (req.headers["target"]),
+              req,
+              res,
+            });
+            if (result != null) {
+              return result;
+            }
+          }
+
+          return responseBuffer;
         }
       ),
     },
@@ -64,24 +84,22 @@ const createContentProxyMiddleware = (interceptor) =>
  * Handles MDN content with 404 fallback logic and wildcard subdomain support
  */
 export const proxyContent = createContentProxyMiddleware(
-  async (responseBuffer, proxyRes, req, res) => {
-    const { target } = req.headers;
-
-    if (proxyRes.statusCode === 404 && !isLiveSampleURL(req.url ?? "")) {
-      const tryHtml = await fetch(`${target}${req.url?.slice(1)}/index.html`);
-
-      if (tryHtml.ok) {
-        res.statusCode = 200;
-        res.setHeader("Content-Type", "text/html");
-        return Buffer.from(await tryHtml.arrayBuffer());
-      }
-
-      res.setHeader("Content-Type", "text/html");
-      const locale = req.url?.match(/[^/]+/)?.[0] ?? "en-us";
-      return get404ForLocale(locale);
+  async ({ target, req, res }) => {
+    if (isLiveSampleURL(req.url ?? "")) {
+      return null;
     }
 
-    return responseBuffer;
+    const tryHtml = await fetch(`${target}${req.url?.slice(1)}/index.html`);
+
+    if (tryHtml.ok) {
+      res.statusCode = 200;
+      res.setHeader("Content-Type", "text/html");
+      return Buffer.from(await tryHtml.arrayBuffer());
+    }
+
+    res.setHeader("Content-Type", "text/html");
+    const locale = req.url?.match(/[^/]+/)?.[0] ?? "en-us";
+    return get404ForLocale(locale);
   }
 );
 
@@ -90,36 +108,36 @@ export const proxyContent = createContentProxyMiddleware(
  * Falls back to en-US assets for non-English locales, then to production if needed
  */
 export const proxyContentAssets = createContentProxyMiddleware(
-  async (responseBuffer, proxyRes, req, res) => {
-    const { target } = req.headers;
-
+  async ({ target, req, res }) => {
     const [, locale] = req.url?.split("/") || [];
+
     if (
-      proxyRes.statusCode === 404 &&
-      locale &&
-      locale != "en-US" &&
-      ACTIVE_LOCALES.has(locale.toLowerCase())
+      !locale ||
+      locale === "en-US" ||
+      !ACTIVE_LOCALES.has(locale.toLowerCase())
     ) {
-      const enUsAsset = await fetch(
-        `${target}${req.url?.slice(1).replace(locale, "en-us")}`
-      );
-      if (enUsAsset?.ok) {
-        res.statusCode = enUsAsset.status;
-        enUsAsset.headers.forEach((value, key) => res.setHeader(key, value));
-        return Buffer.from(await enUsAsset.arrayBuffer());
-      } else if (WILDCARD_ENABLED) {
-        // Fallback to prod.
-        const prodUrl = new URL(
-          req.url ?? "",
-          "https://developer.mozilla.org/"
-        );
-        res.statusCode = 303;
-        res.setHeader("location", prodUrl.toString());
-        return "";
-      }
+      return null;
     }
 
-    return responseBuffer;
+    const enUsAsset = await fetch(
+      `${target}${req.url?.slice(1).replace(locale, "en-us")}`
+    );
+
+    if (enUsAsset?.ok) {
+      res.statusCode = enUsAsset.status;
+      enUsAsset.headers.forEach((value, key) => res.setHeader(key, value));
+      return Buffer.from(await enUsAsset.arrayBuffer());
+    }
+
+    if (WILDCARD_ENABLED) {
+      // Fallback to prod.
+      const prodUrl = new URL(req.url ?? "", "https://developer.mozilla.org/");
+      res.statusCode = 303;
+      res.setHeader("location", prodUrl.toString());
+      return "";
+    }
+
+    return null;
   }
 );
 
