@@ -6,7 +6,7 @@ import express, { Router } from "express";
 import { ANY_ATTACHMENT_EXT } from "./internal/constants/index.js";
 
 import { Origin } from "./env.js";
-import { proxyContent } from "./handlers/proxy-content.js";
+import { proxyContent, proxyContentAssets } from "./handlers/proxy-content.js";
 import { proxyApi } from "./handlers/proxy-api.js";
 import { handleStripePlans } from "./handlers/handle-stripe-plans.js";
 import { proxyTelemetry } from "./handlers/proxy-telemetry.js";
@@ -25,7 +25,6 @@ import { notFound } from "./middlewares/not-found.js";
 import { stripForwardedHostHeaders } from "./middlewares/stripForwardedHostHeaders.js";
 import { proxyPong } from "./handlers/proxy-pong.js";
 import { handleRunner } from "./internal/play/index.js";
-import { proxyContentAssets } from "./handlers/proxy-content-assets.js";
 import { proxySharedAssets } from "./handlers/proxy-shared-assets.js";
 
 const router = Router();
