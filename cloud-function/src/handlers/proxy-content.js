@@ -50,7 +50,12 @@ const createContentProxyMiddleware = (interceptor) =>
     selfHandleResponse: true,
     on: {
       proxyReq: fixRequestBody,
-      proxyRes: responseInterceptor(interceptor),
+      proxyRes: responseInterceptor(
+        async (responseBuffer, proxyRes, req, res) => {
+          withContentResponseHeaders(proxyRes, req, res);
+          return interceptor(responseBuffer, proxyRes, req, res);
+        }
+      ),
     },
   });
 
@@ -62,7 +67,6 @@ export const proxyContent = createContentProxyMiddleware(
   async (responseBuffer, proxyRes, req, res) => {
     const { target } = req.headers;
 
-    withContentResponseHeaders(proxyRes, req, res);
     if (proxyRes.statusCode === 404 && !isLiveSampleURL(req.url ?? "")) {
       const tryHtml = await fetch(`${target}${req.url?.slice(1)}/index.html`);
 
@@ -89,7 +93,6 @@ export const proxyContentAssets = createContentProxyMiddleware(
   async (responseBuffer, proxyRes, req, res) => {
     const { target } = req.headers;
 
-    withContentResponseHeaders(proxyRes, req, res);
     const [, locale] = req.url?.split("/") || [];
     if (
       proxyRes.statusCode === 404 &&
