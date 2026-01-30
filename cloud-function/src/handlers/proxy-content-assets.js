@@ -16,9 +16,24 @@ const target = sourceUri(Source.content);
  * Falls back to en-US assets for non-English locales, then to production if needed
  */
 export const proxyContentAssets = createProxyMiddleware({
-  target,
   changeOrigin: true,
   autoRewrite: true,
+  router: (req) => {
+    let actualTarget = target;
+
+    if (WILDCARD_ENABLED) {
+      const { host } = req.headers;
+
+      if (typeof host === "string") {
+        const subdomain = host.split(".")[0];
+        actualTarget = `${target}${subdomain}/`;
+      }
+    }
+
+    req.headers["target"] = actualTarget;
+
+    return actualTarget;
+  },
   proxyTimeout: PROXY_TIMEOUT,
   xfwd: true,
   selfHandleResponse: true,
@@ -26,6 +41,8 @@ export const proxyContentAssets = createProxyMiddleware({
     proxyReq: fixRequestBody,
     proxyRes: responseInterceptor(
       async (responseBuffer, proxyRes, req, res) => {
+        const { target } = req.headers;
+
         withContentResponseHeaders(proxyRes, req, res);
         const [, locale] = req.url?.split("/") || [];
         if (
