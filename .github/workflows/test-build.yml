@@ -86,7 +86,7 @@ jobs:
           echo "invalidate: $INVALIDATE"
 
       - name: Checkout
-        uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 # v6.0.1
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
         with:
           fetch-depth: 0
           path: mdn/dex
@@ -104,7 +104,7 @@ jobs:
           git merge main --no-edit || git merge --abort
 
       - name: Checkout (content)
-        uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 # v6.0.1
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
         if: ${{ ! vars.SKIP_BUILD || ! vars.SKIP_FUNCTION }}
         with:
           repository: mdn/content
@@ -118,7 +118,7 @@ jobs:
           persist-credentials: false
 
       - name: Checkout (blog)
-        uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 # v6.0.1
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
         if: ${{ ! vars.SKIP_BUILD }}
         with:
           repository: mdn/blog
@@ -128,7 +128,7 @@ jobs:
           persist-credentials: false
 
       - name: Checkout (generic-content)
-        uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 # v6.0.1
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
         if: ${{ ! vars.SKIP_BUILD }}
         with:
           repository: mdn/generic-content
@@ -136,7 +136,7 @@ jobs:
           persist-credentials: false
 
       - name: Checkout (curriculum)
-        uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 # v6.0.1
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
         if: ${{ ! vars.SKIP_BUILD }}
         with:
           repository: mdn/curriculum
@@ -144,7 +144,7 @@ jobs:
           persist-credentials: false
 
       - name: Checkout (translated-content)
-        uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 # v6.0.1
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
         if: ${{ ! vars.SKIP_BUILD || ! vars.SKIP_FUNCTION }}
         with:
           repository: mdn/translated-content
@@ -155,7 +155,7 @@ jobs:
           persist-credentials: false
 
       - name: Checkout (translated-content-de)
-        uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 # v6.0.1
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
         if: ${{ ! vars.SKIP_BUILD || ! vars.SKIP_FUNCTION }}
         with:
           repository: mdn/translated-content-de
@@ -176,7 +176,7 @@ jobs:
           git -c user.name='MDN' -c user.email='mdn-dev@mozilla.com' commit -m 'de'
 
       - name: Checkout (mdn-contributor-spotlight)
-        uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 # v6.0.1
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
         if: ${{ ! vars.SKIP_BUILD }}
         with:
           repository: mdn/mdn-contributor-spotlight
@@ -184,7 +184,7 @@ jobs:
           persist-credentials: false
 
       - name: Checkout (fred)
-        uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 # v6.0.1
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
         if: ${{ ! vars.SKIP_BUILD }}
         with:
           repository: mdn/fred
@@ -208,7 +208,7 @@ jobs:
         run: npm ci
 
       - name: Checkout (rari)
-        uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 # v6.0.1
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
         if: ${{ !( vars.SKIP_BUILD || github.event.inputs.rari-ref == '' ) }}
         with:
           repository: mdn/rari
