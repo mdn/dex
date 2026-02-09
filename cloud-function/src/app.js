@@ -28,6 +28,20 @@ import { handleRunner } from "./internal/play/index.js";
 import { proxySharedAssets } from "./handlers/proxy-shared-assets.js";
 
 const router = Router();
+
+/**
+ * Register a GET/OPTIONS-only route. Other methods receive 405.
+ * @param {string | string[]} path
+ * @param  {...import("express").RequestHandler} handlers
+ */
+function getOnly(path, ...handlers) {
+  router
+    .route(path)
+    .get(...handlers)
+    .options(...handlers)
+    .all((_req, res) => res.set("Allow", "GET, OPTIONS").sendStatus(405));
+}
+
 router.use(cookieParser());
 router.use(stripForwardedHostHeaders);
 router.use(redirectLeadingSlash);
@@ -48,44 +62,40 @@ router.all("/submit/mdn-dex/*", requireOrigin(Origin.main), proxyTelemetry);
 router.all("/pong/*", requireOrigin(Origin.main), express.json(), proxyPong);
 router.all("/pimg/*", requireOrigin(Origin.main), proxyPong);
 // Playground.
-router.get(
+getOnly(
   ["/[^/]+/docs/*/runner.html", "/[^/]+/blog/*/runner.html", "/runner.html"],
   requireOrigin(Origin.play),
   handleRunner
 );
-// Interactive example assets
-router.get(
+// Interactive example assets.
+getOnly(
   "/shared-assets/*",
   requireOrigin(Origin.play, Origin.main, Origin.liveSamples),
   proxySharedAssets
 );
 // Assets.
-router.get(
+getOnly(
   ["/assets/*", "/sitemaps/*", "/static/*", "/[^/]+.[^/]+"],
   requireOrigin(Origin.main),
   proxyContent
 );
-router.get(
+getOnly(
   "/[^/]+/search-index.json",
   requireOrigin(Origin.main),
   lowercasePathname,
   proxyContent
 );
 // Root.
-router
-  .route("/")
-  .get(requireOrigin(Origin.main), redirectLocale)
-  .options(requireOrigin(Origin.main), redirectLocale)
-  .all((_req, res) => res.set("Allow", "GET, OPTIONS").sendStatus(405).end());
+getOnly("/", requireOrigin(Origin.main), redirectLocale);
 // Live samples.
-router.get(
+getOnly(
   ["/[^/]+/docs/*/_sample_.*.html", "/[^/]+/blog/*/_sample_.*.html"],
   requireOrigin(Origin.liveSamples),
   resolveIndexHTML,
   proxyContent
 );
 // Attachments.
-router.get(
+getOnly(
   [
     `/[^/]+/docs/*/*.(${ANY_ATTACHMENT_EXT.join("|")})`,
     `/[^/]+/blog/*/*.(${ANY_ATTACHMENT_EXT.join("|")})`,
@@ -96,7 +106,7 @@ router.get(
 );
 // Pages.
 router.use(redirectNonCanonicals);
-router.get(
+getOnly(
   "/[^/]+/docs/*",
   requireOrigin(Origin.main),
   redirectFundamental,
@@ -107,7 +117,7 @@ router.get(
   resolveIndexHTML,
   proxyContent
 );
-router.get(
+getOnly(
   ["/[^/]+/blog($|/*)", "/[^/]+/curriculum($|/*)"],
   requireOrigin(Origin.main),
   redirectLocale,
@@ -116,7 +126,7 @@ router.get(
   proxyContent
 );
 // MDN Plus, static pages, etc.
-router.get(
+getOnly(
   "*",
   requireOrigin(Origin.main),
   redirectFundamental,
