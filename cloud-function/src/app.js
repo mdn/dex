@@ -3,7 +3,7 @@
 import cookieParser from "cookie-parser";
 import express, { Router } from "express";
 
-import { ANY_ATTACHMENT_EXT } from "./internal/constants/index.js";
+import { ANY_ATTACHMENT_REGEXP } from "./internal/constants/index.js";
 
 import { Origin } from "./env.js";
 import { proxyContent, proxyContentAssets } from "./handlers/proxy-content.js";
@@ -39,34 +39,47 @@ router.all(
 );
 // Backend.
 router.all(
-  ["/api/*", "/admin-api/*", "/events/fxa", "/users/fxa/*"],
+  ["/api/*splat", "/admin-api/*splat", "/events/fxa", "/users/fxa/*splat"],
   requireOrigin(Origin.main),
   proxyApi
 );
 // Telemetry.
-router.all("/submit/mdn-dex/*", requireOrigin(Origin.main), proxyTelemetry);
-router.all("/pong/*", requireOrigin(Origin.main), express.json(), proxyPong);
-router.all("/pimg/*", requireOrigin(Origin.main), proxyPong);
+router.all(
+  "/submit/mdn-dex/*splat",
+  requireOrigin(Origin.main),
+  proxyTelemetry
+);
+router.all(
+  "/pong/*splat",
+  requireOrigin(Origin.main),
+  express.json(),
+  proxyPong
+);
+router.all("/pimg/*splat", requireOrigin(Origin.main), proxyPong);
 // Playground.
 router.get(
-  ["/[^/]+/docs/*/runner.html", "/[^/]+/blog/*/runner.html", "/runner.html"],
+  [
+    "/:locale/docs/*path/runner.html",
+    "/:locale/blog/*path/runner.html",
+    "/runner.html",
+  ],
   requireOrigin(Origin.play),
   handleRunner
 );
 // Interactive example assets
 router.get(
-  "/shared-assets/*",
+  "/shared-assets/*splat",
   requireOrigin(Origin.play, Origin.main, Origin.liveSamples),
   proxySharedAssets
 );
 // Assets.
 router.get(
-  ["/assets/*", "/sitemaps/*", "/static/*", "/[^/]+.[^/]+"],
+  ["/assets/*splat", "/sitemaps/*splat", "/static/*splat", "/:file.:ext"],
   requireOrigin(Origin.main),
   proxyContent
 );
 router.get(
-  "/[^/]+/search-index.json",
+  "/:locale/search-index.json",
   requireOrigin(Origin.main),
   lowercasePathname,
   proxyContent
@@ -75,17 +88,23 @@ router.get(
 router.get("/", requireOrigin(Origin.main), redirectLocale);
 // Live samples.
 router.get(
-  ["/[^/]+/docs/*/_sample_.*.html", "/[^/]+/blog/*/_sample_.*.html"],
+  [
+    "/:locale/docs/*path/_sample_.:sampleId.html",
+    "/:locale/blog/*path/_sample_.:sampleId.html",
+  ],
   requireOrigin(Origin.liveSamples),
   resolveIndexHTML,
   proxyContent
 );
 // Attachments.
 router.get(
-  [
-    `/[^/]+/docs/*/*.(${ANY_ATTACHMENT_EXT.join("|")})`,
-    `/[^/]+/blog/*/*.(${ANY_ATTACHMENT_EXT.join("|")})`,
-  ],
+  ["/:locale/docs/*path/:filename.:ext", "/:locale/blog/*path/:filename.:ext"],
+  (req, _res, next) => {
+    if (ANY_ATTACHMENT_REGEXP.test(req.path)) {
+      return next();
+    }
+    next("route");
+  },
   requireOrigin(Origin.main, Origin.liveSamples, Origin.play),
   resolveIndexHTML,
   proxyContentAssets
@@ -93,7 +112,7 @@ router.get(
 // Pages.
 router.use(redirectNonCanonicals);
 router.get(
-  "/[^/]+/docs/*",
+  "/:locale/docs/*splat",
   requireOrigin(Origin.main),
   redirectFundamental,
   redirectLocale,
@@ -104,7 +123,7 @@ router.get(
   proxyContent
 );
 router.get(
-  ["/[^/]+/blog($|/*)", "/[^/]+/curriculum($|/*)"],
+  ["/:locale/blog{/*splat}", "/:locale/curriculum{/*splat}"],
   requireOrigin(Origin.main),
   redirectLocale,
   redirectEnforceTrailingSlash,
@@ -113,7 +132,7 @@ router.get(
 );
 // MDN Plus, static pages, etc.
 router.get(
-  "*",
+  "{/*splat}",
   requireOrigin(Origin.main),
   redirectFundamental,
   redirectLocale,
@@ -121,7 +140,7 @@ router.get(
   resolveIndexHTML,
   proxyContent
 );
-router.all("*", notFound);
+router.all("{/*splat}", notFound);
 
 /**
  * Create the main MDN handler function for Google Cloud Functions
