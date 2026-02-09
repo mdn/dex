@@ -42,6 +42,13 @@ export const ORIGIN_LIVE_SAMPLES =
   process.env["ORIGIN_LIVE_SAMPLES"] || "localhost";
 export const ORIGIN_PLAY = process.env["ORIGIN_PLAY"] || "localhost";
 
+export const CANONICALS_FILE =
+  process.env["CANONICALS_FILE"] ||
+  new URL("../canonicals.json", import.meta.url).pathname;
+export const REDIRECTS_FILE =
+  process.env["REDIRECTS_FILE"] ||
+  new URL("../redirects.json", import.meta.url).pathname;
+
 export const SOURCE_CONTENT = process.env["SOURCE_CONTENT"] || LOCAL_CONTENT;
 export const SOURCE_API =
   process.env["SOURCE_API"] || "https://developer.allizom.org/";

@@ -1,14 +1,9 @@
 /** @import { NextFunction, Request, Response } from "express" */
 
-import { createRequire } from "node:module";
-
 import { decodePath } from "../internal/slug-utils/index.js";
 import { THIRTY_DAYS } from "../constants.js";
+import { REDIRECTS } from "../redirects.js";
 import { redirect } from "../utils.js";
-
-const require = createRequire(import.meta.url);
-/** @type {Record<string, string>} */
-const REDIRECTS = require("../../redirects.json");
 const REDIRECT_SUFFIXES = ["/index.json", "/bcd.json", ""];
 
 /**
