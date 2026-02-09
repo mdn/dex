@@ -72,7 +72,11 @@ router.get(
   proxyContent
 );
 // Root.
-router.get("/", requireOrigin(Origin.main), redirectLocale);
+router
+  .route("/")
+  .get(requireOrigin(Origin.main), redirectLocale)
+  .options(requireOrigin(Origin.main), redirectLocale)
+  .all((_req, res) => res.set("Allow", "GET, OPTIONS").sendStatus(405).end());
 // Live samples.
 router.get(
   ["/[^/]+/docs/*/_sample_.*.html", "/[^/]+/blog/*/_sample_.*.html"],
