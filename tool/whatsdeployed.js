@@ -2,22 +2,24 @@ import child_process from "node:child_process";
 import fs from "node:fs/promises";
 import path from "node:path";
 
-export async function whatsdeployed(
-  directory: string,
-  output: string,
-  dryRun = false
-): Promise<void> {
+/**
+ * @param {string} directory
+ * @param {string} output
+ * @param {boolean} [dryRun]
+ * @returns {Promise<void>}
+ */
+export async function whatsdeployed(directory, output, dryRun = false) {
   const command = "git log -n 1 --format='%H\t%ad'";
   console.info(`Executing ${command} in ${directory}`);
 
-  const stdout = await new Promise<string>((resolve, reject) =>
+  const stdout = await new Promise((resolve, reject) =>
     child_process.exec(
       command,
       {
         cwd: directory,
         encoding: "utf-8",
       },
-      (error: child_process.ExecException, stdout: string) => {
+      (error, stdout) => {
         if (error) {
           reject(error);
         } else {

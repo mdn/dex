@@ -1,3 +1,10 @@
+/** @import { CheerioAPI } from "cheerio" */
+/** @import { BrowserStatement, SimpleSupportStatement, VersionValue } from "@mdn/browser-compat-data/types" */
+/** @import { SimpleSupportStatementExtended } from "@mdn/bcd-utils-api" */
+/** @import { Doc as RariDoc } from "@mdn/rari" */
+/** @import { IndexedDoc, Doc, FormattingUpdate, EmbeddingUpdate, DocMetadata } from "./types.js" */
+/** @import OpenAI from "openai" */
+
 import { createHash } from "node:crypto";
 import { readFile } from "node:fs/promises";
 
@@ -6,65 +13,26 @@ import { hideBin } from "yargs/helpers";
 import pg from "pg";
 import pgvector from "pgvector/pg";
 import { fdir } from "fdir";
-import OpenAI from "openai";
-import { load as cheerio, CheerioAPI } from "cheerio";
+import OpenAIClient from "openai";
+import { load as cheerio } from "cheerio";
 
 import { BUILD_OUT_ROOT, OPENAI_KEY, PG_URI } from "./env.js";
-import {
-  getBCDDataForPath,
-  SimpleSupportStatementExtended,
-} from "@mdn/bcd-utils-api";
+import { getBCDDataForPath } from "@mdn/bcd-utils-api";
 import path from "node:path";
-import {
-  BrowserStatement,
-  SimpleSupportStatement,
-  VersionValue,
-} from "@mdn/browser-compat-data/types";
-import * as Rari from "@mdn/rari";
 import { h2mSync } from "./libs/markdown.js";
 
 const EMBEDDING_MODEL = "text-embedding-3-small";
 const EMBEDDING_MODEL_NEXT = "text-embedding-3-small";
 
-interface IndexedDoc {
-  id: number;
-  mdn_url: string;
-  title: string;
-  token_count: number | null;
-  has_embedding: boolean;
-  has_embedding_next: boolean;
-  markdown_hash: string;
-  text_hash: string;
-}
-
-interface Doc {
-  mdn_url: string;
-  title: string;
-  title_short: string;
-  markdown: string;
-  markdown_hash: string;
-  text?: string;
-  text_hash?: string;
-}
-
-type FormattingUpdate = Pick<
-  Doc,
-  "mdn_url" | "title" | "title_short" | "markdown" | "markdown_hash"
->;
-
-type EmbeddingUpdate = Pick<Doc, "mdn_url" | "text"> & {
-  has_embedding: boolean;
-  has_embedding_next: boolean;
-};
-
-type DocMetadata = Pick<Rari.Doc, "title" | "short_title" | "mdn_url"> & {
-  hash: string;
-};
-
+/**
+ * @param {string} directory
+ * @param {boolean} updateFormatting
+ * @param {boolean} usePlainHtml
+ */
 export async function updateEmbeddings(
-  directory: string,
-  updateFormatting: boolean,
-  usePlainHtml: boolean
+  directory,
+  updateFormatting,
+  usePlainHtml
 ) {
   if (!OPENAI_KEY || !PG_URI) {
     throw Error("Please set these environment variables: OPENAI_KEY, PG_URI");
@@ -80,18 +48,27 @@ export async function updateEmbeddings(
   await pgvector.registerType(pgClient);
 
   // Open AI.
-  const openai = new OpenAI({
+  const openai = new OpenAIClient({
     apiKey: OPENAI_KEY,
   });
 
-  const createEmbedding = async (input: string, model: string) => {
-    let embeddingResponse: OpenAI.Embeddings.CreateEmbeddingResponse;
+  /**
+   * @param {string} input
+   * @param {string} model
+   */
+  const createEmbedding = async (input, model) => {
+    /** @type {OpenAI.Embeddings.CreateEmbeddingResponse} */
+    let embeddingResponse;
     try {
       embeddingResponse = await openai.embeddings.create({
         model,
         input,
       });
-    } catch ({ error: { message, type }, status }: any) {
+    } catch (/** @type {any} */ e) {
+      const {
+        error: { message, type },
+        status,
+      } = e;
       console.error(
         `[!] Failed to create embedding (${status}): ${type} - ${message}`
       );
@@ -117,16 +94,21 @@ export async function updateEmbeddings(
   const existingDocs = await fetchAllExistingDocs(pgClient);
   console.log(`-> Done.`);
 
-  const existingDocByUrl = new Map<string, IndexedDoc>(
+  /** @type {Map<string, IndexedDoc>} */
+  const existingDocByUrl = new Map(
     existingDocs.map((doc) => [doc.mdn_url, doc])
   );
 
   console.log(`Determining changed and deleted documents...`);
 
-  const seenUrls = new Set<string>();
-  const updates: Doc[] = [];
-  const formattingUpdates: FormattingUpdate[] = [];
-  const embeddingUpdates: EmbeddingUpdate[] = [];
+  /** @type {Set<string>} */
+  const seenUrls = new Set();
+  /** @type {Doc[]} */
+  const updates = [];
+  /** @type {FormattingUpdate[]} */
+  const formattingUpdates = [];
+  /** @type {EmbeddingUpdate[]} */
+  const embeddingUpdates = [];
 
   for await (const { mdn_url, title, title_short, markdown, text } of builtDocs(
     directory,
@@ -190,7 +172,8 @@ export async function updateEmbeddings(
     );
   }
 
-  const deletions: IndexedDoc[] = [...existingDocByUrl.entries()]
+  /** @type {IndexedDoc[]} */
+  const deletions = [...existingDocByUrl.entries()]
     .filter(([key]) => !seenUrls.has(key))
     .map(([, value]) => value);
   console.log(
@@ -269,7 +252,7 @@ export async function updateEmbeddings(
         };
 
         await pgClient.query(query);
-      } catch (err: any) {
+      } catch (/** @type {any} */ err) {
         console.error(`!> [${mdn_url}] Failed to update document.`);
         const context = err?.response?.data ?? err?.response ?? err;
         console.error(context);
@@ -306,7 +289,7 @@ export async function updateEmbeddings(
         };
 
         await pgClient.query(query);
-      } catch (err: any) {
+      } catch (/** @type {any} */ err) {
         console.error(`!> [${mdn_url}] Failed to update document.`);
         const context = err?.response?.data ?? err?.response ?? err;
         console.error(context);
@@ -356,7 +339,7 @@ export async function updateEmbeddings(
 
           await pgClient.query(query);
         }
-      } catch (err: any) {
+      } catch (/** @type {any} */ err) {
         console.error(`!> [${mdn_url}] Failed to add embeddings.`);
         const context = err?.response?.data ?? err?.response ?? err;
         console.error(context);
@@ -384,13 +367,21 @@ export async function updateEmbeddings(
   pgClient.end();
 }
 
-async function formatDocs(directory: string, usePlainHtml: boolean) {
+/**
+ * @param {string} directory
+ * @param {boolean} usePlainHtml
+ */
+async function formatDocs(directory, usePlainHtml) {
   for await (const { markdown, text } of builtDocs(directory, usePlainHtml)) {
     console.log(markdown, text);
   }
 }
 
-async function* builtPaths(directory: string) {
+/**
+ * @param {string} directory
+ * @returns {AsyncGenerator<string>}
+ */
+async function* builtPaths(directory) {
   const api = new fdir()
     .withFullPaths()
     .withErrors()
@@ -404,14 +395,19 @@ async function* builtPaths(directory: string) {
   }
 }
 
-async function* builtDocs(directory: string, usePlainHtml: boolean) {
+/**
+ * @param {string} directory
+ * @param {boolean} usePlainHtml
+ */
+async function* builtDocs(directory, usePlainHtml) {
   for await (const metadataPath of builtPaths(directory)) {
     try {
       const raw = await readFile(metadataPath, "utf-8");
-      const { title, short_title, mdn_url, hash } = JSON.parse(
-        raw
-      ) as DocMetadata;
-      let $: CheerioAPI;
+      const { title, short_title, mdn_url, hash } = /** @type {DocMetadata} */ (
+        JSON.parse(raw)
+      );
+      /** @type {CheerioAPI} */
+      let $;
 
       if (usePlainHtml) {
         const plainPath = path.join(path.dirname(metadataPath), "plain.html");
@@ -422,7 +418,7 @@ async function* builtDocs(directory: string, usePlainHtml: boolean) {
       } else {
         const jsonPath = path.join(path.dirname(metadataPath), "index.json");
         const json = JSON.parse(await readFile(jsonPath, "utf-8"));
-        const doc = json.doc as Rari.Doc;
+        const doc = /** @type {RariDoc} */ (json.doc);
 
         // Assemble the interim HTML from the json data
         $ = cheerio("<html><head></head><body></body></html>");
@@ -461,7 +457,9 @@ async function* builtDocs(directory: string, usePlainHtml: boolean) {
         $(el).removeAttr("width").removeAttr("height");
       });
       $(".bc-data[data-query]").each((_, el) => {
-        $(el).replaceWith(buildBCDTable($(el).data("query") as string));
+        $(el).replaceWith(
+          buildBCDTable(/** @type {string} */ ($(el).data("query")))
+        );
       });
 
       const html = $.html();
@@ -486,7 +484,11 @@ async function* builtDocs(directory: string, usePlainHtml: boolean) {
   }
 }
 
-function buildBCDTable(query: string) {
+/**
+ * @param {string} query
+ * @returns {string}
+ */
+function buildBCDTable(query) {
   const bcdData = getBCDDataForPath(query);
   if (!bcdData) return "";
   const { browsers, data } = bcdData;
@@ -508,10 +510,12 @@ ${Object.entries(data.__compat?.support)
     : "";
 }
 
-function buildBCDSupportString(
-  browser: BrowserStatement,
-  support: (SimpleSupportStatement & SimpleSupportStatementExtended)[]
-) {
+/**
+ * @param {BrowserStatement} browser
+ * @param {(SimpleSupportStatement & SimpleSupportStatementExtended)[]} support
+ * @returns {string}
+ */
+function buildBCDSupportString(browser, support) {
   return support
     .flatMap((item) => {
       return [
@@ -553,10 +557,11 @@ function buildBCDSupportString(
     .join(". ");
 }
 
-function labelFromString(
-  version: string | boolean | null | undefined,
-  browser: BrowserStatement
-) {
+/**
+ * @param {string | boolean | null | undefined} version
+ * @param {BrowserStatement} browser
+ */
+function labelFromString(version, browser) {
   if (typeof version !== "string") {
     return "?";
   }
@@ -571,10 +576,12 @@ function labelFromString(
   return version;
 }
 
-function FlagsNote(
-  supportItem: SimpleSupportStatement,
-  browser: BrowserStatement
-) {
+/**
+ * @param {SimpleSupportStatement} supportItem
+ * @param {BrowserStatement} browser
+ * @returns {string}
+ */
+function FlagsNote(supportItem, browser) {
   const hasAddedVersion = typeof supportItem.version_added === "string";
   const hasRemovedVersion = typeof supportItem.version_removed === "string";
   const flags = supportItem.flags || [];
@@ -604,10 +611,12 @@ function FlagsNote(
   }`;
 }
 
-function versionIsPreview(
-  version: VersionValue | string | undefined,
-  browser: BrowserStatement
-): boolean {
+/**
+ * @param {VersionValue | string | undefined} version
+ * @param {BrowserStatement} browser
+ * @returns {boolean}
+ */
+function versionIsPreview(version, browser) {
   if (version === "preview") {
     return true;
   }
@@ -621,17 +630,24 @@ function versionIsPreview(
   return false;
 }
 
-export function isFullySupportedWithoutLimitation(
-  support: SimpleSupportStatement
-) {
+/**
+ * @param {SimpleSupportStatement} support
+ */
+export function isFullySupportedWithoutLimitation(support) {
   return support.version_added && !hasLimitation(support);
 }
 
-function hasLimitation(support: SimpleSupportStatement) {
+/**
+ * @param {SimpleSupportStatement} support
+ */
+function hasLimitation(support) {
   return hasMajorLimitation(support) || support.notes;
 }
 
-function hasMajorLimitation(support: SimpleSupportStatement) {
+/**
+ * @param {SimpleSupportStatement} support
+ */
+function hasMajorLimitation(support) {
   return (
     support.partial_implementation ||
     support.alternative_name ||
@@ -641,12 +657,20 @@ function hasMajorLimitation(support: SimpleSupportStatement) {
   );
 }
 
-export function isNotSupportedAtAll(support: SimpleSupportStatement) {
+/**
+ * @param {SimpleSupportStatement} support
+ */
+export function isNotSupportedAtAll(support) {
   return !support.version_added && !hasLimitation(support);
 }
 
-async function fetchAllExistingDocs(pgClient): Promise<IndexedDoc[]> {
+/**
+ * @param {pg.Client} pgClient
+ * @returns {Promise<IndexedDoc[]>}
+ */
+async function fetchAllExistingDocs(pgClient) {
   const PAGE_SIZE = 1000;
+  /** @param {number} lastId */
   const selectDocs = async (lastId) => {
     const query = {
       name: "fetch-all-doc",
@@ -679,7 +703,7 @@ async function fetchAllExistingDocs(pgClient): Promise<IndexedDoc[]> {
         markdown_hash,
         text_hash,
       ]) => {
-        return {
+        return /** @type {IndexedDoc} */ ({
           id,
           mdn_url,
           title,
@@ -688,11 +712,12 @@ async function fetchAllExistingDocs(pgClient): Promise<IndexedDoc[]> {
           has_embedding_next,
           markdown_hash,
           text_hash,
-        };
+        });
       }
     );
   };
 
+  /** @type {IndexedDoc[]} */
   const allDocs = [];
   let docs = await selectDocs(0);
   allDocs.push(...docs);

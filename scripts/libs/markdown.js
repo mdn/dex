@@ -4,7 +4,11 @@ import rehypeRemark from "rehype-remark";
 import remarkStringify from "remark-stringify";
 import remarkGfm from "remark-gfm";
 
-export function h2mSync(html: string) {
+/**
+ * @param {string} html
+ * @returns {string}
+ */
+export function h2mSync(html) {
   const file = unified()
     .use(rehypeParse)
     .use(rehypeRemark)

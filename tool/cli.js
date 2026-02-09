@@ -36,7 +36,7 @@ yargs(hideBin(process.argv))
         const { directory, output, dryRun } = argv;
         await whatsdeployed(directory, output, dryRun);
       } catch (e) {
-        const error = e as Error;
+        const error = /** @type {Error} */ (e);
         if (argv.verbose || (error instanceof Error && !error.message)) {
           console.error(error.stack);
         }

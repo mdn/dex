@@ -7,7 +7,7 @@
   "author": "MDN Web Docs",
   "type": "module",
   "scripts": {
-    "ai-help-macros": "tsx scripts/ai-help-macros.ts",
+    "ai-help-macros": "node scripts/ai-help-macros.js",
     "check:tsc": "find . -name 'tsconfig.json' ! -wholename '**/node_modules/**' ! -wholename '**/cloud-function/src/internal/**' -print0 | xargs -n1 -P 2 -0 sh -c 'cd `dirname $0` && echo \"🔄 $(pwd)\" && npx tsc --noEmit && echo \"☑️  $(pwd)\" || exit 255'",
     "eslint": "eslint .",
     "install:all": "find . -mindepth 2 -name 'package-lock.json' ! -wholename '**/node_modules/**' -print0 | xargs -n1 -0 sh -cx 'npm --prefix $(dirname $0) install'",
@@ -16,7 +16,7 @@
     "prettier-format": "prettier --write .",
     "test": "npm run prettier-check && npm run test:libs",
     "test:libs": "tsx --test libs/**/*.test.ts",
-    "tool:legacy": "tsx ./tool/cli.ts"
+    "tool:legacy": "node ./tool/cli.js"
   },
   "resolutions": {
     "lodash": ">=4.17.15"
