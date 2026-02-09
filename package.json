@@ -14,8 +14,7 @@
     "prepare": "npm run install:all",
     "prettier-check": "prettier --check .",
     "prettier-format": "prettier --write .",
-    "test": "npm run prettier-check && npm run test:libs",
-    "test:libs": "tsx --test libs/**/*.test.ts",
+    "test": "node --test",
     "tool:legacy": "tsx ./tool/cli.ts"
   },
   "resolutions": {

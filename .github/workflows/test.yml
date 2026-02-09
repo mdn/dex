@@ -62,5 +62,5 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Unit testing libs
-        run: npm run test:libs
+      - name: Test
+        run: npm test
