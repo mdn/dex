@@ -128,8 +128,9 @@ router.all("*", notFound);
  * @returns {(req: Request, res: Response) => Promise<void>} Express-compatible handler
  */
 export function createHandler() {
-  return async (req, res) =>
-    router(req, res, () => {
+  return async (req, res) => {
+    await router(req, res, () => {
       /* noop */
     });
+  };
 }
