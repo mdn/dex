@@ -12,7 +12,7 @@ python = "^3.10"
 click = "^8.3.1"
 python-decouple = "^3.8"
 selectolax = "^0.4.1"
-elasticsearch = "^9.2.1"
+elasticsearch = "^9.3.0"
 
 [tool.poetry.group.dev]
 optional = true
