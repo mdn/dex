@@ -29,19 +29,6 @@ import { proxySharedAssets } from "./handlers/proxy-shared-assets.js";
 
 const router = Router();
 
-/**
- * Register a GET/OPTIONS-only route. Other methods receive 405.
- * @param {string | string[]} path
- * @param  {...import("express").RequestHandler} handlers
- */
-function getOnly(path, ...handlers) {
-  router
-    .route(path)
-    .get(...handlers)
-    .options(...handlers)
-    .all((_req, res) => res.set("Allow", "GET, OPTIONS").sendStatus(405));
-}
-
 router.use(cookieParser());
 router.use(stripForwardedHostHeaders);
 router.use(redirectLeadingSlash);
@@ -62,40 +49,40 @@ router.all("/submit/mdn-dex/*", requireOrigin(Origin.main), proxyTelemetry);
 router.all("/pong/*", requireOrigin(Origin.main), express.json(), proxyPong);
 router.all("/pimg/*", requireOrigin(Origin.main), proxyPong);
 // Playground.
-getOnly(
+router.get(
   ["/[^/]+/docs/*/runner.html", "/[^/]+/blog/*/runner.html", "/runner.html"],
   requireOrigin(Origin.play),
   handleRunner
 );
 // Interactive example assets.
-getOnly(
+router.get(
   "/shared-assets/*",
   requireOrigin(Origin.play, Origin.main, Origin.liveSamples),
   proxySharedAssets
 );
 // Assets.
-getOnly(
+router.get(
   ["/assets/*", "/sitemaps/*", "/static/*", "/[^/]+.[^/]+"],
   requireOrigin(Origin.main),
   proxyContent
 );
-getOnly(
+router.get(
   "/[^/]+/search-index.json",
   requireOrigin(Origin.main),
   lowercasePathname,
   proxyContent
 );
 // Root.
-getOnly("/", requireOrigin(Origin.main), redirectLocale);
+router.get("/", requireOrigin(Origin.main), redirectLocale);
 // Live samples.
-getOnly(
+router.get(
   ["/[^/]+/docs/*/_sample_.*.html", "/[^/]+/blog/*/_sample_.*.html"],
   requireOrigin(Origin.liveSamples),
   resolveIndexHTML,
   proxyContent
 );
 // Attachments.
-getOnly(
+router.get(
   [
     `/[^/]+/docs/*/*.(${ANY_ATTACHMENT_EXT.join("|")})`,
     `/[^/]+/blog/*/*.(${ANY_ATTACHMENT_EXT.join("|")})`,
@@ -106,7 +93,7 @@ getOnly(
 );
 // Pages.
 router.use(redirectNonCanonicals);
-getOnly(
+router.get(
   "/[^/]+/docs/*",
   requireOrigin(Origin.main),
   redirectFundamental,
@@ -117,7 +104,7 @@ getOnly(
   resolveIndexHTML,
   proxyContent
 );
-getOnly(
+router.get(
   ["/[^/]+/blog($|/*)", "/[^/]+/curriculum($|/*)"],
   requireOrigin(Origin.main),
   redirectLocale,
@@ -126,7 +113,7 @@ getOnly(
   proxyContent
 );
 // MDN Plus, static pages, etc.
-getOnly(
+router.get(
   "*",
   requireOrigin(Origin.main),
   redirectFundamental,
@@ -135,7 +122,8 @@ getOnly(
   resolveIndexHTML,
   proxyContent
 );
-router.all("*", notFound);
+router.get("*", notFound);
+router.all("*", (_req, res) => res.set("Allow", "GET").sendStatus(405));
 
 /**
  * Create the main MDN handler function for Google Cloud Functions

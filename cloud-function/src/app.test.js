@@ -48,7 +48,7 @@ describe("mdnHandler", () => {
     strictEqual(res.statusCode, 302);
   });
 
-  it("returns 302 for OPTIONS /", async () => {
+  it("returns 405 for OPTIONS /", async () => {
     const req = createRequest({
       method: "OPTIONS",
       url: "/",
@@ -58,7 +58,8 @@ describe("mdnHandler", () => {
     const res = createResponse();
     mdnHandler(req, res);
 
-    strictEqual(res.statusCode, 302);
+    strictEqual(res.statusCode, 405);
+    strictEqual(res.getHeader("allow"), "GET");
   });
 
   it("returns 405 for POST /", async () => {
@@ -72,7 +73,7 @@ describe("mdnHandler", () => {
     mdnHandler(req, res);
 
     strictEqual(res.statusCode, 405);
-    strictEqual(res.getHeader("allow"), "GET, OPTIONS");
+    strictEqual(res.getHeader("allow"), "GET");
   });
 
   it("returns 405 for PUT /", async () => {
@@ -86,7 +87,7 @@ describe("mdnHandler", () => {
     mdnHandler(req, res);
 
     strictEqual(res.statusCode, 405);
-    strictEqual(res.getHeader("allow"), "GET, OPTIONS");
+    strictEqual(res.getHeader("allow"), "GET");
   });
 
   it("returns 405 for DELETE /", async () => {
@@ -100,7 +101,7 @@ describe("mdnHandler", () => {
     mdnHandler(req, res);
 
     strictEqual(res.statusCode, 405);
-    strictEqual(res.getHeader("allow"), "GET, OPTIONS");
+    strictEqual(res.getHeader("allow"), "GET");
   });
 
   it("returns 405 for PATCH /", async () => {
@@ -114,6 +115,6 @@ describe("mdnHandler", () => {
     mdnHandler(req, res);
 
     strictEqual(res.statusCode, 405);
-    strictEqual(res.getHeader("allow"), "GET, OPTIONS");
+    strictEqual(res.getHeader("allow"), "GET");
   });
 });
