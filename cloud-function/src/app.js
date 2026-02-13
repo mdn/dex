@@ -28,6 +28,7 @@ import { handleRunner } from "./internal/play/index.js";
 import { proxySharedAssets } from "./handlers/proxy-shared-assets.js";
 
 const router = Router();
+
 router.use(cookieParser());
 router.use(stripForwardedHostHeaders);
 router.use(redirectLeadingSlash);
@@ -53,7 +54,7 @@ router.get(
   requireOrigin(Origin.play),
   handleRunner
 );
-// Interactive example assets
+// Interactive example assets.
 router.get(
   "/shared-assets/*",
   requireOrigin(Origin.play, Origin.main, Origin.liveSamples),
@@ -121,7 +122,8 @@ router.get(
   resolveIndexHTML,
   proxyContent
 );
-router.all("*", notFound);
+router.get("*", notFound);
+router.all("*", (_req, res) => res.set("Allow", "GET").sendStatus(405));
 
 /**
  * Create the main MDN handler function for Google Cloud Functions
