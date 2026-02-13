@@ -90,10 +90,6 @@ export function sourceUri(source) {
   }
 }
 
-// Origin trial.
-/** @type {string | undefined} */
-export const ORIGIN_TRIAL_TOKEN = process.env["ORIGIN_TRIAL_TOKEN"];
-
 // Placements.
 export const SIGN_SECRET = process.env["SIGN_SECRET"] ?? "";
 export const BSA_ZONE_KEYS = Object.fromEntries(
