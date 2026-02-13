@@ -54,7 +54,7 @@ function buildRedirectsMap() {
     }
   });
 
-  const output = "redirects.json";
+  const output = process.env["REDIRECTS_FILE"] || "redirects.json";
 
   fs.writeFileSync(output, JSON.stringify(Object.fromEntries(redirectMap)));
 

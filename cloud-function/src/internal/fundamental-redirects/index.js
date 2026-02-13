@@ -1275,7 +1275,7 @@ const ABSOLUTE_URL = /^https?:\/\/.*/;
 
 /**
  * @param {string} path
- * @returns {Object}
+ * @returns {{url?: string, status?: 301 | 302, permanent?: boolean, prependLocale?: boolean}}
  */
 export function resolveFundamental(path) {
   if (ABSOLUTE_URL.test(path)) {

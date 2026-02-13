@@ -30,7 +30,7 @@ async function buildCanonicals() {
   }
   console.log(`- ${sitemapPath}: ${pages.length} pages`);
 
-  const output = "canonicals.json";
+  const output = process.env["CANONICALS_FILE"] || "canonicals.json";
 
   await writeFile(output, JSON.stringify(siteMap));
 

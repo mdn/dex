@@ -14,8 +14,7 @@
     "prepare": "npm run install:all",
     "prettier-check": "prettier --check .",
     "prettier-format": "prettier --write .",
-    "test": "npm run prettier-check && npm run test:libs",
-    "test:libs": "tsx --test libs/**/*.test.ts",
+    "test": "node --test",
     "tool:legacy": "tsx ./tool/cli.ts"
   },
   "resolutions": {
@@ -29,7 +28,7 @@
     "cheerio": "1.2.0",
     "dotenv": "^17.2.4",
     "fdir": "^6.5.0",
-    "openai": "^6.18.0",
+    "openai": "^6.19.0",
     "pg": "^8.18.0",
     "pgvector": "^0.2.1",
     "rehype-parse": "^9.0.1",
@@ -54,7 +53,7 @@
     "prettier": "^3.8.1",
     "prettier-plugin-packagejson": "^3.0.0",
     "typescript": "^5.9.3",
-    "typescript-eslint": "^8.54.0"
+    "typescript-eslint": "^8.55.0"
   },
   "packageManager": "npm@11.6.2",
   "engines": {

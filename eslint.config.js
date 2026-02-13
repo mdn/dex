@@ -20,7 +20,15 @@ export default [
       globals: globals.node,
     },
     rules: {
+      "no-unused-vars": "off",
       "@typescript-eslint/no-explicit-any": "off",
+      "@typescript-eslint/no-unused-vars": [
+        "error",
+        {
+          argsIgnorePattern: "^_",
+          varsIgnorePattern: "^_",
+        },
+      ],
       "import/named": "off",
       "import/no-duplicates": "off",
       "import/no-unresolved": "off",
