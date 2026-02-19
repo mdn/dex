@@ -28,7 +28,6 @@ import { handleRunner } from "./internal/play/index.js";
 import { proxySharedAssets } from "./handlers/proxy-shared-assets.js";
 
 const router = Router();
-
 router.use(cookieParser());
 router.use(stripForwardedHostHeaders);
 router.use(redirectLeadingSlash);
@@ -67,7 +66,7 @@ router.get(
   requireOrigin(Origin.play),
   handleRunner
 );
-// Interactive example assets.
+// Interactive example assets
 router.get(
   "/shared-assets/*splat",
   requireOrigin(Origin.play, Origin.main, Origin.liveSamples),
