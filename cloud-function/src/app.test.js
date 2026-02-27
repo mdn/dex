@@ -34,4 +34,87 @@ describe("mdnHandler", () => {
 
     strictEqual(res.statusCode, 302);
   });
+
+  it("returns 302 for HEAD /", async () => {
+    const req = createRequest({
+      method: "HEAD",
+      url: "/",
+      hostname: "localhost",
+      headers: { host: "localhost" },
+    });
+    const res = createResponse();
+    mdnHandler(req, res);
+
+    strictEqual(res.statusCode, 302);
+  });
+
+  it("returns 405 for OPTIONS /", async () => {
+    const req = createRequest({
+      method: "OPTIONS",
+      url: "/",
+      hostname: "localhost",
+      headers: { host: "localhost" },
+    });
+    const res = createResponse();
+    mdnHandler(req, res);
+
+    strictEqual(res.statusCode, 405);
+    strictEqual(res.getHeader("allow"), "GET");
+  });
+
+  it("returns 405 for POST /", async () => {
+    const req = createRequest({
+      method: "POST",
+      url: "/",
+      hostname: "localhost",
+      headers: { host: "localhost" },
+    });
+    const res = createResponse();
+    mdnHandler(req, res);
+
+    strictEqual(res.statusCode, 405);
+    strictEqual(res.getHeader("allow"), "GET");
+  });
+
+  it("returns 405 for PUT /", async () => {
+    const req = createRequest({
+      method: "PUT",
+      url: "/",
+      hostname: "localhost",
+      headers: { host: "localhost" },
+    });
+    const res = createResponse();
+    mdnHandler(req, res);
+
+    strictEqual(res.statusCode, 405);
+    strictEqual(res.getHeader("allow"), "GET");
+  });
+
+  it("returns 405 for DELETE /", async () => {
+    const req = createRequest({
+      method: "DELETE",
+      url: "/",
+      hostname: "localhost",
+      headers: { host: "localhost" },
+    });
+    const res = createResponse();
+    mdnHandler(req, res);
+
+    strictEqual(res.statusCode, 405);
+    strictEqual(res.getHeader("allow"), "GET");
+  });
+
+  it("returns 405 for PATCH /", async () => {
+    const req = createRequest({
+      method: "PATCH",
+      url: "/",
+      hostname: "localhost",
+      headers: { host: "localhost" },
+    });
+    const res = createResponse();
+    mdnHandler(req, res);
+
+    strictEqual(res.statusCode, 405);
+    strictEqual(res.getHeader("allow"), "GET");
+  });
 });

@@ -140,7 +140,8 @@ router.get(
   resolveIndexHTML,
   proxyContent
 );
-router.all("{/*splat}", notFound);
+router.get("{/*splat}", notFound);
+router.all("{/*splat}", (_req, res) => res.set("Allow", "GET").sendStatus(405));
 
 /**
  * Create the main MDN handler function for Google Cloud Functions
