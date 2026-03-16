@@ -144,7 +144,6 @@ export const CSP_DIRECTIVES = {
 
     // Avatars
     "*.githubusercontent.com",
-    "*.googleusercontent.com",
     "*.gravatar.com",
     "mozillausercontent.com",
     "firefoxusercontent.com",
