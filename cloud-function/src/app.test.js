@@ -34,4 +34,36 @@ describe("mdnHandler", () => {
 
     strictEqual(res.statusCode, 302);
   });
+
+  describe("preferredlocale cookie", () => {
+    it("redirects /en-US/docs/Web to /fr/docs/Web with preferredlocale=fr", async () => {
+      const req = createRequest({
+        method: "GET",
+        url: "/en-US/docs/Web",
+        hostname: "localhost",
+        headers: { host: "localhost" },
+        cookies: { preferredlocale: "fr" },
+      });
+      const res = createResponse();
+      mdnHandler(req, res);
+
+      strictEqual(res.statusCode, 302);
+      strictEqual(res._getRedirectUrl(), "/fr/docs/Web");
+    });
+
+    it("redirects /en-US/ to /fr/ with preferredlocale=fr", async () => {
+      const req = createRequest({
+        method: "GET",
+        url: "/en-US/",
+        hostname: "localhost",
+        headers: { host: "localhost" },
+        cookies: { preferredlocale: "fr" },
+      });
+      const res = createResponse();
+      mdnHandler(req, res);
+
+      strictEqual(res.statusCode, 302);
+      strictEqual(res._getRedirectUrl(), "/fr/");
+    });
+  });
 });
