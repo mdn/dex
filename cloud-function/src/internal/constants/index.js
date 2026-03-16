@@ -66,10 +66,6 @@ export const CSP_SCRIPT_SRC_VALUES = [
   "'self'",
   "'wasm-unsafe-eval'",
 
-  // GA4.
-  "https://www.google-analytics.com/analytics.js",
-  "https://*.googletagmanager.com",
-
   "assets.codepen.io",
   "production-assets.codepen.io",
 
@@ -112,11 +108,6 @@ export const CSP_DIRECTIVES = {
 
     "updates.developer.allizom.org",
     "updates.developer.mozilla.org",
-
-    // GA4.
-    "https://*.google-analytics.com",
-    "https://*.analytics.google.com",
-    "https://*.googletagmanager.com",
 
     // Glean
     "https://incoming.telemetry.mozilla.org",
@@ -170,12 +161,6 @@ export const CSP_DIRECTIVES = {
     // Shared assets.
     "https://mdn.github.io/shared-assets/",
     "https://mdn.dev/",
-
-    // GA4.
-    "https://*.google-analytics.com",
-    "https://*.googletagmanager.com",
-
-    "www.gstatic.com",
   ],
   "manifest-src": ["'self'"],
   "media-src": [
