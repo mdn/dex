@@ -22,7 +22,7 @@
   },
   "dependencies": {
     "@mdn/bcd-utils-api": "^0.0.9",
-    "@mdn/browser-compat-data": "^7.3.6",
+    "@mdn/browser-compat-data": "^7.3.7",
     "@mdn/rari": "^0.2.13",
     "@types/yargs": "^17.0.35",
     "cheerio": "1.2.0",
