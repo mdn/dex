@@ -15,6 +15,7 @@
     "prettier-check": "prettier --check .",
     "prettier-format": "prettier --write .",
     "test": "node --test",
+    "test:coverage": "c8 node --test",
     "tool:legacy": "tsx ./tool/cli.ts"
   },
   "resolutions": {
