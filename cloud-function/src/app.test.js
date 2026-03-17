@@ -148,5 +148,19 @@ describe("mdnHandler", () => {
       strictEqual(res.statusCode, 302);
       strictEqual(res._getRedirectUrl(), "/fr/");
     });
+
+    it("does not redirect /en-US/blog/ with preferredlocale=fr (locale not available)", async () => {
+      const req = createRequest({
+        method: "GET",
+        url: "/en-US/blog/",
+        hostname: "localhost",
+        headers: { host: "localhost" },
+        cookies: { preferredlocale: "fr" },
+      });
+      const res = createResponse();
+      mdnHandler(req, res);
+
+      strictEqual(res.statusCode, 200);
+    });
   });
 });
