@@ -1,5 +1,5 @@
 /** @import { CheerioAPI } from "cheerio" */
-/** @import { BrowserStatement, SimpleSupportStatement, VersionValue } from "@mdn/browser-compat-data/types" */
+/** @import { BrowserName, BrowserStatement, SimpleSupportStatement, VersionValue } from "@mdn/browser-compat-data/types" */
 /** @import { SimpleSupportStatementExtended } from "@mdn/bcd-utils-api" */
 /** @import * as Rari from "@mdn/rari" */
 /** @import { IndexedDoc, Doc, FormattingUpdate, EmbeddingUpdate, DocMetadata } from "./types.js" */
@@ -499,8 +499,8 @@ function buildBCDTable(query) {
 ${Object.entries(data.__compat?.support)
   .map(
     ([browser, support]) =>
-      `<tr><td>${browsers[browser].name}</td><td>${buildBCDSupportString(
-        browsers[browser],
+      `<tr><td>${browsers[/** @type {BrowserName} */ (browser)].name}</td><td>${buildBCDSupportString(
+        browsers[/** @type {BrowserName} */ (browser)],
         support
       )}</td></tr>`
   )
