@@ -30,7 +30,7 @@ async function main() {
 
 try {
   main();
-} catch (e) {
+} catch (/** @type {any} */ e) {
   console.error(e);
   if (process.env.GITHUB_ACTIONS) {
     console.log(`::error::${e.toString()} `);

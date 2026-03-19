@@ -17,8 +17,8 @@ export interface Doc {
   title_short: string;
   markdown: string;
   markdown_hash: string;
-  text?: string;
-  text_hash?: string;
+  text: string;
+  text_hash: string;
 }
 
 export type FormattingUpdate = Pick<

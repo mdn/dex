@@ -422,7 +422,7 @@ async function* builtDocs(directory, usePlainHtml) {
 
         // Assemble the interim HTML from the json data
         $ = cheerio("<html><head></head><body></body></html>");
-        for (const section of doc.body) {
+        for (const section of doc.body ?? []) {
           const tag = section.value.isH3 ? "h3" : "h2";
           if (section.value.title) {
             $("body").append("\n");

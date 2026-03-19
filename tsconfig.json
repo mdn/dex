@@ -19,7 +19,7 @@
     "skipLibCheck": true,
     "sourceMap": true,
     "strict": true,
-    "strictNullChecks": false,
+    "strictNullChecks": true,
     "target": "ES2020"
   },
   "exclude": ["cloud-function"]
