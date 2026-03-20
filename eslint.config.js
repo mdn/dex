@@ -12,7 +12,7 @@ export default [
   importPlugin.flatConfigs.recommended,
   ...tseslint.configs.recommended,
   {
-    ignores: ["libs/", "tool/*.js"],
+    ignores: ["coverage/", "libs/", "tool/*.js"],
   },
   {
     languageOptions: {

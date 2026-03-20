@@ -63,4 +63,6 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Test
-        run: npm test
+        run: npm run test:coverage
+        env:
+          FORCE_COLOR: 1
