@@ -117,4 +117,77 @@ describe("mdnHandler", () => {
     strictEqual(res.statusCode, 405);
     strictEqual(res.getHeader("allow"), "GET");
   });
+
+  describe("preferredlocale cookie", () => {
+    it("redirects /en-US/docs/Web to /fr/docs/Web with preferredlocale=fr", async () => {
+      const req = createRequest({
+        method: "GET",
+        url: "/en-US/docs/Web",
+        hostname: "localhost",
+        headers: { host: "localhost" },
+        cookies: { preferredlocale: "fr" },
+      });
+      const res = createResponse();
+      mdnHandler(req, res);
+
+      strictEqual(res.statusCode, 302);
+      strictEqual(res._getRedirectUrl(), "/fr/docs/Web");
+    });
+
+    it("redirects /en-US/ to /fr/ with preferredlocale=fr", async () => {
+      const req = createRequest({
+        method: "GET",
+        url: "/en-US/",
+        hostname: "localhost",
+        headers: { host: "localhost" },
+        cookies: { preferredlocale: "fr" },
+      });
+      const res = createResponse();
+      mdnHandler(req, res);
+
+      strictEqual(res.statusCode, 302);
+      strictEqual(res._getRedirectUrl(), "/fr/");
+    });
+
+    it("does not redirect /en-US/ without preferredlocale", async () => {
+      const req = createRequest({
+        method: "GET",
+        url: "/en-US/",
+        hostname: "localhost",
+        headers: { host: "localhost" },
+      });
+      const res = createResponse();
+      mdnHandler(req, res);
+
+      strictEqual(res.statusCode, 200);
+    });
+
+    it("does not redirect /fr/ with preferredlocale=fr (already expected locale)", async () => {
+      const req = createRequest({
+        method: "GET",
+        url: "/fr/",
+        hostname: "localhost",
+        headers: { host: "localhost" },
+        cookies: { preferredlocale: "fr" },
+      });
+      const res = createResponse();
+      mdnHandler(req, res);
+
+      strictEqual(res.statusCode, 200);
+    });
+
+    it("does not redirect /en-US/blog/ with preferredlocale=fr (locale not available)", async () => {
+      const req = createRequest({
+        method: "GET",
+        url: "/en-US/blog/",
+        hostname: "localhost",
+        headers: { host: "localhost" },
+        cookies: { preferredlocale: "fr" },
+      });
+      const res = createResponse();
+      mdnHandler(req, res);
+
+      strictEqual(res.statusCode, 200);
+    });
+  });
 });

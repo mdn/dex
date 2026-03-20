@@ -1,5 +1,8 @@
 {
   "/en-us": "/en-US/",
+  "/en-us/blog": "/en-US/blog/",
   "/en-us/docs/web": "/en-US/docs/Web",
-  "/en-us/docs/web/api": "/en-US/docs/Web/API"
+  "/en-us/docs/web/api": "/en-US/docs/Web/API",
+  "/fr": "/fr/",
+  "/fr/docs/web": "/fr/docs/Web"
 }

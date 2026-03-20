@@ -136,6 +136,7 @@ router.get(
   requireOrigin(Origin.main),
   redirectFundamental,
   redirectLocale,
+  redirectPreferredLocale,
   redirectTrailingSlash,
   resolveIndexHTML,
   proxyContent
