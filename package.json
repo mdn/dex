@@ -7,7 +7,7 @@
   "author": "MDN Web Docs",
   "type": "module",
   "scripts": {
-    "ai-help-macros": "tsx scripts/ai-help-macros.ts",
+    "ai-help-macros": "node scripts/ai-help-macros.js",
     "check:tsc": "find . -name 'tsconfig.json' ! -wholename '**/node_modules/**' ! -wholename '**/cloud-function/src/internal/**' -print0 | xargs -n1 -P 2 -0 sh -c 'cd `dirname $0` && echo \"🔄 $(pwd)\" && npx tsc --noEmit && echo \"☑️  $(pwd)\" || exit 255'",
     "eslint": "eslint .",
     "install:all": "find . -mindepth 2 -name 'package-lock.json' ! -wholename '**/node_modules/**' -print0 | xargs -n1 -0 sh -cx 'npm --prefix $(dirname $0) install'",
@@ -16,7 +16,7 @@
     "prettier-format": "prettier --write .",
     "test": "node --test",
     "test:coverage": "c8 node --test",
-    "tool:legacy": "tsx ./tool/cli.ts"
+    "tool:legacy": "node ./tool/cli.js"
   },
   "resolutions": {
     "lodash": ">=4.17.15"
@@ -36,15 +36,13 @@
     "rehype-remark": "^10.0.1",
     "remark-gfm": "^4.0.1",
     "remark-stringify": "^11.0.0",
-    "tsx": "^4.21.0",
     "unified": "^11.0.5",
     "yargs": "^18.0.0"
   },
   "devDependencies": {
-    "@babel/core": "^7.29.0",
-    "@babel/preset-env": "^7.29.2",
     "@eslint/js": "^9.39.4",
     "@types/node": "^24.12.0",
+    "@types/pg": "^8.18.0",
     "c8": "^11.0.0",
     "eslint": "^9.39.4",
     "eslint-plugin-import": "^2.32.0",
