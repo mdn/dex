@@ -26,7 +26,7 @@
   "dependencies": {
     "@adzerk/decision-sdk": "^1.0.0-beta.29",
     "@google-cloud/functions-framework": "^5.0.1",
-    "@sentry/google-cloud-serverless": "^10.43.0",
+    "@sentry/google-cloud-serverless": "^10.45.0",
     "accept-language-parser": "^1.5.0",
     "cookie": "^1.1.1",
     "cookie-parser": "^1.4.7",
@@ -34,7 +34,7 @@
     "express": "^5.2.1",
     "he": "^1.2.0",
     "http-proxy-middleware": "^3.0.5",
-    "sanitize-filename": "^1.6.3"
+    "sanitize-filename": "^1.6.4"
   },
   "devDependencies": {
     "@types/accept-language-parser": "^1.5.8",
