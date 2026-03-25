@@ -71,6 +71,9 @@ export const CSP_SCRIPT_SRC_VALUES = [
 
   "https://js.stripe.com",
 
+  // Transcend Consent Management
+  "transcend-cdn.com",
+
   /*
    * Inline scripts (imported in fred).
    *
@@ -95,7 +98,14 @@ export const CSP_DIRECTIVES = {
   "default-src": ["'self'"],
   "script-src": CSP_SCRIPT_SRC_VALUES,
   "script-src-elem": CSP_SCRIPT_SRC_VALUES,
-  "style-src": ["'report-sample'", "'self'", "'unsafe-inline'"],
+  "style-src": [
+    "'report-sample'",
+    "'self'",
+    "'unsafe-inline'",
+
+    // Transcend Consent Management
+    "transcend-cdn.com",
+  ],
   "object-src": ["'none'"],
   "base-uri": ["'self'"],
   "connect-src": [
@@ -115,6 +125,11 @@ export const CSP_DIRECTIVES = {
     // Observatory
     "https://observatory-api.mdn.allizom.net",
     "https://observatory-api.mdn.mozilla.net",
+
+    // Transcend Consent Management
+    "telemetry.transcend.io",
+    "telemetry.us.transcend.io",
+    "transcend-cdn.com",
 
     // Community
     "https://api.github.com/search/issues",
