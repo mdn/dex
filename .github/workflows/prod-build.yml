@@ -267,6 +267,9 @@ jobs:
           FRED_GLEAN_CHANNEL: prod
           FRED_GLEAN_ENABLED: true
 
+          # Transcend Consent Management
+          FRED_TRANSCEND_AIRGAP_URL: ${{ secrets.TRANSCEND_AIRGAP_URL }}
+
           # Newsletter
           REACT_APP_NEWSLETTER_ENABLED: true
 
