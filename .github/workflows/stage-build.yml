@@ -158,6 +158,7 @@ jobs:
         with:
           repository: mdn/fred
           path: mdn/fred
+          ref: fred-1422-transcend # FIXME: Remove once the Fred PR is merged, before merging this PR!
           persist-credentials: false
 
       - name: Setup Node (fred)
