@@ -28,13 +28,13 @@ export function getRequestCountry(req) {
  * @param {string} location - Redirect location URL
  * @param {object} options - Redirect options
  * @param {number} [options.status=302] - HTTP status code
- * @param {number} [options.cacheControlSeconds=0] - Cache duration in seconds
+ * @param {number} [options.cacheControlSeconds=3600] - Cache duration in seconds
  * @returns {void}
  */
 export function redirect(
   res,
   location,
-  { status = 302, cacheControlSeconds = 0 } = {}
+  { status = 302, cacheControlSeconds = 3600 } = {}
 ) {
   let cacheControlValue;
   if (cacheControlSeconds) {
