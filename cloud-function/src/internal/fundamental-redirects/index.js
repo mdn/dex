@@ -1177,6 +1177,11 @@ for (const [pattern, path] of /** @type {[RegExp, string][]} */ ([
 }
 
 const MISC_REDIRECT_PATTERNS = [
+  redirect(
+    /^en-US\/blog\/under-the-hood-of-mdns-new-frontend\/?$/i,
+    "/en-US/blog/mdn-front-end-deep-dive/",
+    { permanent: true }
+  ),
   redirect(/^discord\/?$/i, "https://discord.gg/Gt4Qf6q67h", {
     permanent: false,
   }),
