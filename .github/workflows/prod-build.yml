@@ -268,6 +268,7 @@ jobs:
           FRED_GLEAN_ENABLED: true
 
           # Transcend Consent Management
+          FRED_TRANSCEND_AIRGAP_URL: https://transcend-cdn.com/cm/${{ secrets.TRANSCEND_BUNDLE_ID }}/airgap.js
           FRED_TRANSCEND_BUNDLE_ID: ${{ secrets.TRANSCEND_BUNDLE_ID }}
 
           # Newsletter
