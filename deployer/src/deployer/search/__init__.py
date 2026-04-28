@@ -94,7 +94,7 @@ def index(
             connection,
             generator(),
             chunk_size=125,  # default: 500
-            max_chunk_bytes=52428800,  # default: 104857600
+            max_chunk_bytes=26214400,  # default: 104857600
             max_retries=4,  # default: 0
             # If the bulk indexing failed, it will by default raise a BulkIndexError.
             # Setting this to 'False' will suppress that.
