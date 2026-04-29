@@ -5,7 +5,7 @@ import {
 } from "http-proxy-middleware";
 
 import { withContentResponseHeaders } from "../headers.js";
-import { Source, sourceUri, WILDCARD_ENABLED } from "../env.js";
+import { CACHE_DISABLED, REVIEW_ROUTING, Source, sourceUri } from "../env.js";
 import { PROXY_TIMEOUT } from "../constants.js";
 import { isLiveSampleURL } from "../utils.js";
 import { ACTIVE_LOCALES } from "../internal/constants/index.js";
@@ -22,7 +22,7 @@ const target = sourceUri(Source.content);
 const router = (req) => {
   let actualTarget = target;
 
-  if (WILDCARD_ENABLED) {
+  if (REVIEW_ROUTING) {
     const { host } = req.headers;
 
     if (typeof host === "string") {
@@ -129,7 +129,7 @@ export const proxyContentAssets = createContentProxyMiddleware(
       return Buffer.from(await enUsAsset.arrayBuffer());
     }
 
-    if (WILDCARD_ENABLED) {
+    if (REVIEW_ROUTING) {
       // Fallback to prod.
       const prodUrl = new URL(req.url ?? "", "https://developer.mozilla.org/");
       res.statusCode = 303;
@@ -154,7 +154,7 @@ async function get404ForLocale(locale) {
   } else {
     const response = await fetch(`${target}${locale}/404/index.html`);
     notFoundBuffer = response.arrayBuffer();
-    if (!WILDCARD_ENABLED) {
+    if (!CACHE_DISABLED) {
       if (response.ok) {
         notFoundBufferCache[locale] = notFoundBuffer;
       } else {

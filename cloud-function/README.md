@@ -40,9 +40,12 @@ The function uses the following environment variables:
   client build is served.
 - `SOURCE_API` (default: `"https://developer.allizom.org/"`) - The URL at which
   the API is served.
-- `WILDCARD_ENABLED` (default: `false`) - If enabled, accepts any `Host` header
-  value, and uses the leftmost subdomain to route into a subdirectory of
-  `SOURCE_CONTENT`.
+- `REVIEW_ROUTING` (default: `false`) - If enabled, accepts any `Host` header
+  value, uses the leftmost subdomain to route into a subdirectory of
+  `SOURCE_CONTENT`, and falls back to production for missing assets.
+- `CACHE_DISABLED` (default: `false`) - If enabled, disables response caching
+  (`Cache-Control: no-store` for non-hashed 200 responses, and skips the
+  in-memory 404 cache).
 
 The placement handler uses the following environment variables:
 
