@@ -102,9 +102,13 @@ export function getLocale(
 
   // Each header in request.headers is always a list of objects.
   const value = getAcceptLanguage(request);
+  // Try a strict match first so that e.g. `zh-TW` resolves to `zh-TW`
+  // rather than the first `zh-*` entry in the supported list. Fall back to
+  // a loose match so that e.g. `en-GB` still resolves to `en-US`.
   const locale =
     value &&
-    acceptLanguageParser.pick(validLocalesList, value, { loose: true });
+    (acceptLanguageParser.pick(validLocalesList, value) ||
+      acceptLanguageParser.pick(validLocalesList, value, { loose: true }));
   return locale || fallback;
 }
 
