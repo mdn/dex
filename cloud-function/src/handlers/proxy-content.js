@@ -5,7 +5,7 @@ import {
 } from "http-proxy-middleware";
 
 import { withContentResponseHeaders } from "../headers.js";
-import { CACHE_DISABLED, REVIEW_ROUTING, Source, sourceUri } from "../env.js";
+import { REVIEW_ROUTING, Source, sourceUri } from "../env.js";
 import { PROXY_TIMEOUT } from "../constants.js";
 import { isLiveSampleURL } from "../utils.js";
 import { ACTIVE_LOCALES } from "../internal/constants/index.js";
@@ -154,7 +154,7 @@ async function get404ForLocale(locale) {
   } else {
     const response = await fetch(`${target}${locale}/404/index.html`);
     notFoundBuffer = response.arrayBuffer();
-    if (!CACHE_DISABLED) {
+    if (!REVIEW_ROUTING) {
       if (response.ok) {
         notFoundBufferCache[locale] = notFoundBuffer;
       } else {

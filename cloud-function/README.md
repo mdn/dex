@@ -42,10 +42,8 @@ The function uses the following environment variables:
   the API is served.
 - `REVIEW_ROUTING` (default: `false`) - If enabled, accepts any `Host` header
   value, uses the leftmost subdomain to route into a subdirectory of
-  `SOURCE_CONTENT`, and falls back to production for missing assets.
-- `CACHE_DISABLED` (default: `false`) - If enabled, disables response caching
-  (`Cache-Control: no-store` for non-hashed 200 responses, and skips the
-  in-memory 404 cache).
+  `SOURCE_CONTENT`, falls back to production for missing assets, and disables
+  response caching.
 
 The placement handler uses the following environment variables:
 

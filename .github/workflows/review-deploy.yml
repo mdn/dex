@@ -89,7 +89,6 @@ jobs:
             --run-service-account=run-mdn-review-functions@${{ secrets.GCP_PROJECT_NAME }}.iam.gserviceaccount.com \
             --set-env-vars="IGNORED_ROUTES=" \
             --set-env-vars="REVIEW_ROUTING=true" \
-            --set-env-vars="CACHE_DISABLED=true" \
             --set-env-vars="SOURCE_CONTENT=https://storage.googleapis.com/${{ vars.GCP_BUCKET_NAME }}/" \
             --set-env-vars="SENTRY_DSN=${{ secrets.SENTRY_DSN_CLOUD_FUNCTION }}" \
             --set-env-vars="SENTRY_ENVIRONMENT=review" \

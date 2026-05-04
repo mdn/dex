@@ -107,10 +107,6 @@ export const REVIEW_ROUTING = Boolean(
   JSON.parse(process.env["REVIEW_ROUTING"] || "false")
 );
 
-export const CACHE_DISABLED = Boolean(
-  JSON.parse(process.env["CACHE_DISABLED"] || "false")
-);
-
 // HTTPS.
 // (Use https://github.com/FiloSottile/mkcert to generate a locally-trusted certificate.)
 export const HTTPS_KEY_FILE = process.env["HTTPS_KEY_FILE"] ?? "";
