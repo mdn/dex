@@ -190,4 +190,162 @@ describe("mdnHandler", () => {
       strictEqual(res.statusCode, 200);
     });
   });
+
+  describe("missing locale (canonical-aware fallback)", () => {
+    it("redirects /about to /en-US/about (issue #279)", async () => {
+      const req = createRequest({
+        method: "GET",
+        url: "/about",
+        hostname: "localhost",
+        headers: { host: "localhost" },
+      });
+      const res = createResponse();
+      mdnHandler(req, res);
+
+      strictEqual(res.statusCode, 302);
+      strictEqual(res._getRedirectUrl(), "/en-US/about");
+    });
+
+    it("redirects /community to /en-US/community", async () => {
+      const req = createRequest({
+        method: "GET",
+        url: "/community",
+        hostname: "localhost",
+        headers: { host: "localhost" },
+      });
+      const res = createResponse();
+      mdnHandler(req, res);
+
+      strictEqual(res.statusCode, 302);
+      strictEqual(res._getRedirectUrl(), "/en-US/community");
+    });
+
+    it("redirects /advertising to /en-US/advertising", async () => {
+      const req = createRequest({
+        method: "GET",
+        url: "/advertising",
+        hostname: "localhost",
+        headers: { host: "localhost" },
+      });
+      const res = createResponse();
+      mdnHandler(req, res);
+
+      strictEqual(res.statusCode, 302);
+      strictEqual(res._getRedirectUrl(), "/en-US/advertising");
+    });
+
+    it("preserves query string when inserting locale", async () => {
+      const req = createRequest({
+        method: "GET",
+        url: "/about?foo=bar",
+        hostname: "localhost",
+        headers: { host: "localhost" },
+      });
+      const res = createResponse();
+      mdnHandler(req, res);
+
+      strictEqual(res.statusCode, 302);
+      strictEqual(res._getRedirectUrl(), "/en-US/about?foo=bar");
+    });
+
+    it("uses Accept-Language to pick best locale when multiple are available", async () => {
+      const req = createRequest({
+        method: "GET",
+        url: "/docs/Web",
+        hostname: "localhost",
+        headers: { host: "localhost", "accept-language": "fr" },
+      });
+      const res = createResponse();
+      mdnHandler(req, res);
+
+      strictEqual(res.statusCode, 302);
+      strictEqual(res._getRedirectUrl(), "/fr/docs/Web");
+    });
+
+    it("falls back to en-US when preferredlocale has no translation", async () => {
+      const req = createRequest({
+        method: "GET",
+        url: "/about",
+        hostname: "localhost",
+        headers: { host: "localhost" },
+        cookies: { preferredlocale: "de" },
+      });
+      const res = createResponse();
+      mdnHandler(req, res);
+
+      strictEqual(res.statusCode, 302);
+      strictEqual(res._getRedirectUrl(), "/en-US/about");
+    });
+  });
+
+  describe("locale fallback to en-US", () => {
+    it("redirects /de/about to /en-US/about when de translation is missing", async () => {
+      const req = createRequest({
+        method: "GET",
+        url: "/de/about",
+        hostname: "localhost",
+        headers: { host: "localhost" },
+      });
+      const res = createResponse();
+      mdnHandler(req, res);
+
+      strictEqual(res.statusCode, 302);
+      strictEqual(res._getRedirectUrl(), "/en-US/about");
+    });
+
+    it("does not fall back from en-US to itself for missing pages", async () => {
+      const req = createRequest({
+        method: "GET",
+        url: "/en-US/non-existent-page",
+        hostname: "localhost",
+        headers: { host: "localhost" },
+      });
+      const res = createResponse();
+      mdnHandler(req, res);
+
+      strictEqual(res.statusCode, 200);
+    });
+
+    it("does not redirect when neither current locale nor en-US has the page", async () => {
+      const req = createRequest({
+        method: "GET",
+        url: "/de/non-existent-page",
+        hostname: "localhost",
+        headers: { host: "localhost" },
+      });
+      const res = createResponse();
+      mdnHandler(req, res);
+
+      strictEqual(res.statusCode, 200);
+    });
+  });
+
+  describe("unsupported locale recovery", () => {
+    it("redirects /xy/about to /en-US/about (treats xy as bogus locale)", async () => {
+      const req = createRequest({
+        method: "GET",
+        url: "/xy/about",
+        hostname: "localhost",
+        headers: { host: "localhost" },
+      });
+      const res = createResponse();
+      mdnHandler(req, res);
+
+      strictEqual(res.statusCode, 302);
+      strictEqual(res._getRedirectUrl(), "/en-US/about");
+    });
+
+    it("does not redirect /xy/non-existent (no canonical match in either form)", async () => {
+      const req = createRequest({
+        method: "GET",
+        url: "/xy/non-existent",
+        hostname: "localhost",
+        headers: { host: "localhost" },
+      });
+      const res = createResponse();
+      mdnHandler(req, res);
+
+      strictEqual(res.statusCode, 200);
+    });
+  });
 });
