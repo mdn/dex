@@ -2,7 +2,7 @@
 
 import { CSP_VALUE } from "./internal/constants/index.js";
 import { isLiveSampleURL } from "./utils.js";
-import { WILDCARD_ENABLED } from "./env.js";
+import { REVIEW_ROUTING } from "./env.js";
 
 const HASHED_MAX_AGE = 60 * 60 * 24 * 365;
 const DEFAULT_MAX_AGE = 60 * 60;
@@ -72,7 +72,7 @@ function getCacheControl(statusCode, url) {
   }
 
   if (200 <= statusCode && statusCode < 300) {
-    if (WILDCARD_ENABLED && !HASHED_REGEX.test(url)) {
+    if (REVIEW_ROUTING && !HASHED_REGEX.test(url)) {
       return NO_CACHE_VALUE;
     }
 
