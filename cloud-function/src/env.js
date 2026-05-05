@@ -103,8 +103,8 @@ export const BSA_ZONE_KEYS = Object.fromEntries(
   (process.env["BSA_ZONE_KEYS"] ?? "").split(";").map((k) => k.split(":"))
 );
 
-export const WILDCARD_ENABLED = Boolean(
-  JSON.parse(process.env["WILDCARD_ENABLED"] || "false")
+export const REVIEW_ROUTING = Boolean(
+  JSON.parse(process.env["REVIEW_ROUTING"] || "false")
 );
 
 // HTTPS.
