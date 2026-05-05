@@ -73,6 +73,19 @@ function getAcceptLanguage(request) {
 }
 
 /**
+ * Rewrites Chinese script subtags (e.g. `zh-Hant`, `zh-Hant-TW`, `zh-Hans-CN`)
+ * to a supported region. Otherwise `accept-language-parser` treats `Hant` /
+ * `Hans` as a region and falls back to the first `zh-*` entry (`zh-CN`).
+ * @param {string} value
+ * @returns {string}
+ */
+function normalizeChineseScriptSubtags(value) {
+  return value
+    .replace(/zh-Hant(-[a-z0-9]+)?/gi, "zh-TW")
+    .replace(/zh-Hans(-[a-z0-9]+)?/gi, "zh-CN");
+}
+
+/**
  * @param {Request} request
  * @param {object} options
  * @param {string} [options.fallback]
@@ -101,7 +114,8 @@ export function getLocale(
   }
 
   // Each header in request.headers is always a list of objects.
-  const value = getAcceptLanguage(request);
+  const rawValue = getAcceptLanguage(request);
+  const value = rawValue && normalizeChineseScriptSubtags(rawValue);
   // Try a strict match first so that e.g. `zh-TW` resolves to `zh-TW`
   // rather than the first `zh-*` entry in the supported list. Fall back to
   // a loose match so that e.g. `en-GB` still resolves to `en-US`.

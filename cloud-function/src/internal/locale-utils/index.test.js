@@ -72,6 +72,34 @@ describe("getLocale", () => {
       );
     });
 
+    it("resolves zh-Hant to zh-TW", () => {
+      strictEqual(
+        getLocale(makeRequest({ acceptLanguage: "zh-Hant" }), {}),
+        "zh-TW"
+      );
+    });
+
+    it("resolves zh-Hant-TW to zh-TW", () => {
+      strictEqual(
+        getLocale(makeRequest({ acceptLanguage: "zh-Hant-TW" }), {}),
+        "zh-TW"
+      );
+    });
+
+    it("resolves zh-Hans to zh-CN", () => {
+      strictEqual(
+        getLocale(makeRequest({ acceptLanguage: "zh-Hans" }), {}),
+        "zh-CN"
+      );
+    });
+
+    it("resolves zh-Hans-CN to zh-CN", () => {
+      strictEqual(
+        getLocale(makeRequest({ acceptLanguage: "zh-Hans-CN" }), {}),
+        "zh-CN"
+      );
+    });
+
     it("respects quality values to pick zh-TW over zh-CN", () => {
       strictEqual(
         getLocale(
