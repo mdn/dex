@@ -216,7 +216,7 @@ jobs:
           npm run rari content sync-translated-content
           npm run rari git-history
 
-          npm run rari build -- --all --issues "$BUILD_OUT_ROOT/issues.json" --templ-stats
+          npm run rari build -- --all --issues --issues-per-locale --templ-stats
 
       - name: Build (fred)
         if: ${{ ! vars.SKIP_BUILD }}
