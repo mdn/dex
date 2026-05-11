@@ -26,6 +26,7 @@ import { stripForwardedHostHeaders } from "./middlewares/stripForwardedHostHeade
 import { proxyPong } from "./handlers/proxy-pong.js";
 import { handleRunner } from "./internal/play/index.js";
 import { proxySharedAssets } from "./handlers/proxy-shared-assets.js";
+import { stripContentTypeHeader } from "./middlewares/strip-content-type-header.js";
 
 const router = Router();
 router.use(cookieParser());
@@ -70,18 +71,21 @@ router.get(
 router.get(
   "/shared-assets/*splat",
   requireOrigin(Origin.play, Origin.main, Origin.liveSamples),
+  stripContentTypeHeader,
   proxySharedAssets
 );
 // Assets.
 router.get(
   ["/assets/*splat", "/sitemaps/*splat", "/static/*splat", "/:file.:ext"],
   requireOrigin(Origin.main),
+  stripContentTypeHeader,
   proxyContent
 );
 router.get(
   "/:locale/search-index.json",
   requireOrigin(Origin.main),
   lowercasePathname,
+  stripContentTypeHeader,
   proxyContent
 );
 // Root.
@@ -94,6 +98,7 @@ router.get(
   ],
   requireOrigin(Origin.liveSamples),
   resolveIndexHTML,
+  stripContentTypeHeader,
   proxyContent
 );
 // Attachments.
@@ -107,6 +112,7 @@ router.get(
   },
   requireOrigin(Origin.main, Origin.liveSamples, Origin.play),
   resolveIndexHTML,
+  stripContentTypeHeader,
   proxyContentAssets
 );
 // Pages.
@@ -120,6 +126,7 @@ router.get(
   redirectTrailingSlash,
   redirectMovedPages,
   resolveIndexHTML,
+  stripContentTypeHeader,
   proxyContent
 );
 router.get(
@@ -128,6 +135,7 @@ router.get(
   redirectLocale,
   redirectEnforceTrailingSlash,
   resolveIndexHTML,
+  stripContentTypeHeader,
   proxyContent
 );
 // MDN Plus, static pages, etc.
@@ -139,6 +147,7 @@ router.get(
   redirectPreferredLocale,
   redirectTrailingSlash,
   resolveIndexHTML,
+  stripContentTypeHeader,
   proxyContent
 );
 router.get("{/*splat}", notFound);
