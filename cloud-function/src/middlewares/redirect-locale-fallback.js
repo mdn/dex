@@ -26,12 +26,14 @@ export async function redirectLocaleFallback(req, res, next) {
   const uriFirstPart = uriParts[1] ?? "";
   const rest = uriParts.slice(2).filter(Boolean).join("/");
 
-  // Step 1: first segment is a valid locale.
+  // Case 1: first segment is a valid locale (e.g. `/de/about`, `/fr/docs/Web`).
   if (VALID_LOCALES.has(uriFirstPart.toLowerCase())) {
     if (CANONICALS[normalizePath(requestURI)]) {
       return next();
     }
     if (uriFirstPart !== DEFAULT_LOCALE) {
+      // Page missing in this locale; fall back to en-US.
+      // E.g. `/de/about` -> `/en-US/about`.
       const enCanonical =
         CANONICALS[normalizePath(`/${DEFAULT_LOCALE}/${rest}`)];
       if (enCanonical) {
@@ -41,9 +43,10 @@ export async function redirectLocaleFallback(req, res, next) {
     return next();
   }
 
-  // Step 2: first segment is not a valid locale.
+  // Case 2: first segment is not a valid locale.
 
-  // 2.a: treat first segment as an unsupported locale (only when there's a rest).
+  // Case 2.a: treat first segment as an unsupported locale (only when there's
+  // a rest). E.g. `/xy/docs/Web` -> `/en-US/docs/Web`.
   if (rest) {
     const enCanonical = CANONICALS[normalizePath(`/${DEFAULT_LOCALE}/${rest}`)];
     if (enCanonical) {
@@ -51,7 +54,8 @@ export async function redirectLocaleFallback(req, res, next) {
     }
   }
 
-  // 2.b: treat the whole path as a slug missing its locale prefix.
+  // Case 2.b: treat the whole path as a slug missing its locale prefix.
+  // E.g. `/about` -> `/en-US/about`.
   const path = requestURI.replace(/\/$/, "") || "/";
   const fullEnCanonical =
     CANONICALS[normalizePath(`/${DEFAULT_LOCALE}${path === "/" ? "" : path}`)];
