@@ -28,9 +28,9 @@ def index(
     connections.create_connection(hosts=[url], retry_on_timeout=True)
     connection = connections.get_connection()
     health = connection.cluster.health()
-    status = health["status"]
-    if status not in ("green", "yellow"):
-        raise click.ClickException(f"status {status} not green or yellow")
+    original_status = health["status"]
+    if original_status not in ("green", "yellow"):
+        raise click.ClickException(f"status {original_status} not green or yellow")
 
     count_todo = 0
     for file in walk(buildroot):
@@ -58,6 +58,11 @@ def index(
         )
         document_index.delete(ignore=404)
         document_index.create()
+        click.echo("Disabling replicas during indexing to reduce memory pressure")
+        connection.indices.put_settings(
+            index=document_index._name,
+            settings={"number_of_replicas": 0},
+        )
 
     skipped = []
 
@@ -82,7 +87,7 @@ def index(
 
     def get_progressbar():
         if no_progressbar:
-            return VoidProgressBar()
+            return LogProgressBar(count_todo)
         return click.progressbar(length=count_todo, label="Indexing", width=0)
 
     count_done = count_worked = count_errors = 0
@@ -137,6 +142,25 @@ def index(
         # See https://www.elastic.co/guide/en/elasticsearch/reference/current/indices-forcemerge.html
         document_index.forcemerge()
     else:
+        click.echo("Re-enabling replicas")
+        connection.indices.put_settings(
+            index=document_index._name,
+            settings={"number_of_replicas": 1},
+        )
+        if original_status == "green":
+            click.echo("Waiting for replica to be ready")
+            replica_health = connection.cluster.health(
+                index=document_index._name,
+                wait_for_status="green",
+                timeout="10m",
+                request_timeout=600,
+            )
+            if replica_health["timed_out"]:
+                raise TimeoutError(
+                    f"Timed out waiting for index {document_index._name} to reach green status"
+                )
+        else:
+            click.echo(f"Skipping replica wait (original cluster status was {original_status})")
         # Now we're going to bundle the change to set the alias to point
         # to the new index and delete all old indexes.
         # The reason for doing this together in one update is to make it atomic.
@@ -173,15 +197,25 @@ def index(
             click.echo(f"{count:,}\t{error[:80]}")
 
 
-class VoidProgressBar:
+class LogProgressBar:
+    def __init__(self, total):
+        self._total = total
+        self._done = 0
+        self._last_logged_bucket = 0
+
     def __enter__(self):
         return self
 
     def __exit__(self, *args):
         pass
 
-    def update(self, whatever):
-        pass
+    def update(self, n):
+        self._done += n
+        if self._total:
+            bucket = (self._done * 100) // self._total // 10
+            if bucket > self._last_logged_bucket:
+                self._last_logged_bucket = bucket
+                click.echo(f"Indexed {self._done:,} / {self._total:,} ({bucket * 10}%)")
 
 
 def format_time(seconds):
