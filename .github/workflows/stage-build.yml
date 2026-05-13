@@ -175,28 +175,6 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: npm ci
 
-      - name: Setup Python
-        if: ${{ ! vars.SKIP_BUILD }}
-        uses: actions/setup-python@a309ff8b426b58ec0e2a45f0f869d46889d02405 # v6.2.0
-        with:
-          python-version: "3.10"
-
-      - name: Setup Poetry
-        if: ${{ ! vars.SKIP_BUILD }}
-        uses: snok/install-poetry@76e04a911780d5b312d89783f7b1cd627778900a # v1.4.1
-
-      - name: Install (deployer)
-        if: ${{ ! vars.SKIP_BUILD }}
-        working-directory: mdn/dex/deployer
-        run: poetry install
-
-      - name: Display Python & Poetry version
-        if: ${{ ! vars.SKIP_BUILD }}
-        working-directory: mdn/dex/deployer
-        run: |
-          python --version
-          poetry --version
-
       - name: Print information about build
         env:
           NOTES: ${{ github.event.inputs.notes }}
@@ -353,13 +331,21 @@ jobs:
           # Sort DE search index by en-US popularity.
           node scripts/reorder-search-index.mjs "$FRED_ROOT/out/en-us/search-index.json" "$FRED_ROOT/out/de/search-index.json"
 
+      - name: Install (dex/deployer-js)
+        if: ${{ ! vars.SKIP_BUILD }}
+        working-directory: mdn/dex/deployer-js
+        run: npm ci
+        env:
+          # Use a GITHUB_TOKEN to bypass rate limiting for rari.
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
       - name: Update search index
         if: ${{ ! vars.SKIP_BUILD }}
-        working-directory: mdn/dex/deployer
+        working-directory: mdn/dex/deployer-js
         env:
           DEPLOYER_ELASTICSEARCH_URL: ${{ secrets.DEPLOYER_STAGE_ELASTICSEARCH_URL }}
           FRED_ROOT: ${{ github.workspace }}/mdn/fred
-        run: poetry run deployer search-index "$FRED_ROOT/out"
+        run: node main.js search-index "$FRED_ROOT/out"
 
       - name: Authenticate with GCP
         if: ${{ ! vars.SKIP_BUILD }}

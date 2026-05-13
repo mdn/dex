@@ -32,15 +32,25 @@ updates:
       prefix: ci
       include: scope
 
-  - package-ecosystem: pip
-    directory: /deployer
+  - package-ecosystem: npm
+    directory: /deployer-js
     schedule:
       interval: weekly
     groups:
-      pip:
+      npm-prod:
+        dependency-type: production
         update-types:
           - minor
           - patch
+        exclude-patterns:
+          - "@mdn/*"
+      npm-dev:
+        dependency-type: development
+        update-types:
+          - minor
+          - patch
+        exclude-patterns:
+          - "@mdn/*"
     commit-message:
       prefix: chore
       include: scope
