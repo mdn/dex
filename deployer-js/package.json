@@ -1,0 +1,31 @@
+{
+  "name": "@mdn/deployer",
+  "version": "0.0.1",
+  "private": true,
+  "license": "MPL-2.0",
+  "type": "module",
+  "main": "main.js",
+  "scripts": {
+    "deployer": "node main.js",
+    "test": "node --test search/test_search.js",
+    "test:coverage": "c8 node --test search/test_search.js",
+    "tsc": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@elastic/elasticsearch": "^9.0.0",
+    "cheerio": "1.2.0",
+    "fdir": "^6.5.0",
+    "yargs": "^18.0.0"
+  },
+  "devDependencies": {
+    "@mdn/rari": "^0.2.22",
+    "@types/node": "^24.12.2",
+    "@types/yargs": "^17.0.35",
+    "c8": "^11.0.0",
+    "typescript": "^6.0.3"
+  },
+  "packageManager": "npm@11.12.1",
+  "engines": {
+    "node": ">=24"
+  }
+}

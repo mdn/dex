@@ -46,6 +46,29 @@ updates:
       include: scope
 
   - package-ecosystem: npm
+    directory: /deployer-js
+    schedule:
+      interval: weekly
+    groups:
+      npm-prod:
+        dependency-type: production
+        update-types:
+          - minor
+          - patch
+        exclude-patterns:
+          - "@mdn/*"
+      npm-dev:
+        dependency-type: development
+        update-types:
+          - minor
+          - patch
+        exclude-patterns:
+          - "@mdn/*"
+    commit-message:
+      prefix: chore
+      include: scope
+
+  - package-ecosystem: npm
     directory: /cloud-function
     schedule:
       interval: weekly
