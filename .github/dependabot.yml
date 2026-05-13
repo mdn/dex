@@ -32,19 +32,6 @@ updates:
       prefix: ci
       include: scope
 
-  - package-ecosystem: pip
-    directory: /deployer
-    schedule:
-      interval: weekly
-    groups:
-      pip:
-        update-types:
-          - minor
-          - patch
-    commit-message:
-      prefix: chore
-      include: scope
-
   - package-ecosystem: npm
     directory: /deployer-js
     schedule:
