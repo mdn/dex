@@ -62,8 +62,6 @@ export async function index(buildroot, url) {
 
   const result = await client.helpers.bulk({
     datasource: generator(),
-    flushBytes: 26214400,
-    retries: 4,
     onDocument(doc) {
       const _id = doc._id;
       // TODO: maybe don't do this, or fix the types
