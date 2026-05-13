@@ -1,4 +1,4 @@
-import { readFileSync } from "node:fs";
+import { readFile } from "node:fs/promises";
 import { load } from "cheerio";
 import { Client } from "@elastic/elasticsearch";
 import { fdir } from "fdir";
@@ -48,7 +48,7 @@ export async function index(buildroot, url) {
 
   async function* generator() {
     for (const file of files) {
-      const doc = toSearch(file);
+      const doc = await toSearch(file);
       if (doc) {
         yield doc;
       }
@@ -62,10 +62,12 @@ export async function index(buildroot, url) {
 
   const result = await client.helpers.bulk({
     datasource: generator(),
-    flushBytes: 52428800,
+    flushBytes: 26214400,
     retries: 4,
     onDocument(doc) {
       const _id = doc._id;
+      // TODO: maybe don't do this, or fix the types
+      // ES will error if we leave the _id field set in the doc
       // @ts-expect-error: deleting a required field
       delete doc._id;
       return { index: { _index: index, _id } };
@@ -131,11 +133,11 @@ async function walk(root) {
 
 /**
  * @param {string} file
- * @returns {SearchDoc | undefined}
+ * @returns {Promise<SearchDoc | undefined>}
  */
-function toSearch(file) {
+async function toSearch(file) {
   /** @type {import("@mdn/rari").BuiltPage} */
-  const data = JSON.parse(readFileSync(file, "utf8"));
+  const data = JSON.parse(await readFile(file, "utf8"));
   if (data.renderer !== "Doc") {
     return;
   }
