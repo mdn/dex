@@ -18,6 +18,7 @@ import { redirectMovedPages } from "./middlewares/redirect-moved-pages.js";
 import { redirectEnforceTrailingSlash } from "./middlewares/redirect-enforce-trailing-slash.js";
 import { redirectFundamental } from "./middlewares/redirect-fundamental.js";
 import { redirectLocale } from "./middlewares/redirect-locale.js";
+import { redirectLocaleFallback } from "./middlewares/redirect-locale-fallback.js";
 import { redirectPreferredLocale } from "./middlewares/redirect-preferred-locale.js";
 import { redirectTrailingSlash } from "./middlewares/redirect-trailing-slash.js";
 import { requireOrigin } from "./middlewares/require-origin.js";
@@ -116,6 +117,7 @@ router.get(
   requireOrigin(Origin.main),
   redirectFundamental,
   redirectLocale,
+  redirectLocaleFallback,
   redirectPreferredLocale,
   redirectTrailingSlash,
   redirectMovedPages,
@@ -136,6 +138,7 @@ router.get(
   requireOrigin(Origin.main),
   redirectFundamental,
   redirectLocale,
+  redirectLocaleFallback,
   redirectPreferredLocale,
   redirectTrailingSlash,
   resolveIndexHTML,
