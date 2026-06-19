@@ -42,6 +42,9 @@ export const ORIGIN_LIVE_SAMPLES =
   process.env["ORIGIN_LIVE_SAMPLES"] || "localhost";
 export const ORIGIN_PLAY = process.env["ORIGIN_PLAY"] || "localhost";
 
+export const BASE_URL_MAIN =
+  process.env["BASE_URL_MAIN"] || `https://${ORIGIN_MAIN}`;
+
 export const CANONICALS_FILE =
   process.env["CANONICALS_FILE"] ||
   new URL("../canonicals.json", import.meta.url).pathname;

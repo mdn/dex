@@ -5,6 +5,8 @@ import { strictEqual } from "node:assert/strict";
 import { getFunction } from "@google-cloud/functions-framework/testing";
 import { createRequest, createResponse } from "node-mocks-http";
 
+import { BASE_URL_MAIN } from "./env.js";
+
 /** @param {string} name */
 const fixture = (name) => new URL(`fixtures/${name}`, import.meta.url).pathname;
 
@@ -116,6 +118,68 @@ describe("mdnHandler", () => {
 
     strictEqual(res.statusCode, 405);
     strictEqual(res.getHeader("allow"), "GET");
+  });
+
+  describe("search suggestions", () => {
+    it("serves OpenSearch suggestions instead of proxying to the backend", () => {
+      const req = createRequest({
+        method: "GET",
+        url: "/api/v1/search/suggestions?q=",
+        hostname: "localhost",
+        headers: { host: "localhost" },
+        query: { q: "" },
+      });
+      const res = createResponse();
+      mdnHandler(req, res);
+
+      strictEqual(res.statusCode, 200);
+      strictEqual(
+        res.getHeader("Content-Type"),
+        "application/x-suggestions+json; charset=utf-8"
+      );
+      strictEqual(res._getData(), JSON.stringify(["", []]));
+    });
+  });
+
+  describe("search redirect", () => {
+    it("handles the OpenSearch search redirect instead of proxying to the backend", () => {
+      const req = createRequest({
+        method: "GET",
+        url: "/api/v1/search/go?q=",
+        hostname: "localhost",
+        headers: { host: "localhost" },
+        query: { q: "" },
+      });
+      const res = createResponse();
+      mdnHandler(req, res);
+
+      strictEqual(res.statusCode, 302);
+      strictEqual(res._getRedirectUrl(), `${BASE_URL_MAIN}/en-US/search?q=`);
+    });
+  });
+
+  describe("opensearch description", () => {
+    it("serves the OpenSearch descriptor instead of proxying to the backend", () => {
+      const req = createRequest({
+        method: "GET",
+        url: "/opensearch.xml?locale=de",
+        hostname: "localhost",
+        headers: { host: "localhost" },
+        query: { locale: "de" },
+      });
+      const res = createResponse();
+      mdnHandler(req, res);
+
+      strictEqual(res.statusCode, 200);
+      strictEqual(
+        res.getHeader("Content-Type"),
+        "application/opensearchdescription+xml; charset=utf-8"
+      );
+      strictEqual(
+        res._getData().includes("<ShortName>MDN (de)</ShortName>"),
+        true
+      );
+    });
   });
 
   describe("preferredlocale cookie", () => {
