@@ -48,12 +48,12 @@
     "eslint-plugin-import": "^2.32.0",
     "eslint-plugin-n": "^18.1.0",
     "eslint-plugin-unicorn": "^64.0.0",
-    "globals": "^17.6.0",
+    "globals": "^17.7.0",
     "lefthook": "^2.1.9",
     "prettier": "^3.8.4",
     "prettier-plugin-packagejson": "^3.0.2",
     "typescript": "^6.0.3",
-    "typescript-eslint": "^8.61.1"
+    "typescript-eslint": "^8.62.0"
   },
   "packageManager": "npm@11.12.1",
   "engines": {
