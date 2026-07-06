@@ -59,6 +59,9 @@ export async function redirectTrailingSlash(req, res, next) {
     // their path name itself, for example "en-us" for the English home
     // page, not "en-us/index.html", which is what S3 would look for if
     // we left the trailing slash.
+    // Note: this is an intentional dead store documenting the S3 lookup
+    // behavior; propagating it would be a routing change out of scope here.
+    // eslint-disable-next-line no-useless-assignment
     requestURI = requestURI.slice(0, -1);
   } else if (
     requestURI.endsWith("/") &&

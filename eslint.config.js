@@ -1,5 +1,5 @@
 import eslint from "@eslint/js";
-import importPlugin from "eslint-plugin-import";
+import importPlugin from "eslint-plugin-import-x";
 import nPlugin from "eslint-plugin-n";
 import unicornPlugin from "eslint-plugin-unicorn";
 import tseslint from "typescript-eslint";
@@ -29,9 +29,9 @@ export default [
           varsIgnorePattern: "^_",
         },
       ],
-      "import/named": "off",
-      "import/no-duplicates": "off",
-      "import/no-unresolved": "off",
+      "import-x/named": "off",
+      "import-x/no-duplicates": "off",
+      "import-x/no-unresolved": "off",
       "n/hashbang": "off",
       "n/no-missing-import": "off",
       "one-var": ["error", "never"],
