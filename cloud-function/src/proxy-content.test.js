@@ -263,6 +263,13 @@ describe("proxied content routes", () => {
   });
 
   describe("fallbacks", () => {
+    // `get404ForLocale` populates a module-level `notFoundBufferCache` on the
+    // first successful 404-page fetch (REVIEW_ROUTING is off here), so a
+    // locale's `404/index.html` is fetched from the bucket only once per
+    // process. The `bucket.requests` assertions below therefore rely on no
+    // earlier test having fetched that same 404 page first; keep 404-page
+    // cases here and mind the ordering if adding more.
+    //
     // Both locales are checked so an implementation that always returns the
     // en-US 404 page would fail the fr case.
     for (const [locale, folder] of [
