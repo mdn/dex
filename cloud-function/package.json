@@ -33,7 +33,7 @@
     "dotenv": "^17.4.2",
     "express": "^5.2.1",
     "he": "^1.2.0",
-    "http-proxy-middleware": "^3.0.5",
+    "http-proxy-middleware": "^3.0.7",
     "sanitize-filename": "^1.6.4"
   },
   "devDependencies": {
