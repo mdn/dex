@@ -25,8 +25,8 @@
   },
   "dependencies": {
     "@adzerk/decision-sdk": "^1.0.0-beta.30",
-    "@google-cloud/functions-framework": "^5.0.1",
-    "@sentry/google-cloud-serverless": "^10.62.0",
+    "@google-cloud/functions-framework": "^5.0.5",
+    "@sentry/google-cloud-serverless": "^10.64.0",
     "accept-language-parser": "^1.5.0",
     "cookie": "^2.0.1",
     "cookie-parser": "^1.4.7",
