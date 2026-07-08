@@ -112,6 +112,14 @@ export async function startHandler(sourceContent, options = {}) {
   // Wrap in an Express app so req/res get the Express augmentation the handler
   // relies on (req.hostname, res.sendStatus, …), just like the Functions
   // Framework does in production.
+  //
+  // We deliberately don't use the Framework's own `getTestServer` helper: it
+  // hard-codes `ignoredRoutes: null`, which re-enables the default
+  // `/favicon.ico` and `/robots.txt` → 404 short-circuit. Production disables
+  // that via `functions-framework --ignored-routes ""`, so those paths reach
+  // the router and get proxied to the bucket (see the favicon test). Going
+  // through `getTestServer` would 404 them before the router runs.
+  // See https://github.com/GoogleCloudPlatform/functions-framework-nodejs/issues/778.
   const app = express();
   app.use(createHandler());
   const server = createServer(app);
