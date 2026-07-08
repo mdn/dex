@@ -12,7 +12,6 @@ export async function lowercasePathname(req, _res, next) {
   if (urlParsed.pathname) {
     urlParsed.pathname = urlParsed.pathname.toLowerCase();
     req.url = urlParsed.pathname + urlParsed.search + urlParsed.hash;
-    req.originalUrl = req.url;
   }
   next();
 }
