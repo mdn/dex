@@ -87,6 +87,12 @@ export async function startDummyBucket(files) {
  * @returns {Promise<Handler>}
  */
 export async function startHandler(sourceContent, options = {}) {
+  // These assignments mutate the process-wide `process.env` and are never
+  // restored, which is safe because `node --test` runs each test *file* in its
+  // own child process — so suites in separate files don't share this state. A
+  // second `startHandler` call in the same file would reuse the already-loaded
+  // (and env-captured) modules; call it once per process.
+  //
   // Prevent .env from overriding our test configuration.
   process.env["ENV_FILE"] = "/dev/null";
   process.env["SOURCE_CONTENT"] = sourceContent;
