@@ -77,16 +77,22 @@ export async function startDummyBucket(files) {
  */
 
 /**
- * Start the real MDN handler wired to the given upstream. `SOURCE_CONTENT` and
- * the origins are captured at import time, so this must be called after the
- * dummy bucket is listening and only once per test process.
+ * Start the real MDN handler wired to the given upstream. `SOURCE_CONTENT`, the
+ * shared-assets source, and the origins are captured at import time, so this
+ * must be called after the dummy bucket is listening and only once per test
+ * process.
  * @param {string} sourceContent - trailing-slashed upstream URL (the dummy bucket)
+ * @param {{ sourceSharedAssets?: string }} [options] - optional overrides;
+ *   `sourceSharedAssets` is the trailing-slashed shared-assets upstream URL
  * @returns {Promise<Handler>}
  */
-export async function startHandler(sourceContent) {
+export async function startHandler(sourceContent, options = {}) {
   // Prevent .env from overriding our test configuration.
   process.env["ENV_FILE"] = "/dev/null";
   process.env["SOURCE_CONTENT"] = sourceContent;
+  if (options.sourceSharedAssets) {
+    process.env["SOURCE_SHARED_ASSETS"] = options.sourceSharedAssets;
+  }
   // Make the origin guards accept requests we send to 127.0.0.1.
   process.env["ORIGIN_MAIN"] = "127.0.0.1";
   process.env["ORIGIN_LIVE_SAMPLES"] = "127.0.0.1";
