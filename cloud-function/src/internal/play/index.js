@@ -616,7 +616,6 @@ export async function decompressFromBase64(base64String) {
   const hashArray = [...new Uint8Array(hashBuffer)].slice(0, 20);
   const hash = hashArray.map((b) => b.toString(16).padStart(2, "0")).join("");
 
-  // eslint-disable-next-line n/no-unsupported-features/node-builtins
   const decompressionStream = new DecompressionStream("deflate-raw");
 
   const decompressedStream = new Response(
