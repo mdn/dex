@@ -22,7 +22,7 @@
     "@types/node": "^24.13.2",
     "@types/yargs": "^17.0.35",
     "c8": "^11.0.0",
-    "typescript": "^6.0.3"
+    "typescript": "^7.0.2"
   },
   "packageManager": "npm@11.12.1",
   "engines": {
