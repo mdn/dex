@@ -165,6 +165,14 @@ describe("proxied content routes", () => {
       "en-us/docs/web/api/contributors.txt",
     ],
     [
+      // The slug ends in ".json", so no index.html is appended and the verbatim
+      // object 404s; the 404 handler then retries with "/index.html" appended,
+      // which succeeds.
+      "page slug ending in .json (resolves via index.html fallback)",
+      "/en-US/docs/Mozilla/Add-ons/WebExtensions/manifest.json",
+      "en-us/docs/mozilla/add-ons/webextensions/manifest.json/index.html",
+    ],
+    [
       "data file under a .json-suffixed slug",
       "/en-US/docs/Mozilla/Add-ons/WebExtensions/manifest.json/index.json",
       "en-us/docs/mozilla/add-ons/webextensions/manifest.json/index.json",
@@ -305,31 +313,6 @@ describe("proxied content routes", () => {
         ],
         [true, true],
         `expected fr miss then en-us fallback, got ${JSON.stringify(bucket.requests)}`
-      );
-    });
-
-    it("resolves a .json-suffixed page slug via the index.html fallback", async () => {
-      // The slug ends in ".json", so `isAsset` is true and no `index.html` is
-      // appended; the verbatim object 404s, and the 404 handler then retries
-      // with `/index.html` appended, which succeeds.
-      const response = await handler.request(
-        "/en-US/docs/Mozilla/Add-ons/WebExtensions/manifest.json"
-      );
-
-      strictEqual(response.status, 200);
-      strictEqual(
-        response.text,
-        BUCKET_FILES[
-          "en-us/docs/mozilla/add-ons/webextensions/manifest.json/index.html"
-        ]?.body
-      );
-      deepStrictEqual(
-        bucket.requests,
-        [
-          "en-us/docs/mozilla/add-ons/webextensions/manifest.json",
-          "en-us/docs/mozilla/add-ons/webextensions/manifest.json/index.html",
-        ],
-        `expected verbatim miss then index.html retry, got ${JSON.stringify(bucket.requests)}`
       );
     });
 
