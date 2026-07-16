@@ -42,29 +42,14 @@ export async function redirectTrailingSlash(req, res, next) {
 
   // Handle cases related to the presence or absence of a trailing-slash.
   if (LOCALE_URI_WITHOUT_TRAILING_SLASH.has(requestURILowerCase)) {
-    // Home page requests are the special case on MDN. They should
-    // always have a trailing slash. So a home page URL without a
-    // trailing slash should redirect to the same URL with a
-    // trailing slash. When the redirected home-page request is
-    // processed by this Lambda function, note that we'll remove
-    // the trailing slash before the request reaches S3 (see below).
+    // Locale home pages are the special case on MDN: they must have a
+    // trailing slash, so redirect e.g. /en-US to /en-US/.
     return redirect(res, requestURI + "/" + qs, {
       cacheControlSeconds: THIRTY_DAYS,
     });
-  } else if (LOCALE_URI_WITH_TRAILING_SLASH.has(requestURILowerCase)) {
-    // We've received a proper request for a locale's home page (i.e.,
-    // it has a traling slash), but since that request will be served
-    // from S3, we need to strip the trailing slash before it reaches
-    // S3. This is required because we store the home pages in S3 as
-    // their path name itself, for example "en-us" for the English home
-    // page, not "en-us/index.html", which is what S3 would look for if
-    // we left the trailing slash.
-    // Note: this is an intentional dead store documenting the S3 lookup
-    // behavior; propagating it would be a routing change out of scope here.
-    // eslint-disable-next-line no-useless-assignment
-    requestURI = requestURI.slice(0, -1);
   } else if (
     requestURI.endsWith("/") &&
+    !LOCALE_URI_WITH_TRAILING_SLASH.has(requestURILowerCase) &&
     !LEGACY_URI_NEEDING_TRAILING_SLASH.test(requestURILowerCase)
   ) {
     // All other requests with a trailing slash should redirect to the
