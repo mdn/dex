@@ -128,112 +128,104 @@ describe("proxied content routes", () => {
     bucket.requests.length = 0;
   });
 
-  describe("URL → bucket path mapping", () => {
-    /** @type {Array<[label: string, requestPath: string, bucketPath: string]>} */
-    const cases = [
-      [
-        "search index (lowercases locale)",
-        "/en-US/search-index.json",
-        "en-us/search-index.json",
-      ],
-      [
-        "locale metadata (.json slug, verbatim)",
-        "/en-US/metadata.json",
-        "en-us/metadata.json",
-      ],
-      [
-        "docs page (slug→folder + index.html)",
-        "/en-US/docs/Web/API",
-        "en-us/docs/web/api/index.html",
-      ],
-      [
-        "docs data (index.json, no index.html appended)",
-        "/en-US/docs/Web/API/index.json",
-        "en-us/docs/web/api/index.json",
-      ],
-      [
-        "docs metadata (metadata.json)",
-        "/en-US/docs/Web/API/metadata.json",
-        "en-us/docs/web/api/metadata.json",
-      ],
-      [
-        "docs contributors (contributors.txt)",
-        "/en-US/docs/Web/API/contributors.txt",
-        "en-us/docs/web/api/contributors.txt",
-      ],
-      [
-        "data file under a .json-suffixed slug",
-        "/en-US/docs/Mozilla/Add-ons/WebExtensions/manifest.json/index.json",
-        "en-us/docs/mozilla/add-ons/webextensions/manifest.json/index.json",
-      ],
-      [
-        "slug with colon (:has → _colon_has)",
-        "/en-US/docs/Web/CSS/Reference/Selectors/:has",
-        "en-us/docs/web/css/reference/selectors/_colon_has/index.html",
-      ],
-      [
-        "data file under a colon slug",
-        "/en-US/docs/Web/CSS/Reference/Selectors/:has/index.json",
-        "en-us/docs/web/css/reference/selectors/_colon_has/index.json",
-      ],
-      [
-        "blog page",
-        "/en-US/blog/some-post/",
-        "en-us/blog/some-post/index.html",
-      ],
-      [
-        "curriculum landing",
-        "/en-US/curriculum/",
-        "en-us/curriculum/index.html",
-      ],
-      [
-        "static hashed JS bundle (verbatim)",
-        "/static/client/1002.41b70a0dadf2f657.js",
-        "static/client/1002.41b70a0dadf2f657.js",
-      ],
-      [
-        "static JS source map (verbatim)",
-        "/static/client/1002.41b70a0dadf2f657.js.map",
-        "static/client/1002.41b70a0dadf2f657.js.map",
-      ],
-      [
-        "static hashed CSS (verbatim)",
-        "/static/css/main.fe619051.css",
-        "static/css/main.fe619051.css",
-      ],
-      [
-        "static CSS source map (verbatim)",
-        "/static/css/main.fe619051.css.map",
-        "static/css/main.fe619051.css.map",
-      ],
-      [
-        "service worker (verbatim)",
-        "/static/service-worker/service-worker.js",
-        "static/service-worker/service-worker.js",
-      ],
-      [
-        "service worker source map (verbatim)",
-        "/static/service-worker/service-worker.js.map",
-        "static/service-worker/service-worker.js.map",
-      ],
-      [
-        "app asset (verbatim)",
-        "/assets/playground.png",
-        "assets/playground.png",
-      ],
-      [
-        "sitemap (verbatim)",
-        "/sitemaps/en-us/sitemap.xml.gz",
-        "sitemaps/en-us/sitemap.xml.gz",
-      ],
-      ["root file", "/favicon.ico", "favicon.ico"],
-      [
-        "doc attachment (slug→folder)",
-        "/en-US/docs/Web/API/foo.png",
-        "en-us/docs/web/api/foo.png",
-      ],
-    ];
+  /**
+   * Each entry drives both the URL→bucket-path mapping and the response-body
+   * passthrough suites below.
+   * @type {Array<[label: string, requestPath: string, bucketPath: string]>}
+   */
+  const cases = [
+    [
+      "search index (lowercases locale)",
+      "/en-US/search-index.json",
+      "en-us/search-index.json",
+    ],
+    [
+      "locale metadata (.json slug, verbatim)",
+      "/en-US/metadata.json",
+      "en-us/metadata.json",
+    ],
+    [
+      "docs page (slug→folder + index.html)",
+      "/en-US/docs/Web/API",
+      "en-us/docs/web/api/index.html",
+    ],
+    [
+      "docs data (index.json, no index.html appended)",
+      "/en-US/docs/Web/API/index.json",
+      "en-us/docs/web/api/index.json",
+    ],
+    [
+      "docs metadata (metadata.json)",
+      "/en-US/docs/Web/API/metadata.json",
+      "en-us/docs/web/api/metadata.json",
+    ],
+    [
+      "docs contributors (contributors.txt)",
+      "/en-US/docs/Web/API/contributors.txt",
+      "en-us/docs/web/api/contributors.txt",
+    ],
+    [
+      "data file under a .json-suffixed slug",
+      "/en-US/docs/Mozilla/Add-ons/WebExtensions/manifest.json/index.json",
+      "en-us/docs/mozilla/add-ons/webextensions/manifest.json/index.json",
+    ],
+    [
+      "slug with colon (:has → _colon_has)",
+      "/en-US/docs/Web/CSS/Reference/Selectors/:has",
+      "en-us/docs/web/css/reference/selectors/_colon_has/index.html",
+    ],
+    [
+      "data file under a colon slug",
+      "/en-US/docs/Web/CSS/Reference/Selectors/:has/index.json",
+      "en-us/docs/web/css/reference/selectors/_colon_has/index.json",
+    ],
+    ["blog page", "/en-US/blog/some-post/", "en-us/blog/some-post/index.html"],
+    ["curriculum landing", "/en-US/curriculum/", "en-us/curriculum/index.html"],
+    [
+      "static hashed JS bundle (verbatim)",
+      "/static/client/1002.41b70a0dadf2f657.js",
+      "static/client/1002.41b70a0dadf2f657.js",
+    ],
+    [
+      "static JS source map (verbatim)",
+      "/static/client/1002.41b70a0dadf2f657.js.map",
+      "static/client/1002.41b70a0dadf2f657.js.map",
+    ],
+    [
+      "static hashed CSS (verbatim)",
+      "/static/css/main.fe619051.css",
+      "static/css/main.fe619051.css",
+    ],
+    [
+      "static CSS source map (verbatim)",
+      "/static/css/main.fe619051.css.map",
+      "static/css/main.fe619051.css.map",
+    ],
+    [
+      "service worker (verbatim)",
+      "/static/service-worker/service-worker.js",
+      "static/service-worker/service-worker.js",
+    ],
+    [
+      "service worker source map (verbatim)",
+      "/static/service-worker/service-worker.js.map",
+      "static/service-worker/service-worker.js.map",
+    ],
+    ["app asset (verbatim)", "/assets/playground.png", "assets/playground.png"],
+    [
+      "sitemap (verbatim)",
+      "/sitemaps/en-us/sitemap.xml.gz",
+      "sitemaps/en-us/sitemap.xml.gz",
+    ],
+    ["root file", "/favicon.ico", "favicon.ico"],
+    [
+      "doc attachment (slug→folder)",
+      "/en-US/docs/Web/API/foo.png",
+      "en-us/docs/web/api/foo.png",
+    ],
+  ];
 
+  describe("URL → bucket path mapping", () => {
     for (const [label, requestPath, bucketPath] of cases) {
       it(`maps ${label}: ${requestPath} → ${bucketPath}`, async () => {
         const response = await handler.request(requestPath);
@@ -248,18 +240,25 @@ describe("proxied content routes", () => {
   });
 
   describe("response body passthrough", () => {
-    it("serves the search index body", async () => {
-      const response = await handler.request("/en-US/search-index.json");
-      strictEqual(response.text, BUCKET_FILES["en-us/search-index.json"]?.body);
-    });
+    for (const [label, requestPath, bucketPath] of cases) {
+      it(`serves the ${label} body: ${requestPath}`, async () => {
+        const response = await handler.request(requestPath);
 
-    it("serves the docs page body", async () => {
-      const response = await handler.request("/en-US/docs/Web/API");
-      strictEqual(
-        response.text,
-        BUCKET_FILES["en-us/docs/web/api/index.html"]?.body
-      );
-    });
+        strictEqual(response.status, 200, `expected 200 for ${requestPath}`);
+        // The sitemap is stored gzip-compressed and served with
+        // `Content-Encoding: gzip`, so `fetch` transparently decompresses it;
+        // compare against the original uncompressed payload rather than the
+        // stored buffer.
+        const expected = bucketPath.endsWith(".gz")
+          ? "<urlset></urlset>"
+          : BUCKET_FILES[bucketPath]?.body;
+        strictEqual(
+          response.text,
+          expected,
+          `unexpected body for ${requestPath}`
+        );
+      });
+    }
   });
 
   describe("fallbacks", () => {
