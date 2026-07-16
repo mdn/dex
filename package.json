@@ -8,7 +8,7 @@
   "type": "module",
   "scripts": {
     "ai-help-macros": "node scripts/ai-help-macros.js",
-    "check:tsc": "find . -name 'tsconfig.json' ! -wholename '**/node_modules/**' ! -wholename '**/cloud-function/src/internal/**' -print0 | xargs -n1 -P 2 -0 sh -c 'cd `dirname $0` && echo \"🔄 $(pwd)\" && npx tsc --noEmit && echo \"☑️  $(pwd)\" || exit 255'",
+    "check:tsc": "find . -name 'tsconfig.json' ! -wholename '**/node_modules/**' ! -wholename '**/cloud-function/src/internal/**' -print0 | xargs -n1 -P 2 -0 sh -c 'cd `dirname $0` && echo \"🔄 $(pwd)\" && npx --package=typescript tsc --noEmit && echo \"☑️  $(pwd)\" || exit 255'",
     "eslint": "eslint .",
     "install:all": "find . -mindepth 2 -name 'package-lock.json' ! -wholename '**/node_modules/**' -print0 | xargs -n1 -0 sh -cx 'npm --prefix $(dirname $0) install'",
     "prepare": "npm run install:all",
@@ -23,7 +23,7 @@
   },
   "dependencies": {
     "@mdn/bcd-utils-api": "^0.0.10",
-    "@mdn/browser-compat-data": "^8.0.4",
+    "@mdn/browser-compat-data": "^8.0.6",
     "@mdn/rari": "^0.2.27",
     "@types/yargs": "^17.0.35",
     "cheerio": "1.2.0",
@@ -41,19 +41,19 @@
   },
   "devDependencies": {
     "@eslint/js": "^10.0.1",
-    "@types/node": "^24.13.2",
+    "@types/node": "^24.13.3",
     "@types/pg": "^8.20.0",
     "c8": "^11.0.0",
-    "eslint": "^10.6.0",
+    "eslint": "^10.7.0",
     "eslint-plugin-import-x": "^4.17.1",
     "eslint-plugin-n": "^18.2.1",
     "eslint-plugin-unicorn": "^64.0.0",
     "globals": "^17.7.0",
-    "lefthook": "^2.1.9",
-    "prettier": "^3.9.4",
+    "lefthook": "^2.1.10",
+    "prettier": "^3.9.5",
     "prettier-plugin-packagejson": "^3.0.2",
     "typescript": "^6.0.3",
-    "typescript-eslint": "^8.62.1"
+    "typescript-eslint": "^8.64.0"
   },
   "packageManager": "npm@11.12.1",
   "engines": {
