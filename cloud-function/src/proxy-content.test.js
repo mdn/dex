@@ -347,16 +347,19 @@ describe("proxied content routes", () => {
     it("passes the upstream 404 through for a missing live sample", async () => {
       // Live-sample URLs skip the index.html/404-page fallback (isLiveSampleURL
       // → return null), so the upstream 404 is served as-is.
+      //
+      // Uses the `ja` locale — whose 404 page no other test fetches — so the
+      // no-fallback assertions catch a regression regardless of suite order: a
+      // fallback would fetch `ja/404/index.html` from the (cold) bucket rather
+      // than hitting a warm cache from an earlier en-US/fr 404 test.
       const response = await handler.request(
-        "/en-US/docs/Web/foo/_sample_.zzz.html"
+        "/ja/docs/Web/foo/_sample_.zzz.html"
       );
 
       strictEqual(response.status, 404);
-      deepStrictEqual(bucket.requests, [
-        "en-us/docs/web/foo/_sample_.zzz.html",
-      ]);
+      deepStrictEqual(bucket.requests, ["ja/docs/web/foo/_sample_.zzz.html"]);
       ok(
-        !bucket.requests.includes("en-us/404/index.html"),
+        !bucket.requests.includes("ja/404/index.html"),
         "live-sample 404 should not trigger the 404-page fallback"
       );
     });
