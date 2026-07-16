@@ -1,5 +1,5 @@
 import eslint from "@eslint/js";
-import importPlugin from "eslint-plugin-import";
+import { importX } from "eslint-plugin-import-x";
 import nPlugin from "eslint-plugin-n";
 import unicornPlugin from "eslint-plugin-unicorn";
 import tseslint from "typescript-eslint";
@@ -9,7 +9,7 @@ export default [
   eslint.configs.recommended,
   nPlugin.configs["flat/recommended-module"],
   unicornPlugin.configs["flat/recommended"],
-  importPlugin.flatConfigs.recommended,
+  importX.flatConfigs.recommended,
   ...tseslint.configs.recommended,
   {
     ignores: ["coverage/", "libs/", "tool/*.js"],
@@ -29,9 +29,9 @@ export default [
           varsIgnorePattern: "^_",
         },
       ],
-      "import/named": "off",
-      "import/no-duplicates": "off",
-      "import/no-unresolved": "off",
+      "import-x/named": "off",
+      "import-x/no-duplicates": "off",
+      "import-x/no-unresolved": "off",
       "n/hashbang": "off",
       "n/no-missing-import": "off",
       "one-var": ["error", "never"],
