@@ -106,6 +106,12 @@ const BUCKET_FILES = {
     body: "<h1>Introuvable</h1>",
     contentType: "text/html",
   },
+  // A 404 page for a locale that no other test touches, so its
+  // module-level cache entry starts cold — see the caching test below.
+  "de/404/index.html": {
+    body: "<h1>Nicht gefunden</h1>",
+    contentType: "text/html",
+  },
 };
 
 describe("proxied content routes", () => {
@@ -297,6 +303,28 @@ describe("proxied content routes", () => {
         );
       });
     }
+
+    it("caches the 404 page after the first fetch", async () => {
+      // Uses the dedicated `de` locale so its cache entry starts cold and this
+      // test is independent of the order the suites above run in.
+      const first = await handler.request("/de/docs/Web/Missing");
+      strictEqual(first.status, 404);
+      strictEqual(first.text, BUCKET_FILES["de/404/index.html"]?.body);
+      strictEqual(
+        bucket.requests.filter((path) => path === "de/404/index.html").length,
+        1,
+        `expected one de 404 fetch, got ${JSON.stringify(bucket.requests)}`
+      );
+
+      bucket.requests.length = 0;
+      const second = await handler.request("/de/docs/Web/Other");
+      strictEqual(second.status, 404);
+      strictEqual(second.text, BUCKET_FILES["de/404/index.html"]?.body);
+      ok(
+        !bucket.requests.includes("de/404/index.html"),
+        `expected the de 404 page to be served from cache, got ${JSON.stringify(bucket.requests)}`
+      );
+    });
 
     it("falls back to the en-US asset for a missing non-English attachment", async () => {
       const response = await handler.request("/fr/docs/Web/API/foo.png");
