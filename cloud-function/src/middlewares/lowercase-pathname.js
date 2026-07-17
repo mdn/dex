@@ -8,10 +8,9 @@
  * @returns {Promise<void>}
  */
 export async function lowercasePathname(req, _res, next) {
-  const urlParsed = new URL(req.url, `${req.protocol}://${req.headers.host}`);
-  if (urlParsed.pathname) {
-    req.url =
-      urlParsed.pathname.toLowerCase() + urlParsed.search + urlParsed.hash;
+  const url = new URL(req.url, `${req.protocol}://${req.headers.host}`);
+  if (url.pathname) {
+    req.url = url.pathname.toLowerCase() + url.search + url.hash;
   }
   next();
 }
