@@ -528,11 +528,26 @@ export function renderHtml(state = null) {
       </head>
       <body>
         ${htmlCode}
-        <script type="${defaults === "ix-wat" ? "module" : ""}">
+        <script
+          id="mdn-play-js"
+          type="${defaults === "ix-wat" ? "module" : ""}"
+        >
           ${js};
         </script>
         <script>
           try {
+            // Post-rendering check: an unclosed or malformed tag in the HTML input
+            // can swallow the following <script> element (its markup is parsed as
+            // attributes of the open tag), leaving the JavaScript source visible as
+            // text content. Detect that and warn the user.
+            const jsScript = document.querySelector("script#mdn-play-js");
+            if (!(jsScript instanceof HTMLScriptElement)) {
+              console.warn(
+                "[Playground] The JavaScript did not run because the HTML input " +
+                  'contains an unclosed or malformed tag (for example "<o"). ' +
+                  "Close the tag to run your code."
+              );
+            }
             window.parent.postMessage({ typ: "ready" }, "*");
           } catch (e) {
             console.error("[Playground] Failed to post ready message", e);
