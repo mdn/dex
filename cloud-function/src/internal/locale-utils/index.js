@@ -127,6 +127,21 @@ export function getLocale(
 }
 
 /**
+ * @param {Request} request
+ * @returns {string}
+ */
+export function getQueryLocale(request) {
+  const locale = request.query?.["locale"];
+  if (typeof locale === "string") {
+    const canonical = VALID_LOCALES.get(locale.toLowerCase());
+    if (canonical) {
+      return canonical;
+    }
+  }
+  return DEFAULT_LOCALE;
+}
+
+/**
  * @param {any} locale
  * @returns {boolean}
  */
