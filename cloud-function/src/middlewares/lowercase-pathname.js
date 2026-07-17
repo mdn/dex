@@ -10,8 +10,8 @@
 export async function lowercasePathname(req, _res, next) {
   const urlParsed = new URL(req.url, `${req.protocol}://${req.headers.host}`);
   if (urlParsed.pathname) {
-    urlParsed.pathname = urlParsed.pathname.toLowerCase();
-    req.url = urlParsed.pathname + urlParsed.search + urlParsed.hash;
+    req.url =
+      urlParsed.pathname.toLowerCase() + urlParsed.search + urlParsed.hash;
   }
   next();
 }
