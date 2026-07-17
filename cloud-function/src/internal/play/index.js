@@ -444,16 +444,19 @@ export function renderHtml(state = null) {
           const consoleProxy = new Proxy(console, {
             get(target, prop) {
               if (typeof target[prop] === "function") {
+                const uuid =
+                  new URLSearchParams(location.search).get("uuid") || undefined;
                 return (...args) => {
                   try {
                     window.parent.postMessage(
-                      { typ: "console", prop, args },
+                      { uuid, typ: "console", prop, args },
                       "*"
                     );
                   } catch {
                     try {
                       window.parent.postMessage(
                         {
+                          uuid,
                           typ: "console",
                           prop,
                           args: args.map((x) => {
@@ -470,6 +473,7 @@ export function renderHtml(state = null) {
                     } catch {
                       window.parent.postMessage(
                         {
+                          uuid,
                           typ: "console",
                           prop: "warn",
                           args: [
@@ -537,7 +541,9 @@ export function renderHtml(state = null) {
         </script>
         <script>
           try {
-            window.parent.postMessage({ typ: "ready" }, "*");
+            const uuid =
+              new URLSearchParams(location.search).get("uuid") || undefined;
+            window.parent.postMessage({ uuid, typ: "ready" }, "*");
           } catch (e) {
             console.error("[Playground] Failed to post ready message", e);
           }
