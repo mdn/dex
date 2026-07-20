@@ -1,3 +1,7 @@
+// The `vendor/yari/libs/play/index.js` file in mdn/fred is largely based on this
+// file, and must remain compatible with it. Changes should be made with care.
+// See: https://github.com/mdn/dex/issues/436
+
 import * as crypto from "node:crypto";
 
 import he from "he";
