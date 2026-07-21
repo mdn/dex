@@ -50,10 +50,10 @@
     "eslint-plugin-unicorn": "^64.0.0",
     "globals": "^17.7.0",
     "lefthook": "^2.1.10",
-    "prettier": "^3.9.5",
+    "prettier": "^3.9.6",
     "prettier-plugin-packagejson": "^3.0.2",
     "typescript": "^6.0.3",
-    "typescript-eslint": "^8.64.0"
+    "typescript-eslint": "^8.65.0"
   },
   "packageManager": "npm@11.12.1",
   "engines": {
