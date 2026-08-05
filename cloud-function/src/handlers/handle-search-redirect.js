@@ -18,7 +18,14 @@ export async function handleSearchRedirect(req, res) {
   const query = typeof req.query["q"] === "string" ? req.query["q"].trim() : "";
   const locale = getQueryLocale(req);
 
-  const index = query ? await getSearchIndex(locale) : null;
+  let index = null;
+  if (query) {
+    try {
+      index = await getSearchIndex(locale);
+    } catch {
+      index = null;
+    }
+  }
   const match = index ? findExactMatch(query, index) : null;
   if (match) {
     res.redirect(302, `${BASE_URL_MAIN}${match.url}`);

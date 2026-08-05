@@ -107,4 +107,17 @@ describe("handleSearchSuggestions", () => {
 
     strictEqual(fetchedUrls.length, 1);
   });
+
+  it("errors when index can't be fetched", async () => {
+    mock.reset();
+    mock.method(globalThis, "fetch", async () => {
+      return Response.error();
+    });
+
+    const req = request("array");
+    const res = createResponse();
+    await handleSearchSuggestions(req, res);
+
+    strictEqual(res.statusCode, 500);
+  });
 });

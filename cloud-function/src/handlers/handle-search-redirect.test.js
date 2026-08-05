@@ -151,4 +151,21 @@ describe("handleSearchRedirect", () => {
       `${BASE_URL_MAIN}/en-US/search?q=nonexistent`
     );
   });
+
+  it("falls back to the results page when the index can't be fetched", async () => {
+    mock.reset();
+    mock.method(globalThis, "fetch", async () => {
+      return Response.error();
+    });
+
+    const req = request("Array.prototype.map()");
+    const res = createResponse();
+    await handleSearchRedirect(req, res);
+
+    strictEqual(res.statusCode, 302);
+    strictEqual(
+      res._getRedirectUrl(),
+      `${BASE_URL_MAIN}/en-US/search?q=Array.prototype.map%28%29`
+    );
+  });
 });

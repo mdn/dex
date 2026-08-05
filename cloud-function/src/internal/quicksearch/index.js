@@ -186,13 +186,13 @@ export function splitQuery(term) {
 
 /**
  * Per-locale cache of the parsed search index.
- * @type {Map<string, Promise<SearchIndex | null>>}
+ * @type {Map<string, Promise<SearchIndex>>}
  */
 const indexCache = new Map();
 
 /**
  * @param {string} [locale]
- * @returns {Promise<SearchIndex | null>}
+ * @returns {Promise<SearchIndex>}
  */
 export function getSearchIndex(locale) {
   const lowered = (locale || DEFAULT_LOCALE).toLowerCase();
@@ -211,7 +211,7 @@ export function getSearchIndex(locale) {
 /**
  * Server-side counterpart to fred's `_fetchIndex` (search-modal/element.js)
  * @param {string} locale
- * @returns {Promise<SearchIndex | null>}
+ * @returns {Promise<SearchIndex>}
  */
 async function loadSearchIndex(locale) {
   try {
@@ -225,8 +225,7 @@ async function loadSearchIndex(locale) {
     return buildIndex(entries);
   } catch (error) {
     indexCache.delete(locale);
-    console.error(`Failed to load search index for ${locale}:`, error);
-    return null;
+    throw error;
   }
 }
 
