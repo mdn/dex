@@ -47,13 +47,13 @@ jobs:
 
     steps:
       - name: Checkout
-        uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6.0.3
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           path: mdn/dex
           persist-credentials: false
 
       - name: Checkout (content)
-        uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6.0.3
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         if: ${{ ! vars.SKIP_BUILD || ! vars.SKIP_FUNCTION }}
         with:
           repository: mdn/content
@@ -66,7 +66,7 @@ jobs:
           persist-credentials: false
 
       - name: Checkout (blog)
-        uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6.0.3
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         if: ${{ ! vars.SKIP_BUILD }}
         with:
           repository: mdn/blog
@@ -76,7 +76,7 @@ jobs:
           persist-credentials: false
 
       - name: Checkout (generic-content)
-        uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6.0.3
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         if: ${{ ! vars.SKIP_BUILD }}
         with:
           repository: mdn/generic-content
@@ -84,7 +84,7 @@ jobs:
           persist-credentials: false
 
       - name: Checkout (curriculum)
-        uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6.0.3
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         if: ${{ ! vars.SKIP_BUILD }}
         with:
           repository: mdn/curriculum
@@ -92,7 +92,7 @@ jobs:
           persist-credentials: false
 
       - name: Checkout (translated-content)
-        uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6.0.3
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         if: ${{ ! vars.SKIP_BUILD || ! vars.SKIP_FUNCTION }}
         with:
           repository: mdn/translated-content
@@ -102,7 +102,7 @@ jobs:
           persist-credentials: false
 
       - name: Checkout (translated-content-de)
-        uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6.0.3
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         if: ${{ ! vars.SKIP_BUILD || ! vars.SKIP_FUNCTION }}
         with:
           repository: mdn/translated-content-de
@@ -123,7 +123,7 @@ jobs:
           git -c user.name='MDN' -c user.email='mdn-dev@mozilla.com' commit -m 'de'
 
       - name: Checkout (mdn-contributor-spotlight)
-        uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6.0.3
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         if: ${{ ! vars.SKIP_BUILD }}
         with:
           repository: mdn/mdn-contributor-spotlight
@@ -131,7 +131,7 @@ jobs:
           persist-credentials: false
 
       - name: Checkout (fred)
-        uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6.0.3
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         if: ${{ ! vars.SKIP_BUILD }}
         with:
           repository: mdn/fred
@@ -140,7 +140,7 @@ jobs:
 
       - name: Setup Node (fred)
         if: ${{ ! vars.SKIP_BUILD || ! vars.SKIP_FUNCTION }}
-        uses: actions/setup-node@48b55a011bda9f5d6aeb4c2d9c7362e8dae4041e # v6.4.0
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
         with:
           node-version-file: mdn/fred/.nvmrc
           package-manager-cache: false
@@ -245,9 +245,8 @@ jobs:
           FRED_GLEAN_CHANNEL: prod
           FRED_GLEAN_ENABLED: true
 
-          # Transcend Consent Management
-          FRED_TRANSCEND_AIRGAP_URL: https://transcend-cdn.com/cm/${{ secrets.TRANSCEND_BUNDLE_ID }}/airgap.js
-          FRED_TRANSCEND_BUNDLE_ID: ${{ secrets.TRANSCEND_BUNDLE_ID }}
+          # Transcend Consent Management (disabled per https://github.com/mdn/fred/issues/1679)
+          # FRED_TRANSCEND_AIRGAP_URL: https://transcend-cdn.com/cm/${{ secrets.TRANSCEND_BUNDLE_ID }}/airgap.js
 
           # Newsletter
           REACT_APP_NEWSLETTER_ENABLED: true
@@ -285,7 +284,7 @@ jobs:
 
       - name: Setup Node (dex)
         if: ${{ ! vars.SKIP_BUILD }}
-        uses: actions/setup-node@48b55a011bda9f5d6aeb4c2d9c7362e8dae4041e # v6.4.0
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
         with:
           node-version-file: mdn/dex/.nvmrc
           package-manager-cache: false

@@ -1,6 +1,6 @@
 /** @import { Request } from "express" */
 
-import { parse } from "cookie";
+import { parseCookie } from "cookie";
 import acceptLanguageParser from "accept-language-parser";
 
 import {
@@ -40,7 +40,7 @@ function extractCookiesFromHeaders(headers) {
      * @param {Record<string, string>} reduced
      * @param {{ value: string }} header
      */
-    (reduced, header) => Object.assign(reduced, parse(header.value)),
+    (reduced, header) => Object.assign(reduced, parseCookie(header.value)),
     /** @type {Record<string, string>} */ ({})
   );
 
