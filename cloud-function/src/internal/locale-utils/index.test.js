@@ -3,13 +3,13 @@
 import { describe, it } from "node:test";
 import { strictEqual } from "node:assert/strict";
 
-import { getLocale, isValidLocale } from "./index.js";
+import { getLocale, getQueryLocale, isValidLocale } from "./index.js";
 
 /**
- * @param {{ acceptLanguage?: string, cookie?: string }} [headers]
+ * @param {{ acceptLanguage?: string, cookie?: string, query?: Record<string, string> }} [headers]
  * @returns {Request}
  */
-function makeRequest({ acceptLanguage, cookie } = {}) {
+function makeRequest({ acceptLanguage, cookie, query } = {}) {
   /** @type {Record<string, string>} */
   const headers = {};
   if (acceptLanguage !== undefined) {
@@ -18,7 +18,9 @@ function makeRequest({ acceptLanguage, cookie } = {}) {
   if (cookie !== undefined) {
     headers["cookie"] = cookie;
   }
-  return /** @type {Request} */ (/** @type {unknown} */ ({ headers }));
+  return /** @type {Request} */ (
+    /** @type {unknown} */ ({ headers, query: query ?? {} })
+  );
 }
 
 describe("getLocale", () => {
@@ -168,6 +170,54 @@ describe("getLocale", () => {
         "fr"
       );
     });
+  });
+});
+
+describe("getQueryLocale", () => {
+  it("uses a valid locale query parameter", () => {
+    strictEqual(getQueryLocale(makeRequest({ query: { locale: "fr" } })), "fr");
+  });
+
+  it("normalises the query parameter to its canonical casing", () => {
+    strictEqual(
+      getQueryLocale(makeRequest({ query: { locale: "pt-br" } })),
+      "pt-BR"
+    );
+  });
+
+  it("uses the query parameter even when a cookie and Accept-Language are present", () => {
+    strictEqual(
+      getQueryLocale(
+        makeRequest({
+          acceptLanguage: "es",
+          cookie: "preferredlocale=de",
+          query: { locale: "fr" },
+        })
+      ),
+      "fr"
+    );
+  });
+
+  it("defaults to en-US for an invalid query parameter, ignoring cookie and Accept-Language", () => {
+    strictEqual(
+      getQueryLocale(
+        makeRequest({
+          acceptLanguage: "fr",
+          cookie: "preferredlocale=de",
+          query: { locale: "xx-invalid" },
+        })
+      ),
+      "en-US"
+    );
+  });
+
+  it("defaults to en-US, ignoring cookie and Accept-Language, when no query parameter is given", () => {
+    strictEqual(
+      getQueryLocale(
+        makeRequest({ acceptLanguage: "es", cookie: "preferredlocale=de" })
+      ),
+      "en-US"
+    );
   });
 });
 

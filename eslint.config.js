@@ -41,6 +41,7 @@ export default [
       "unicorn/import-style": "off",
       "unicorn/new-for-builtins": "off",
       "unicorn/no-array-for-each": "off",
+      "unicorn/no-array-sort": "off",
       "unicorn/no-await-expression-member": "off",
       "unicorn/no-negated-condition": "off",
       "unicorn/no-negation-in-equality-check": "off",

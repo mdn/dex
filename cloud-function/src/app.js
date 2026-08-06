@@ -9,6 +9,9 @@ import { Origin } from "./env.js";
 import { proxyContent, proxyContentAssets } from "./handlers/proxy-content.js";
 import { proxyApi } from "./handlers/proxy-api.js";
 import { handleStripePlans } from "./handlers/handle-stripe-plans.js";
+import { handleSearchSuggestions } from "./handlers/handle-search-suggestions.js";
+import { handleSearchRedirect } from "./handlers/handle-search-redirect.js";
+import { handleOpenSearch } from "./handlers/handle-opensearch.js";
 import { proxyTelemetry } from "./handlers/proxy-telemetry.js";
 import { lowercasePathname } from "./middlewares/lowercase-pathname.js";
 import { resolveIndexHTML } from "./middlewares/resolve-index-html.js";
@@ -37,6 +40,20 @@ router.all(
   requireOrigin(Origin.main),
   handleStripePlans
 );
+// OpenSearch autocomplete suggestions.
+router.get(
+  "/api/v1/search/suggestions",
+  requireOrigin(Origin.main),
+  handleSearchSuggestions
+);
+// OpenSearch search.
+router.get(
+  "/api/v1/search/go",
+  requireOrigin(Origin.main),
+  handleSearchRedirect
+);
+// OpenSearch description document.
+router.get("/opensearch.xml", requireOrigin(Origin.main), handleOpenSearch);
 // Backend.
 router.all(
   ["/api/*splat", "/admin-api/*splat", "/events/fxa", "/users/fxa/*splat"],
