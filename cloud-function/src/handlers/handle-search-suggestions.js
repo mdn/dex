@@ -27,7 +27,8 @@ export async function handleSearchSuggestions(req, res) {
       )
       .setHeader("Cache-Control", "public, max-age=3600")
       .end(JSON.stringify([query, completions]));
-  } catch {
+  } catch (error) {
+    console.error("Failed to provide search suggestions:", error);
     return res.setHeader("Cache-Control", "no-store").sendStatus(500);
   }
 }

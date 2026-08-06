@@ -22,7 +22,8 @@ export async function handleSearchRedirect(req, res) {
   if (query) {
     try {
       index = await getSearchIndex(locale);
-    } catch {
+    } catch (error) {
+      console.error("Failed to fetch search index:", error);
       index = null;
     }
   }
