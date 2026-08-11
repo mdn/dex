@@ -121,6 +121,31 @@ describe("buildIndex", () => {
     );
   });
 
+  it("skips leading breadcrumb segments that say nothing about the page", () => {
+    const { items } = buildIndex([
+      {
+        title: "foo.bar",
+        url: "/en-US/docs/Mozilla/Add-ons/WebExtensions/foobar",
+      },
+      { title: "foo.bar", url: "/en-US/docs/Mozilla/Add-ons/foobar" },
+      { title: "foo.bar", url: "/en-US/docs/Mozilla/Firefox/foobar" },
+      { title: "foo.bar", url: "/en-US/docs/Mozilla/foobar" },
+      { title: "foo.bar", url: "/en-US/docs/foo/Add-ons/foobar" },
+      { title: "foo.bar", url: "/en-US/docs/foo/Mozilla/foobar" },
+    ]);
+    deepStrictEqual(
+      items.map((item) => item.label),
+      [
+        "foo.bar (WebExtensions)",
+        "foo.bar (Add-ons)",
+        "foo.bar (Firefox)",
+        "foo.bar (Mozilla)",
+        "foo.bar (foo / Add-ons)",
+        "foo.bar (foo / Mozilla)",
+      ]
+    );
+  });
+
   it("extends the prefix only as far as needed to disambiguate", () => {
     const { items } = buildIndex([
       { title: "Iterators", url: "/en-US/docs/Web/JavaScript/Guide/Iterators" },
