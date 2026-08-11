@@ -48,7 +48,7 @@ describe("handleSearchSuggestions", () => {
   });
 
   it("returns OpenSearch suggestions JSON for a query", async () => {
-    const req = request("array map");
+    const req = request("array");
     const res = createResponse();
     await handleSearchSuggestions(req, res);
 
@@ -58,8 +58,8 @@ describe("handleSearchSuggestions", () => {
       "application/x-suggestions+json; charset=utf-8"
     );
     deepStrictEqual(res._getJSONData(), [
-      "array map",
-      ["Array.prototype.map()"],
+      "array",
+      ["Array", "Array.prototype.map() (JavaScript)"],
     ]);
   });
 

@@ -44,8 +44,6 @@ export function buildIndex(entries) {
     }
   });
 
-  // Enrich each entry with its display label: the bare title when unique, or
-  // `title (breadcrumb)` when several pages share a title.
   const items = entries.map((entry, i) => {
     const group = byTitle.get(entry.title) ?? [i];
     return { ...entry, label: generateLabel(entry, i, group, entries) };
@@ -132,8 +130,9 @@ function breadcrumbParts(url) {
  * @returns {string}
  */
 function generateLabel(entry, index, group, entries) {
-  // A title unique among all entries needs no breadcrumb to disambiguate it.
-  if (group.length <= 1) {
+  // Firefox drops "url-like" suggestions (bug 2061842)
+  const urlLike = !/\s/.test(entry.title) && /[/@:[.]/.test(entry.title);
+  if (group.length <= 1 && !urlLike) {
     return entry.title;
   }
   const parts = breadcrumbParts(entry.url);

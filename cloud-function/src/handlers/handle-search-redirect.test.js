@@ -7,6 +7,7 @@ import { clearSearchIndexCache } from "../internal/quicksearch/index.js";
 import { BASE_URL_MAIN } from "../env.js";
 
 const INDEX = [
+  { title: "CSS box model", url: "/en-US/docs/Web/CSS/CSS_box_model" },
   {
     title: "Array.prototype.map()",
     url: "/en-US/docs/Web/JavaScript/Reference/Array/map",
@@ -19,10 +20,7 @@ const INDEX = [
 ];
 
 const FR_INDEX = [
-  {
-    title: "Array.prototype.map()",
-    url: "/fr/docs/Web/JavaScript/Reference/Array/map",
-  },
+  { title: "CSS box model", url: "/fr/docs/Web/CSS/CSS_box_model" },
 ];
 
 /**
@@ -56,7 +54,19 @@ describe("handleSearchRedirect", () => {
   });
 
   it("redirects an exact unique title match to its page", async () => {
-    const req = request("Array.prototype.map()");
+    const req = request("CSS box model");
+    const res = createResponse();
+    await handleSearchRedirect(req, res);
+
+    strictEqual(res.statusCode, 302);
+    strictEqual(
+      res._getRedirectUrl(),
+      `${BASE_URL_MAIN}/en-US/docs/Web/CSS/CSS_box_model`
+    );
+  });
+
+  it("redirects a url-like title with breadcrumbs to its page", async () => {
+    const req = request("Array.prototype.map() (JavaScript)");
     const res = createResponse();
     await handleSearchRedirect(req, res);
 
@@ -119,14 +129,16 @@ describe("handleSearchRedirect", () => {
   });
 
   it("redirects an exact match to the page in the locale query parameter", async () => {
-    const req = request("Array.prototype.map()", { query: { locale: "fr" } });
+    const req = request("CSS Box Model", {
+      query: { locale: "fr" },
+    });
     const res = createResponse();
     await handleSearchRedirect(req, res);
 
     strictEqual(res.statusCode, 302);
     strictEqual(
       res._getRedirectUrl(),
-      `${BASE_URL_MAIN}/fr/docs/Web/JavaScript/Reference/Array/map`
+      `${BASE_URL_MAIN}/fr/docs/Web/CSS/CSS_box_model`
     );
   });
 

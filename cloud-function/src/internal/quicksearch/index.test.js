@@ -28,17 +28,24 @@ describe("splitQuery", () => {
 describe("buildIndex", () => {
   it("builds a flex index with lowercased title and slug tail", () => {
     const items = [
-      { title: "Array.prototype.map()", url: "/en-US/docs/Web/JS/map" },
-      { title: "Array", url: "/en-US/docs/Web/JS/Array" },
+      {
+        title: "Array.prototype.map()",
+        url: "/en-US/docs/Web/JavaScript/Reference/Array/map",
+      },
+      { title: "Array", url: "/en-US/docs/Web/JavaScript/Reference/Array" },
     ];
     const { flex, items: kept } = buildIndex(items);
     deepStrictEqual(kept, [
       {
         title: "Array.prototype.map()",
-        url: "/en-US/docs/Web/JS/map",
-        label: "Array.prototype.map()",
+        url: "/en-US/docs/Web/JavaScript/Reference/Array/map",
+        label: "Array.prototype.map() (JavaScript)",
       },
-      { title: "Array", url: "/en-US/docs/Web/JS/Array", label: "Array" },
+      {
+        title: "Array",
+        url: "/en-US/docs/Web/JavaScript/Reference/Array",
+        label: "Array",
+      },
     ]);
     deepStrictEqual(flex, [
       { index: 0, title: "array.prototype.map()", slugTail: "map" },
@@ -58,6 +65,44 @@ describe("buildIndex", () => {
     deepStrictEqual(
       items.map((item) => item.label),
       ["map()", "length (JavaScript)", "length (Web APIs)"]
+    );
+  });
+
+  it("leaves a unique title containing whitespace bare", () => {
+    const { items } = buildIndex([
+      {
+        title: "Array.prototype.map() method",
+        url: "/en-US/docs/Web/JavaScript/Reference/Array/map",
+      },
+    ]);
+    deepStrictEqual(
+      items.map((item) => item.label),
+      ["Array.prototype.map() method"]
+    );
+  });
+
+  it("breadcrumbs a unique single-word title that looks like a URL", () => {
+    const { items } = buildIndex([
+      { title: ":hover", url: "/en-US/docs/Web/CSS/:hover" },
+    ]);
+    deepStrictEqual(
+      items.map((item) => item.label),
+      [":hover (CSS)"]
+    );
+  });
+
+  it("leaves other unique single-word titles bare", () => {
+    const { items } = buildIndex([
+      { title: "map()", url: "/en-US/docs/Web/JavaScript/Reference/Array/map" },
+      {
+        title: "grid-template-columns",
+        url: "/en-US/docs/Web/CSS/grid-template-columns",
+      },
+      { title: "JavaScript", url: "/en-US/docs/Web/JavaScript" },
+    ]);
+    deepStrictEqual(
+      items.map((item) => item.label),
+      ["map()", "grid-template-columns", "JavaScript"]
     );
   });
 
@@ -108,7 +153,7 @@ describe("findExactMatch", () => {
     { title: "Overview", url: "/en-US/docs/Web/CSS/Overview/b" },
   ]);
 
-  it("matches a unique title case-insensitively", () => {
+  it("matches a unique label case-insensitively", () => {
     deepStrictEqual(
       findExactMatch("MAP()", index)?.url,
       "/en-US/docs/Web/JavaScript/Reference/Array/map"
@@ -167,7 +212,7 @@ describe("quickSearch", () => {
     const results = quickSearch("array map", index);
     deepStrictEqual(
       results.map((r) => r.label),
-      ["Array.prototype.map()"]
+      ["Array.prototype.map() (JavaScript)"]
     );
   });
 
