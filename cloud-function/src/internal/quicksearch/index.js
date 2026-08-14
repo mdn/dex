@@ -125,6 +125,26 @@ function breadcrumbParts(url) {
 }
 
 /**
+ * Separate from `breadcrumbParts` to keep that close to fred's implementation.
+ * @param {string} url
+ * @returns {string[]}
+ */
+function labelBreadcrumb(url) {
+  const parts = breadcrumbParts(url);
+  const skipSlugs = ["Mozilla/Add-ons", "Mozilla"];
+  for (const slug of skipSlugs) {
+    const skipParts = slug.split("/");
+    if (
+      parts.length > skipParts.length &&
+      skipParts.every((part, i) => part === parts[i])
+    ) {
+      return parts.slice(skipParts.length);
+    }
+  }
+  return parts;
+}
+
+/**
  * @param {SearchIndexEntry} entry
  * @param {number} index - `entry`'s own position in `entries`
  * @param {number[]} group - indices of all entries sharing `entry.title`
@@ -137,12 +157,12 @@ function generateLabel(entry, index, group, entries) {
   if (group.length <= 1 && !urlLike) {
     return entry.title;
   }
-  const parts = breadcrumbParts(entry.url);
+  const parts = labelBreadcrumb(entry.url);
   const others = group
     .filter((i) => i !== index)
     .map((i) => {
       const other = entries[i];
-      return other ? breadcrumbParts(other.url) : [];
+      return other ? labelBreadcrumb(other.url) : [];
     });
   // The shortest leading breadcrumb segments that set this entry apart from
   // every sibling, falling back to the full breadcrumb when one is identical.
