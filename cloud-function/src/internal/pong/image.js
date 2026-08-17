@@ -9,3 +9,14 @@ export async function fetchImage(src) {
   const contentType = res.headers.get("content-type");
   return { status, buf, contentType };
 }
+
+/**
+ * @param {string | null} contentType
+ */
+export function imageContentType(contentType) {
+  const type = (contentType ?? "").split(";")[0]?.trim().toLowerCase() ?? "";
+  if (type.startsWith("image/") && !type.startsWith("image/svg")) {
+    return type;
+  }
+  return;
+}

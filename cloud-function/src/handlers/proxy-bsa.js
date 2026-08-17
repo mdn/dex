@@ -6,6 +6,7 @@ import {
   createPong2ClickHandler,
   createPong2ViewedHandler,
   fetchImage,
+  imageContentType,
 } from "../internal/pong/index.js";
 
 import stagePlusLookup from "../stripe-plans/stage.js";
@@ -125,20 +126,24 @@ export async function proxyBSA(req, res) {
 
     if (status >= 400) {
       console.warn(`[pimg] Image fetch failed: HTTP ${status}`);
-      return res
-        .status(status)
-        .set({
-          "cache-control": "no-store",
-          "content-type": contentType,
-        })
-        .end(Buffer.from(buf));
+      return res.set("cache-control", "no-store").sendStatus(status).end();
+    }
+
+    const type = imageContentType(contentType);
+
+    if (!type) {
+      console.warn(
+        `[pimg] Refused content-type: ${JSON.stringify(contentType)}`
+      );
+      return res.set("cache-control", "no-store").sendStatus(502).end();
     }
 
     return res
       .status(200)
       .set({
         "cache-control": "max-age=86400",
-        "content-type": contentType,
+        "content-type": type,
+        "x-content-type-options": "nosniff",
         "x-robots-tag": "noindex, nofollow",
       })
       .end(Buffer.from(buf));
