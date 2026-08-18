@@ -14,9 +14,13 @@ export async function fetchImage(src) {
  * @param {string | null} contentType
  */
 export function imageContentType(contentType) {
-  const type = (contentType ?? "").split(";")[0]?.trim().toLowerCase() ?? "";
-  if (type.startsWith("image/") && !type.startsWith("image/svg")) {
-    return type;
+  // `Headers.get` joins duplicates with ", ", so a comma means ambiguity.
+  if (!contentType || contentType.includes(",")) {
+    return;
   }
-  return;
+  // SVG is excluded as it can carry JavaScript.
+  const type = contentType.split(";", 1)[0]?.trim().toLowerCase();
+  return type && /^image\/(apng|avif|gif|jpeg|png|webp)$/.test(type)
+    ? type
+    : undefined;
 }
