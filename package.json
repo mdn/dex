@@ -42,7 +42,7 @@
   "devDependencies": {
     "@eslint/js": "^10.0.1",
     "@types/node": "^24.13.3",
-    "@types/pg": "^8.21.0",
+    "@types/pg": "^8.23.1",
     "c8": "^12.0.0",
     "eslint": "^10.7.0",
     "eslint-plugin-import-x": "^4.17.1",
