@@ -2,22 +2,10 @@
 
 import { getLocale } from "../internal/locale-utils/index.js";
 import { VALID_LOCALES } from "../internal/constants/index.js";
-import { redirect, normalizePath } from "../utils.js";
-import { CANONICALS } from "../canonicals.js";
+import { getLocalesWithPath, redirect } from "../utils.js";
 
 const NEEDS_LOCALE =
   /^\/(?:blog|curriculum|docs|play|search|settings|plus)(?:$|\/)/;
-
-/**
- * Finds all locales where a given path (without locale) is available.
- * @param {string} path - The path without locale prefix (e.g., "/docs/Web/API")
- * @returns {string[]} Array of locale codes where the page exists
- */
-function getLocalesWithPath(path) {
-  return [...VALID_LOCALES.values()].filter(
-    (locale) => CANONICALS[normalizePath(`/${locale}${path}`)]
-  );
-}
 
 /**
  * Middleware that handles locale-related redirects.

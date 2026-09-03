@@ -1,6 +1,9 @@
 {
   "/en-us": "/en-US/",
+  "/en-us/about": "/en-US/about",
+  "/en-us/advertising": "/en-US/advertising",
   "/en-us/blog": "/en-US/blog/",
+  "/en-us/community": "/en-US/community",
   "/en-us/docs/web": "/en-US/docs/Web",
   "/en-us/docs/web/api": "/en-US/docs/Web/API",
   "/fr": "/fr/",
