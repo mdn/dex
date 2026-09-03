@@ -490,6 +490,30 @@ export function renderHtml(state = null) {
           window.console = consoleProxy;
           window.addEventListener("error", (e) => console.log(e.error));
         </script>
+        <script>
+          document.addEventListener("DOMContentLoaded", () => {
+            const start = document.querySelector("script#mdn-play-js");
+            const end = document.querySelector("script#mdn-play-js-end");
+            let leaked = false;
+            for (
+              let node = start?.nextSibling;
+              node && node !== end;
+              node = node.nextSibling
+            ) {
+              if (node.nodeType !== Node.TEXT_NODE || node.data.trim()) {
+                leaked = true;
+                break;
+              }
+            }
+            if (!(start instanceof HTMLScriptElement) || !end || leaked) {
+              console.warn(
+                "[Playground] Could not verify that the JavaScript ran. This " +
+                  "usually means the HTML input contains an unclosed or " +
+                  "malformed tag."
+              );
+            }
+          });
+        </script>
         ${
           defaults === "ix-tabbed"
             ? html`<script>
@@ -532,10 +556,13 @@ export function renderHtml(state = null) {
       </head>
       <body>
         ${htmlCode}
-        <script type="${defaults === "ix-wat" ? "module" : ""}">
+        <script
+          id="mdn-play-js"
+          type="${defaults === "ix-wat" ? "module" : ""}"
+        >
           ${js};
         </script>
-        <script>
+        <script id="mdn-play-js-end">
           try {
             window.parent.postMessage({ typ: "ready" }, "*");
           } catch (e) {
