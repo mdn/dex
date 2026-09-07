@@ -180,4 +180,26 @@ describe("handleSearchRedirect", () => {
       `${BASE_URL_MAIN}/en-US/search?q=Array.prototype.map%28%29`
     );
   });
+
+  it("passes utm params to doc pages", async () => {
+    const req = request("CSS box model", { query: { utm_source: "foobar" } });
+    const res = createResponse();
+    await handleSearchRedirect(req, res);
+
+    strictEqual(
+      res._getRedirectUrl(),
+      `${BASE_URL_MAIN}/en-US/docs/Web/CSS/CSS_box_model?utm_source=foobar`
+    );
+  });
+
+  it("passes utm params to search pages", async () => {
+    const req = request("nonexistent", { query: { utm_source: "foobar" } });
+    const res = createResponse();
+    await handleSearchRedirect(req, res);
+
+    strictEqual(
+      res._getRedirectUrl(),
+      `${BASE_URL_MAIN}/en-US/search?utm_source=foobar&q=nonexistent`
+    );
+  });
 });
