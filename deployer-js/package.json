@@ -24,7 +24,7 @@
     "c8": "^12.0.0",
     "typescript": "^6.0.3"
   },
-  "packageManager": "npm@11.12.1",
+  "packageManager": "npm@11.19.0",
   "engines": {
     "node": ">=24"
   },
