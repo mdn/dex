@@ -44,7 +44,6 @@ export async function handleSearchRedirect(req, res) {
     return;
   }
 
-  redirectParams.set("q", query);
-  const target = `${BASE_URL_MAIN}/${locale}/search?${redirectParams}`;
+  const target = `${BASE_URL_MAIN}/${locale}/search?${new URLSearchParams([["q", query], ...redirectParams])}`;
   res.redirect(302, target);
 }

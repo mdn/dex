@@ -199,7 +199,7 @@ describe("handleSearchRedirect", () => {
 
     strictEqual(
       res._getRedirectUrl(),
-      `${BASE_URL_MAIN}/en-US/search?utm_source=foobar&q=nonexistent`
+      `${BASE_URL_MAIN}/en-US/search?q=nonexistent&utm_source=foobar`
     );
   });
 });
