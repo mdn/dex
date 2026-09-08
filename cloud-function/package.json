@@ -56,6 +56,6 @@
     "node": ">=24"
   },
   "allowScripts": {
-    "fsevents": true
+    "fsevents": false
   }
 }
