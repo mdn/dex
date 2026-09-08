@@ -18,6 +18,13 @@ export async function handleSearchRedirect(req, res) {
   const query = typeof req.query["q"] === "string" ? req.query["q"].trim() : "";
   const locale = getQueryLocale(req);
 
+  const redirectParams = new URLSearchParams();
+  for (const [key, value] of Object.entries(req.query)) {
+    if (key.startsWith("utm_") && typeof value === "string") {
+      redirectParams.set(key, value);
+    }
+  }
+
   let index = null;
   if (query) {
     try {
@@ -29,10 +36,14 @@ export async function handleSearchRedirect(req, res) {
   }
   const match = index ? findExactMatch(query, index) : null;
   if (match) {
-    res.redirect(302, `${BASE_URL_MAIN}${match.url}`);
+    let url = `${BASE_URL_MAIN}${match.url}`;
+    if (redirectParams.size > 0) {
+      url += `?${redirectParams}`;
+    }
+    res.redirect(302, url);
     return;
   }
 
-  const target = `${BASE_URL_MAIN}/${locale}/search?${new URLSearchParams({ q: query })}`;
+  const target = `${BASE_URL_MAIN}/${locale}/search?${new URLSearchParams([["q", query], ...redirectParams])}`;
   res.redirect(302, target);
 }
