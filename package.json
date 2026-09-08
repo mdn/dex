@@ -64,5 +64,10 @@
       "name": "npm",
       "version": ">=11.8.0"
     }
+  },
+  "allowScripts": {
+    "@mdn/rari": true,
+    "lefthook": true,
+    "unrs-resolver": true
   }
 }
