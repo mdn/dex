@@ -103,7 +103,10 @@ export async function proxyBSA(req, res) {
     }
     const params = new URLSearchParams(search);
     try {
-      await handleViewed(params, countryCode, userAgent);
+      const { status } = await handleViewed(params, countryCode, userAgent);
+      if (status >= 400) {
+        return res.sendStatus(status).end();
+      }
       return res.sendStatus(201).end();
     } catch (e) {
       console.error(e);
