@@ -32,3 +32,37 @@ describe("renderHtml", () => {
     });
   }
 });
+
+describe("renderHtml swallow detection", () => {
+  const output = renderHtml({ html: "<p>ok</p>", css: "", js: "1;" });
+  const head = output.slice(0, output.indexOf("</head>"));
+
+  const cases = [
+    {
+      name: "marks the runner script",
+      haystack: output,
+      needle: 'id="mdn-play-js"',
+    },
+    {
+      name: "marks the end of the runner script",
+      haystack: output,
+      needle: 'id="mdn-play-js-end"',
+    },
+    {
+      name: "runs from the head",
+      haystack: head,
+      needle: 'querySelector("script#mdn-play-js")',
+    },
+    {
+      name: "runs after DOMContentLoaded",
+      haystack: head,
+      needle: 'addEventListener("DOMContentLoaded"',
+    },
+  ];
+
+  for (const { name, haystack, needle } of cases) {
+    it(name, () => {
+      assert.ok(haystack.includes(needle), `missing ${needle}`);
+    });
+  }
+});
