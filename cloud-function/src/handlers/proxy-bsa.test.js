@@ -131,6 +131,21 @@ describe("proxyBSA", () => {
     });
   });
 
+  describe("POST /pong/viewed", () => {
+    it("rejects a missing code", async () => {
+      const res = await handler.request("/pong/viewed", { method: "POST" });
+      strictEqual(res.status, 400);
+    });
+
+    it("acknowledges an unsigned code without contacting upstream", async () => {
+      const res = await handler.request("/pong/viewed?code=dW5zaWduZWQ.bad", {
+        method: "POST",
+      });
+      strictEqual(res.status, 201);
+      deepStrictEqual(upstream.requests, []);
+    });
+  });
+
   describe("GET /pimg/", () => {
     it("rejects an unsigned src", async () => {
       const res = await handler.request("/pimg/dW5zaWduZWQ.bad");
