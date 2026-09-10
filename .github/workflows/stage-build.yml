@@ -362,6 +362,7 @@ jobs:
 
           - name: Update AI Help index with macros
             if: ${{ ! vars.SKIP_BUILD }}
+            continue-on-error: true
             working-directory: mdn/dex
             run: npm run ai-help-macros -- update-index "$FRED_ROOT/out/en-us/docs"
             env:
