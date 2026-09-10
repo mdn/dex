@@ -344,6 +344,7 @@ jobs:
             run: node main.js search-index "$FRED_ROOT/out"
 
           - name: Update AI Help index with macros
+            if: ${{ ! vars.SKIP_BUILD }}
             working-directory: mdn/dex
             run: npm run ai-help-macros -- update-index "$FRED_ROOT/out/en-us/docs"
             env:
