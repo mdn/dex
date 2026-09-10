@@ -85,12 +85,98 @@ jobs:
           echo "notes: $NOTES"
           echo "invalidate: $INVALIDATE"
 
-      - name: Checkout
-        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-        with:
-          fetch-depth: 0
-          path: mdn/dex
-          persist-credentials: false
+      - parallel:
+          - name: Checkout
+            uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+            with:
+              fetch-depth: 0
+              path: mdn/dex
+              persist-credentials: false
+
+          - name: Checkout (content)
+            uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+            if: ${{ ! vars.SKIP_BUILD || ! vars.SKIP_FUNCTION }}
+            with:
+              repository: mdn/content
+              path: mdn/content
+              # Yes, this means fetch EVERY COMMIT EVER.
+              # It's probably not sustainable in the far future (e.g. past 2021)
+              # but for now it's good enough. We'll need all the history
+              # so we can figure out each document's last-modified date.
+              fetch-depth: 0
+              ref: ${{ github.event.inputs.content-ref }}
+              persist-credentials: false
+
+          - name: Checkout (blog)
+            uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+            if: ${{ ! vars.SKIP_BUILD }}
+            with:
+              repository: mdn/blog
+              path: mdn/blog
+              lfs: true
+              token: ${{ secrets.MDN_STUDIO_PAT }}
+              persist-credentials: false
+
+          - name: Checkout (generic-content)
+            uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+            if: ${{ ! vars.SKIP_BUILD }}
+            with:
+              repository: mdn/generic-content
+              path: mdn/generic-content
+              persist-credentials: false
+
+          - name: Checkout (curriculum)
+            uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+            if: ${{ ! vars.SKIP_BUILD }}
+            with:
+              repository: mdn/curriculum
+              path: mdn/curriculum
+              persist-credentials: false
+
+          - name: Checkout (translated-content)
+            uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+            if: ${{ ! vars.SKIP_BUILD || ! vars.SKIP_FUNCTION }}
+            with:
+              repository: mdn/translated-content
+              path: mdn/translated-content
+              # See matching warning for mdn/content checkout step
+              fetch-depth: 0
+              ref: ${{ github.event.inputs.translated-content-ref }}
+              persist-credentials: false
+
+          - name: Checkout (translated-content-de)
+            uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+            if: ${{ ! vars.SKIP_BUILD || ! vars.SKIP_FUNCTION }}
+            with:
+              repository: mdn/translated-content-de
+              path: mdn/translated-content-de
+              persist-credentials: false
+
+          - name: Checkout (mdn-contributor-spotlight)
+            uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+            if: ${{ ! vars.SKIP_BUILD }}
+            with:
+              repository: mdn/mdn-contributor-spotlight
+              path: mdn/mdn-contributor-spotlight
+              persist-credentials: false
+
+          - name: Checkout (fred)
+            uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+            if: ${{ ! vars.SKIP_BUILD }}
+            with:
+              repository: mdn/fred
+              path: mdn/fred
+              ref: ${{ github.event.inputs.fred-ref }}
+              persist-credentials: false
+
+          - name: Checkout (rari)
+            uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+            if: ${{ !( vars.SKIP_BUILD || github.event.inputs.rari-ref == '' ) }}
+            with:
+              repository: mdn/rari
+              path: mdn/rari
+              ref: ${{ github.event.inputs.rari-ref }}
+              persist-credentials: false
 
       - name: Merge main (if possible)
         working-directory: mdn/dex
@@ -102,65 +188,6 @@ jobs:
           git status
           git checkout -
           git merge main --no-edit || git merge --abort
-
-      - name: Checkout (content)
-        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-        if: ${{ ! vars.SKIP_BUILD || ! vars.SKIP_FUNCTION }}
-        with:
-          repository: mdn/content
-          path: mdn/content
-          # Yes, this means fetch EVERY COMMIT EVER.
-          # It's probably not sustainable in the far future (e.g. past 2021)
-          # but for now it's good enough. We'll need all the history
-          # so we can figure out each document's last-modified date.
-          fetch-depth: 0
-          ref: ${{ github.event.inputs.content-ref }}
-          persist-credentials: false
-
-      - name: Checkout (blog)
-        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-        if: ${{ ! vars.SKIP_BUILD }}
-        with:
-          repository: mdn/blog
-          path: mdn/blog
-          lfs: true
-          token: ${{ secrets.MDN_STUDIO_PAT }}
-          persist-credentials: false
-
-      - name: Checkout (generic-content)
-        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-        if: ${{ ! vars.SKIP_BUILD }}
-        with:
-          repository: mdn/generic-content
-          path: mdn/generic-content
-          persist-credentials: false
-
-      - name: Checkout (curriculum)
-        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-        if: ${{ ! vars.SKIP_BUILD }}
-        with:
-          repository: mdn/curriculum
-          path: mdn/curriculum
-          persist-credentials: false
-
-      - name: Checkout (translated-content)
-        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-        if: ${{ ! vars.SKIP_BUILD || ! vars.SKIP_FUNCTION }}
-        with:
-          repository: mdn/translated-content
-          path: mdn/translated-content
-          # See matching warning for mdn/content checkout step
-          fetch-depth: 0
-          ref: ${{ github.event.inputs.translated-content-ref }}
-          persist-credentials: false
-
-      - name: Checkout (translated-content-de)
-        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-        if: ${{ ! vars.SKIP_BUILD || ! vars.SKIP_FUNCTION }}
-        with:
-          repository: mdn/translated-content-de
-          path: mdn/translated-content-de
-          persist-credentials: false
 
       - name: Move de into translated-content
         if: ${{ ! vars.SKIP_BUILD || ! vars.SKIP_FUNCTION }}
@@ -174,23 +201,6 @@ jobs:
         run: |
           git add files/de
           git -c user.name='MDN' -c user.email='mdn-dev@mozilla.com' commit -m 'de'
-
-      - name: Checkout (mdn-contributor-spotlight)
-        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-        if: ${{ ! vars.SKIP_BUILD }}
-        with:
-          repository: mdn/mdn-contributor-spotlight
-          path: mdn/mdn-contributor-spotlight
-          persist-credentials: false
-
-      - name: Checkout (fred)
-        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-        if: ${{ ! vars.SKIP_BUILD }}
-        with:
-          repository: mdn/fred
-          path: mdn/fred
-          ref: ${{ github.event.inputs.fred-ref }}
-          persist-credentials: false
 
       - name: Setup Node (fred)
         if: ${{ ! vars.SKIP_BUILD || ! vars.SKIP_FUNCTION }}
@@ -206,15 +216,6 @@ jobs:
           # Use a GITHUB_TOKEN to bypass rate limiting for rari.
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: npm ci
-
-      - name: Checkout (rari)
-        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-        if: ${{ !( vars.SKIP_BUILD || github.event.inputs.rari-ref == '' ) }}
-        with:
-          repository: mdn/rari
-          path: mdn/rari
-          ref: ${{ github.event.inputs.rari-ref }}
-          persist-credentials: false
 
       - name: Cache Cargo registry
         if: ${{ !( vars.SKIP_BUILD || github.event.inputs.rari-ref == '' ) }}
