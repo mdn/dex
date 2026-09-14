@@ -547,6 +547,7 @@ export function renderHtml(state = null) {
       <body>
         ${htmlCode}
         <!-- "" '' -->
+        <script></script>
         <script>
           window.__mdnPlayJsStarted = true;
         </script>
