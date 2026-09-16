@@ -381,16 +381,19 @@ export function createPong2ViewedHandler(coder) {
     }
 
     const view = coder.decodeAndVerify(code);
-    if (view) {
-      const anonymousIp = anonymousIpByCC(countryCode);
-      const viewURL = createURL(view);
-      viewURL.searchParams.set("forwardedip", anonymousIp);
-      viewURL.searchParams.set("useragent", userAgent);
-
-      await fetch(viewURL, {
-        redirect: "manual",
-      });
+    if (!view) {
+      console.warn("[pong/viewed] Invalid code value");
+      return { status: 404 };
     }
+
+    const anonymousIp = anonymousIpByCC(countryCode);
+    const viewURL = createURL(view);
+    viewURL.searchParams.set("forwardedip", anonymousIp);
+    viewURL.searchParams.set("useragent", userAgent);
+
+    await fetch(viewURL, {
+      redirect: "manual",
+    });
     return { status: 200 };
   };
 }
