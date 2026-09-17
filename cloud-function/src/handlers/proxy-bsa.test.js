@@ -131,6 +131,38 @@ describe("proxyBSA", () => {
     });
   });
 
+  describe("POST /pong/viewed", () => {
+    it("rejects a missing code", async () => {
+      const res = await handler.request("/pong/viewed", { method: "POST" });
+      strictEqual(res.status, 400);
+    });
+
+    const invalidCodes = [
+      { name: "unsigned", code: "dW5zaWduZWQ" },
+      { name: "invalid signature", code: "dW5zaWduZWQ.bad" },
+    ];
+
+    for (const { name, code } of invalidCodes) {
+      it(`rejects ${name} code without contacting upstream`, async () => {
+        const res = await handler.request(`/pong/viewed?code=${code}`, {
+          method: "POST",
+        });
+        strictEqual(res.status, 404);
+        deepStrictEqual(upstream.requests, []);
+      });
+    }
+
+    it("records a signed code with upstream", async () => {
+      const code = coder.encodeAndSign(`${upstream.url}ad.png`);
+      const params = new URLSearchParams({ code });
+      const res = await handler.request(`/pong/viewed?${params}`, {
+        method: "POST",
+      });
+      strictEqual(res.status, 201);
+      deepStrictEqual(upstream.requests, ["ad.png"]);
+    });
+  });
+
   describe("GET /pimg/", () => {
     it("rejects an unsigned src", async () => {
       const res = await handler.request("/pimg/dW5zaWduZWQ.bad");
