@@ -5,7 +5,9 @@ updates:
     directory: /
     schedule:
       interval: weekly
+    open-pull-requests-limit: 10
     cooldown:
+      default-days: 3
       exclude:
         - "@mdn/*"
     groups:
@@ -31,6 +33,9 @@ updates:
     directory: /
     schedule:
       interval: weekly
+    open-pull-requests-limit: 10
+    cooldown:
+      default-days: 3
     commit-message:
       prefix: ci
       include: scope
@@ -39,7 +44,9 @@ updates:
     directory: /deployer-js
     schedule:
       interval: weekly
+    open-pull-requests-limit: 10
     cooldown:
+      default-days: 3
       exclude:
         - "@mdn/*"
     groups:
@@ -65,7 +72,9 @@ updates:
     directory: /cloud-function
     schedule:
       interval: weekly
+    open-pull-requests-limit: 10
     cooldown:
+      default-days: 3
       exclude:
         - "@mdn/*"
     groups:
