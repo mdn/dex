@@ -46,68 +46,85 @@ jobs:
     if: github.repository == 'mdn/dex'
 
     steps:
-      - name: Checkout
-        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-        with:
-          path: mdn/dex
-          persist-credentials: false
+      - parallel:
+          - name: Checkout
+            uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+            with:
+              path: mdn/dex
+              persist-credentials: false
 
-      - name: Checkout (content)
-        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-        if: ${{ ! vars.SKIP_BUILD || ! vars.SKIP_FUNCTION }}
-        with:
-          repository: mdn/content
-          path: mdn/content
-          # Yes, this means fetch EVERY COMMIT EVER.
-          # It's probably not sustainable in the far future (e.g. past 2021)
-          # but for now it's good enough. We'll need all the history
-          # so we can figure out each document's last-modified date.
-          fetch-depth: 0
-          persist-credentials: false
+          - name: Checkout (content)
+            uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+            if: ${{ ! vars.SKIP_BUILD || ! vars.SKIP_FUNCTION }}
+            with:
+              repository: mdn/content
+              path: mdn/content
+              # Yes, this means fetch EVERY COMMIT EVER.
+              # It's probably not sustainable in the far future (e.g. past 2021)
+              # but for now it's good enough. We'll need all the history
+              # so we can figure out each document's last-modified date.
+              fetch-depth: 0
+              persist-credentials: false
 
-      - name: Checkout (blog)
-        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-        if: ${{ ! vars.SKIP_BUILD }}
-        with:
-          repository: mdn/blog
-          path: mdn/blog
-          lfs: true
-          token: ${{ secrets.MDN_STUDIO_PAT }}
-          persist-credentials: false
+          - name: Checkout (blog)
+            uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+            if: ${{ ! vars.SKIP_BUILD }}
+            with:
+              repository: mdn/blog
+              path: mdn/blog
+              lfs: true
+              token: ${{ secrets.MDN_STUDIO_PAT }}
+              persist-credentials: false
 
-      - name: Checkout (generic-content)
-        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-        if: ${{ ! vars.SKIP_BUILD }}
-        with:
-          repository: mdn/generic-content
-          path: mdn/generic-content
-          persist-credentials: false
+          - name: Checkout (generic-content)
+            uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+            if: ${{ ! vars.SKIP_BUILD }}
+            with:
+              repository: mdn/generic-content
+              path: mdn/generic-content
+              persist-credentials: false
 
-      - name: Checkout (curriculum)
-        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-        if: ${{ ! vars.SKIP_BUILD }}
-        with:
-          repository: mdn/curriculum
-          path: mdn/curriculum
-          persist-credentials: false
+          - name: Checkout (curriculum)
+            uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+            if: ${{ ! vars.SKIP_BUILD }}
+            with:
+              repository: mdn/curriculum
+              path: mdn/curriculum
+              persist-credentials: false
 
-      - name: Checkout (translated-content)
-        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-        if: ${{ ! vars.SKIP_BUILD || ! vars.SKIP_FUNCTION }}
-        with:
-          repository: mdn/translated-content
-          path: mdn/translated-content
-          # See matching warning for mdn/content checkout step
-          fetch-depth: 0
-          persist-credentials: false
+          - name: Checkout (translated-content)
+            uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+            if: ${{ ! vars.SKIP_BUILD || ! vars.SKIP_FUNCTION }}
+            with:
+              repository: mdn/translated-content
+              path: mdn/translated-content
+              # See matching warning for mdn/content checkout step
+              fetch-depth: 0
+              persist-credentials: false
 
-      - name: Checkout (translated-content-de)
-        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-        if: ${{ ! vars.SKIP_BUILD || ! vars.SKIP_FUNCTION }}
-        with:
-          repository: mdn/translated-content-de
-          path: mdn/translated-content-de
-          persist-credentials: false
+          - name: Checkout (translated-content-de)
+            uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+            if: ${{ ! vars.SKIP_BUILD || ! vars.SKIP_FUNCTION }}
+            with:
+              repository: mdn/translated-content-de
+              path: mdn/translated-content-de
+              persist-credentials: false
+
+          - name: Checkout (mdn-contributor-spotlight)
+            uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+            if: ${{ ! vars.SKIP_BUILD }}
+            with:
+              repository: mdn/mdn-contributor-spotlight
+              path: mdn/mdn-contributor-spotlight
+              persist-credentials: false
+
+          - name: Checkout (fred)
+            uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+            if: ${{ ! vars.SKIP_BUILD }}
+            with:
+              repository: mdn/fred
+              path: mdn/fred
+              persist-credentials: false
 
       - name: Move de into translated-content
         if: ${{ ! vars.SKIP_BUILD || ! vars.SKIP_FUNCTION }}
@@ -121,22 +138,6 @@ jobs:
         run: |
           git add files/de
           git -c user.name='MDN' -c user.email='mdn-dev@mozilla.com' commit -m 'de'
-
-      - name: Checkout (mdn-contributor-spotlight)
-        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-        if: ${{ ! vars.SKIP_BUILD }}
-        with:
-          repository: mdn/mdn-contributor-spotlight
-          path: mdn/mdn-contributor-spotlight
-          persist-credentials: false
-
-      - name: Checkout (fred)
-        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-        if: ${{ ! vars.SKIP_BUILD }}
-        with:
-          repository: mdn/fred
-          path: mdn/fred
-          persist-credentials: false
 
       - name: Setup Node (fred)
         if: ${{ ! vars.SKIP_BUILD || ! vars.SKIP_FUNCTION }}
@@ -321,14 +322,6 @@ jobs:
           # Use a GITHUB_TOKEN to bypass rate limiting for rari.
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Update search index
-        if: ${{ ! vars.SKIP_BUILD }}
-        working-directory: mdn/dex/deployer-js
-        env:
-          DEPLOYER_ELASTICSEARCH_URL: ${{ secrets.DEPLOYER_PROD_ELASTICSEARCH_URL }}
-          FRED_ROOT: ${{ github.workspace }}/mdn/fred
-        run: node main.js search-index "$FRED_ROOT/out"
-
       - name: Authenticate with GCP
         if: ${{ ! vars.SKIP_BUILD }}
         uses: google-github-actions/auth@7c6bc770dae815cd3e89ee6cdf493a5fab2cc093 # v3.0.0
@@ -341,13 +334,32 @@ jobs:
         if: ${{ ! vars.SKIP_BUILD }}
         uses: google-github-actions/setup-gcloud@aa5489c8933f4cc7a4f7d45035b3b1440c9c10db # v3.0.1
 
-      - name: Sync build
-        if: ${{ ! vars.SKIP_BUILD }}
-        working-directory: mdn/fred
-        run: |-
-          time gsutil -q -m -h "Cache-Control: public, max-age=3600" cp -r out/static gs://${{ vars.GCP_BUCKET_NAME }}/main/
-          time gsutil -q -m -h "Cache-Control: public, max-age=3600" rsync -cr gs://${{ vars.GCP_BUCKET_NAME }}/main/static/ gs://${{ vars.GCP_BUCKET_NAME }}/fred/static/
-          time gsutil -q -m -h "Cache-Control: public, max-age=3600" rsync -cdrj html,json,txt -y "^static/" out gs://${{ vars.GCP_BUCKET_NAME }}/fred
+      - parallel:
+          - name: Update search index
+            if: ${{ ! vars.SKIP_BUILD }}
+            working-directory: mdn/dex/deployer-js
+            env:
+              DEPLOYER_ELASTICSEARCH_URL: ${{ secrets.DEPLOYER_PROD_ELASTICSEARCH_URL }}
+              FRED_ROOT: ${{ github.workspace }}/mdn/fred
+            run: node main.js search-index "$FRED_ROOT/out"
+
+          - name: Update AI Help index with macros
+            if: ${{ ! vars.SKIP_BUILD }}
+            continue-on-error: true
+            working-directory: mdn/dex
+            run: npm run ai-help-macros -- update-index "$FRED_ROOT/out/en-us/docs"
+            env:
+              OPENAI_KEY: ${{ secrets.OPENAI_KEY }}
+              PG_URI: ${{ secrets.PG_URI }}
+              FRED_ROOT: ${{ github.workspace }}/mdn/fred
+
+          - name: Sync build
+            if: ${{ ! vars.SKIP_BUILD }}
+            working-directory: mdn/fred
+            run: |-
+              time gsutil -q -m -h "Cache-Control: public, max-age=3600" cp -r out/static gs://${{ vars.GCP_BUCKET_NAME }}/main/
+              time gsutil -q -m -h "Cache-Control: public, max-age=3600" rsync -cr gs://${{ vars.GCP_BUCKET_NAME }}/main/static/ gs://${{ vars.GCP_BUCKET_NAME }}/fred/static/
+              time gsutil -q -m -h "Cache-Control: public, max-age=3600" rsync -cdrj html,json,txt -y "^static/" out gs://${{ vars.GCP_BUCKET_NAME }}/fred
 
       - name: Authenticate with GCP
         if: ${{ ! vars.SKIP_FUNCTION }}
@@ -417,14 +429,6 @@ jobs:
           for pid in "${pids[@]}"; do
             wait $pid
           done
-
-      - name: Update AI Help index with macros
-        working-directory: mdn/dex
-        run: npm run ai-help-macros -- update-index "$FRED_ROOT/out/en-us/docs"
-        env:
-          OPENAI_KEY: ${{ secrets.OPENAI_KEY }}
-          PG_URI: ${{ secrets.PG_URI }}
-          FRED_ROOT: ${{ github.workspace }}/mdn/fred
 
       - name: Slack Notification
         if: failure()
