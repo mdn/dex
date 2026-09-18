@@ -3,8 +3,10 @@
 import {
   ANY_ATTACHMENT_EXT,
   createRegExpFromExtensions,
+  VALID_LOCALES,
 } from "./internal/constants/index.js";
 
+import { CANONICALS } from "./canonicals.js";
 import { DEFAULT_COUNTRY } from "./constants.js";
 
 /**
@@ -91,4 +93,15 @@ export function isAsset(url) {
  */
 export function normalizePath(path) {
   return path.toLowerCase().replace(/\/$/, "");
+}
+
+/**
+ * Finds all locales where a given path (without locale) is available.
+ * @param {string} path - The path without locale prefix (e.g., "/docs/Web/API")
+ * @returns {string[]} Array of locale codes where the page exists
+ */
+export function getLocalesWithPath(path) {
+  return [...VALID_LOCALES.values()].filter(
+    (locale) => CANONICALS[normalizePath(`/${locale}${path}`)]
+  );
 }
