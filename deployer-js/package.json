@@ -15,7 +15,7 @@
     "@elastic/elasticsearch": "^9.5.1",
     "cheerio": "1.2.0",
     "fdir": "^6.5.0",
-    "yargs": "^18.1.0"
+    "yargs": "^18.2.0"
   },
   "devDependencies": {
     "@mdn/rari": "^0.2.34",
