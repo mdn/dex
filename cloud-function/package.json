@@ -30,7 +30,7 @@
     "accept-language-parser": "^1.5.0",
     "cookie": "^2.0.1",
     "cookie-parser": "^1.4.7",
-    "dotenv": "^17.4.2",
+    "dotenv": "^18.0.3",
     "express": "^5.2.1",
     "he": "^1.2.0",
     "http-proxy-middleware": "^4.2.0",
