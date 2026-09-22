@@ -29,7 +29,7 @@
     "cheerio": "1.2.0",
     "dotenv": "^17.4.2",
     "fdir": "^6.5.0",
-    "openai": "^7.15.0",
+    "openai": "^7.22.0",
     "pg": "^8.23.0",
     "pgvector": "^0.3.0",
     "rehype-parse": "^9.0.1",
@@ -37,7 +37,7 @@
     "remark-gfm": "^4.0.1",
     "remark-stringify": "^11.0.0",
     "unified": "^11.0.5",
-    "yargs": "^18.1.0"
+    "yargs": "^18.2.0"
   },
   "devDependencies": {
     "@eslint/js": "^10.0.1",
