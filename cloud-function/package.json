@@ -1,12 +1,25 @@
 {
-  "name": "mdn-function",
+  "name": "@mdn/dex-cloud-server",
   "version": "0.0.1",
-  "private": true,
-  "description": "",
+  "description": "MDN's HTTP request handler",
+  "repository": "https://github.com/mdn/dex",
   "license": "MPL-2.0",
-  "author": "",
+  "author": "MDN Web Docs",
   "type": "module",
+  "exports": {
+    ".": "./src/app.js"
+  },
   "main": "src/index.js",
+  "bin": {
+    "dex-cloud-server": "bin/dex-cloud-server.js"
+  },
+  "files": [
+    "bin/",
+    "src/",
+    "README.md",
+    "CHANGELOG.md",
+    "LICENSE"
+  ],
   "scripts": {
     "build-canonicals": "node src/build-canonicals.js",
     "build-redirects": "node src/build-redirects.js",
