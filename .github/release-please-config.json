@@ -1,0 +1,18 @@
+{
+  "$schema": "https://raw.githubusercontent.com/googleapis/release-please/main/schemas/config.json",
+  "bootstrap-sha": "910cf7c457d2b61f2ab888025aa92e8baf9a8c34",
+  "release-type": "node",
+  "draft-pull-request": true,
+  "include-component-in-tag": true,
+  "changelog-sections": [
+    { "type": "feat", "section": "Features", "hidden": false },
+    { "type": "fix", "section": "Bug Fixes", "hidden": false },
+    { "type": "enhance", "section": "Enhancements", "hidden": false },
+    { "type": "chore", "section": "Miscellaneous", "hidden": false }
+  ],
+  "packages": {
+    "cloud-function": {
+      "component": "dex-cloud-server"
+    }
+  }
+}
