@@ -50,12 +50,6 @@ jobs:
           registry-url: "https://registry.npmjs.org"
           package-manager-cache: false
 
-      - name: Install
-        working-directory: cloud-function
-        run: npm ci
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
       - name: Publish
         working-directory: cloud-function
         run: npm publish --access public --provenance
