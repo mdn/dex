@@ -59,5 +59,21 @@ The handler uses these environment variables:
   caching.
 - `SIGN_SECRET` is required for serving placements.
 
-Other optional variables and their defaults are documented in the source
-checkout's cloud-function configuration.
+Other optional variables and their defaults are defined in
+[`src/env.js`](src/env.js).
+
+## Development
+
+In a Dex checkout, `npm start` serves the handler at http://localhost:7100/. By
+default, it serves the local `client/build` directory at http://localhost:8100/
+and proxies API requests to the stage API at `https://developer.allizom.org/`.
+Override defaults through a `.env` file with `KEY=value` lines.
+
+To use a local Rumba, set `SOURCE_API=http://localhost:8000/`.
+
+To use Glean, the handler must be accessed via HTTPS. Otherwise the Glean.js SDK
+throws an uncaught error that prevents execution of JavaScript. Create a
+locally-trusted certificate with [mkcert](https://github.com/FiloSottile/mkcert)
+and set `HTTPS_KEY_FILE` and `HTTPS_CERT_FILE` to the key and certificate paths.
+This enables an HTTPS proxy at https://localhost/ in addition to
+http://localhost:7100/.
