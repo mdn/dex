@@ -1,10 +1,9 @@
 #!/usr/bin/env node
 
-import { spawn } from "node:child_process";
 import { createRequire } from "node:module";
 import { readFileSync } from "node:fs";
 import path from "node:path";
-import { fileURLToPath } from "node:url";
+import { fileURLToPath, pathToFileURL } from "node:url";
 
 const require = createRequire(import.meta.url);
 const frameworkEntry = require.resolve("@google-cloud/functions-framework");
@@ -21,28 +20,10 @@ const packageRoot = path.resolve(
   ".."
 );
 
-const child = spawn(
-  process.execPath,
-  [
-    frameworkCli,
-    `--source=${packageRoot}`,
-    "--target=mdnHandler",
-    "--ignored-routes=",
-  ],
-  { env: process.env, stdio: "inherit" }
-);
+// The framework falls back to these when the matching CLI flags are absent.
+process.env["FUNCTION_SOURCE"] ??= packageRoot;
+process.env["FUNCTION_TARGET"] ??= "mdnHandler";
+process.env["IGNORED_ROUTES"] ??= "";
 
-/** @type {NodeJS.Signals[]} */
-const signals = ["SIGINT", "SIGTERM"];
-for (const signal of signals) {
-  process.on(signal, () => child.kill(signal));
-}
-
-child.on("error", (error) => {
-  console.error(error.message);
-  process.exitCode = 1;
-});
-
-child.on("exit", (code) => {
-  process.exitCode = code ?? 1;
-});
+// The CLI entry parses `process.argv` and starts the server on import.
+await import(pathToFileURL(frameworkCli).href);
