@@ -61,12 +61,3 @@ The handler uses these environment variables:
 
 Other optional variables and their defaults are documented in the source
 checkout's cloud-function configuration.
-
-## Releasing
-
-The release workflow uses release-please to open draft release pull requests
-from conventional commits that change `cloud-function/`. Merging a release pull
-request publishes the package with npm provenance. Configure npm Trusted
-Publishing for `@mdn/dex-cloud-server` to use the `mdn/dex` repository and
-`.github/workflows/npm-publish.yml`, and configure the
-`RELEASE_PLEASE_GITHUB_TOKEN` repository secret.
