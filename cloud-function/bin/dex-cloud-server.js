@@ -32,7 +32,9 @@ const child = spawn(
   { env: process.env, stdio: "inherit" }
 );
 
-for (const signal of ["SIGINT", "SIGTERM"]) {
+/** @type {NodeJS.Signals[]} */
+const signals = ["SIGINT", "SIGTERM"];
+for (const signal of signals) {
   process.on(signal, () => child.kill(signal));
 }
 
