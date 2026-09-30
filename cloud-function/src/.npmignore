@@ -2,3 +2,5 @@
 fixtures/
 proxy.js
 proxy-helpers.js
+build-canonicals.js
+build-redirects.js
