@@ -12,6 +12,7 @@ import { INDEX_ALIAS_NAME, indexName, settings, mappings } from "./models.js";
  * @property {string} _id
  * @property {string} title
  * @property {string} body
+ * @property {string[]} inline_code
  * @property {string} summary
  * @property {string} slug
  * @property {string} locale
@@ -164,16 +165,18 @@ async function toSearch(file) {
   }
   locale = locale.slice(1);
 
+  const html = doc.body
+    .filter((x) => x.type === "prose" && x.value.content)
+    .map((x) => x.value.content ?? "")
+    .filter(Boolean)
+    .join("\n");
+  const { body, inlineCode } = htmlToSearchFields(html);
+
   return {
     _id: doc.mdn_url,
     title: doc.title,
-    body: htmlStrip(
-      doc.body
-        .filter((x) => x.type === "prose" && x.value.content)
-        .map((x) => x.value.content ?? "")
-        .filter(Boolean)
-        .join("\n")
-    ),
+    body,
+    inline_code: inlineCode,
     popularity: doc.popularity ?? undefined,
     summary: doc.summary ?? "",
     // Note! We're always lowercasing the 'slug'. This way we can search on it,
@@ -207,9 +210,19 @@ const _displayNoneRegex = /display:\s*none/;
  * @returns {string}
  */
 export function htmlStrip(html) {
+  return htmlToSearchFields(html).body;
+}
+
+/**
+ * Extract visible prose text and inline code values from MDN HTML.
+ *
+ * @param {string} html
+ * @returns {{ body: string, inlineCode: string[] }}
+ */
+export function htmlToSearchFields(html) {
   html = html.trim();
   if (!html) {
-    return "";
+    return { body: "", inlineCode: [] };
   }
   const $ = load(html);
   $("div.warning, div.hidden, p.hidden").remove();
@@ -219,10 +232,17 @@ export function htmlStrip(html) {
       return _displayNoneRegex.test(style);
     })
     .remove();
+
+  const inlineCode = $("code")
+    .filter((_i, element) => $(element).parents("pre").length === 0)
+    .map((_i, element) => $(element).text().trim())
+    .get()
+    .filter(Boolean);
   const text = $.text();
-  return text
+  const body = text
     .split("\n")
     .map((x) => x.trim())
     .filter(Boolean)
     .join("\n");
+  return { body, inlineCode };
 }
