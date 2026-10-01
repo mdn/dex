@@ -110,6 +110,14 @@ test("search field mappings", async (t) => {
       expected: { type: "text", analyzer: "punctuation_analyzer" },
     },
     { path: "slug_leaf", expected: { type: "keyword" } },
+    {
+      path: "title.joined",
+      expected: {
+        type: "text",
+        analyzer: "joined_analyzer",
+        search_analyzer: "standard",
+      },
+    },
   ];
   for (const { path, expected } of cases) {
     await t.test(path, () => assert.deepEqual(field(path), expected));
@@ -174,6 +182,11 @@ test(
         analyzer: "punctuation_analyzer",
         text: ":has()",
         expected: [":has"],
+      },
+      {
+        analyzer: "joined_analyzer",
+        text: "Web Workers API",
+        expected: ["webworkers", "workersapi"],
       },
     ];
     for (const { analyzer, text, expected } of cases) {
