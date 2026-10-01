@@ -290,6 +290,9 @@ export const mappings = {
     },
     locale: { type: "keyword" },
     slug: { type: "keyword" },
+    // Last slug segment (`then` for `.../Promise/then`), so the zero-hit
+    // fallback can boost the canonical page for queries like `then` or `a`.
+    slug_leaf: { type: "keyword" },
     popularity: { type: "float" },
   },
 };
