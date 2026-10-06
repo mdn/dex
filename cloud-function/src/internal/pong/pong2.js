@@ -178,7 +178,11 @@ export function createPong2GetHandler(zoneKeys, coder) {
           };
         }
       } catch (error) {
-        complete(errorOutcome(error), res.status);
+        const outcome = errorOutcome(error);
+        complete(
+          outcome === "error" && res.status >= 400 ? "http_error" : outcome,
+          res.status
+        );
         log(
           "ERROR",
           "advertising_error",
