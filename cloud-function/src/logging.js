@@ -1,4 +1,5 @@
 /** @import { IncomingMessage } from "node:http" */
+/** @import { Request } from "express" */
 
 import { performance } from "node:perf_hooks";
 
@@ -212,7 +213,9 @@ export function upstreamLoggingPlugin(source, buffered = false) {
         complete: startUpstream({
           source,
           operation: "proxy",
-          ...requestContext(req.url),
+          ...requestContext(
+            /** @type {Request} */ (req).originalUrl ?? req.url
+          ),
         }),
         timedOut: false,
       };
