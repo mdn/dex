@@ -1,5 +1,12 @@
 import he from "he";
 import anonymousIpByCC from "./cc2ip.js";
+import {
+  errorContext,
+  errorOutcome,
+  fetchUpstream,
+  log,
+  startUpstream,
+} from "../../logging.js";
 
 /**
  * @param {string | number | any} hash
@@ -65,13 +72,24 @@ export function createPong2GetHandler(zoneKeys, coder) {
     if (sidedoorEligible) {
       // Make the sidedoor request to the single sidedoor zone
       // The response will be populated with data for both the top and side placement.
-      const res = await fetch(
-        `https://srv.buysellads.com/ads/${sidedoorZoneKey}.json?forwardedip=${encodeURIComponent(
-          anonymousIp
-        )}${userAgent ? `&useragent=${encodeURIComponent(userAgent)}` : ""}`
-      );
+      const complete = startUpstream({
+        source: "advertising",
+        operation: "sidedoor",
+      });
+      let res;
+      try {
+        res = await fetch(
+          `https://srv.buysellads.com/ads/${sidedoorZoneKey}.json?forwardedip=${encodeURIComponent(
+            anonymousIp
+          )}${userAgent ? `&useragent=${encodeURIComponent(userAgent)}` : ""}`
+        );
+      } catch (error) {
+        complete(errorOutcome(error));
+        throw error;
+      }
       try {
         const sidedoorResponse = await res.json();
+        complete(res.status < 400 ? "success" : "http_error", res.status);
         const {
           ads: [
             {
@@ -160,7 +178,21 @@ export function createPong2GetHandler(zoneKeys, coder) {
           };
         }
       } catch (error) {
-        console.error("Error fetching sidedoor data:", error);
+        complete(errorOutcome(error), res.status);
+        log(
+          "ERROR",
+          "advertising_error",
+          "Failed to process sidedoor response",
+          { operation: "sidedoor", ...errorContext(error) }
+        );
+      }
+      if (Object.keys(sidedoorData).length === 0) {
+        log(
+          "INFO",
+          "advertising_fallback",
+          "Use individual placements after sidedoor request",
+          { decision: "individual_placements" }
+        );
       }
     }
 
@@ -181,12 +213,13 @@ export function createPong2GetHandler(zoneKeys, coder) {
       async (
         /** @type {{ name: string, zoneKey: string }} */ { name, zoneKey }
       ) => {
-        const response = await fetch(
+        const res = await fetchUpstream(
           `https://srv.buysellads.com/ads/${zoneKey}.json?forwardedip=${encodeURIComponent(
             anonymousIp
-          )}${userAgent ? `&useragent=${encodeURIComponent(userAgent)}` : ""}`
+          )}${userAgent ? `&useragent=${encodeURIComponent(userAgent)}` : ""}`,
+          { source: "advertising", operation: "placement" },
+          (response) => response.json()
         );
-        const res = await response.json();
 
         const {
           ads: [
@@ -257,13 +290,16 @@ export function createPong2GetHandler(zoneKeys, coder) {
         };
       }
     );
-    const decisionRes = (await Promise.allSettled(requests))
-      .filter((p) => {
-        if (p.status === "rejected") {
-          console.log(`rejected ad request: ${p.reason}`);
-        }
-        return p.status === "fulfilled";
-      })
+    const settled = await Promise.allSettled(requests);
+    const rejectedCount = settled.filter((p) => p.status === "rejected").length;
+    if (rejectedCount) {
+      log("ERROR", "advertising_error", "Advertising placements failed", {
+        operation: "placement",
+        rejected_count: rejectedCount,
+      });
+    }
+    const decisionRes = settled
+      .filter((p) => p.status === "fulfilled")
       .map((p) => p.value);
 
     const decisions = Object.fromEntries(
@@ -330,7 +366,10 @@ export function createPong2ClickHandler(coder) {
     const code = params.get("code");
 
     if (!code) {
-      console.warn("[pong/click] Missing code parameter");
+      log("WARNING", "request_rejected", "Reject advertising click", {
+        reason: "missing_code",
+        status: 400,
+      });
       return {
         status: 400,
         location: null,
@@ -340,7 +379,10 @@ export function createPong2ClickHandler(coder) {
     const click = coder.decodeAndVerify(code);
 
     if (!click) {
-      console.warn("[pong/click] Invalid code value");
+      log("WARNING", "request_rejected", "Reject advertising click", {
+        reason: "invalid_code",
+        status: 404,
+      });
       return {
         status: 404,
         location: null,
@@ -352,12 +394,15 @@ export function createPong2ClickHandler(coder) {
     clickURL.searchParams.set("forwardedip", anonymousIp);
     clickURL.searchParams.set("useragent", userAgent);
 
-    const res = await fetch(clickURL, {
-      redirect: "manual",
-    });
-    const status = res.status;
-    const location = res.headers.get("location");
-    return { status, location };
+    return fetchUpstream(
+      clickURL,
+      { source: "advertising", operation: "click" },
+      async (res) => ({
+        status: res.status,
+        location: res.headers.get("location"),
+      }),
+      { redirect: "manual" }
+    );
   };
 }
 
@@ -374,7 +419,10 @@ export function createPong2ViewedHandler(coder) {
     const code = params.get("code");
 
     if (!code) {
-      console.warn("[pong/viewed] Missing code parameter");
+      log("WARNING", "request_rejected", "Reject advertising view", {
+        reason: "missing_code",
+        status: 400,
+      });
       return {
         status: 400,
       };
@@ -382,7 +430,10 @@ export function createPong2ViewedHandler(coder) {
 
     const view = coder.decodeAndVerify(code);
     if (!view) {
-      console.warn("[pong/viewed] Invalid code value");
+      log("WARNING", "request_rejected", "Reject advertising view", {
+        reason: "invalid_code",
+        status: 404,
+      });
       return { status: 404 };
     }
 
@@ -391,9 +442,12 @@ export function createPong2ViewedHandler(coder) {
     viewURL.searchParams.set("forwardedip", anonymousIp);
     viewURL.searchParams.set("useragent", userAgent);
 
-    await fetch(viewURL, {
-      redirect: "manual",
-    });
+    await fetchUpstream(
+      viewURL,
+      { source: "advertising", operation: "view" },
+      async () => {},
+      { redirect: "manual" }
+    );
     return { status: 200 };
   };
 }
@@ -409,7 +463,11 @@ function createURL(payload) {
   }
 
   if (!payload.startsWith("https://")) {
-    console.error(`Invalid URL payload: ${payload}`);
+    log(
+      "WARNING",
+      "advertising_invalid_url",
+      "Advertising URL uses unexpected protocol"
+    );
   }
 
   return new URL(payload);

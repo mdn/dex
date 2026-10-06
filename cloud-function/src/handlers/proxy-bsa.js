@@ -14,6 +14,7 @@ import prodPlusLookup from "../stripe-plans/prod.js";
 import * as env from "../env.js";
 
 import { getRequestCountry } from "../utils.js";
+import { errorContext, log } from "../logging.js";
 
 const { SIGN_SECRET, BSA_ZONE_KEYS, ORIGIN_MAIN } = env;
 
@@ -68,15 +69,21 @@ export async function proxyBSA(req, res) {
 
     const referer = req.get("referer");
     if (!referer) {
-      console.warn("[pong/click] Missing Referer (expected MDN host)");
+      log("WARNING", "request_rejected", "Reject advertising click", {
+        reason: "missing_referer",
+        route: "advertising_click",
+        status: 400,
+      });
       return res.sendStatus(400).end();
     }
 
     const refererUrl = new URL(referer);
     if (refererUrl.host != parsedUrl.host) {
-      console.warn(
-        `[pong/click] Disallowed Referer (expected MDN host, was ${JSON.stringify(referer)})`
-      );
+      log("WARNING", "request_rejected", "Reject advertising click", {
+        reason: "disallowed_referer",
+        route: "advertising_click",
+        status: 400,
+      });
       return res.sendStatus(400).end();
     }
 
@@ -90,12 +97,19 @@ export async function proxyBSA(req, res) {
       if (location && (status === 301 || status === 302)) {
         res.setHeader("Referrer-Policy", "no-referrer");
         res.setHeader("X-Robots-Tag", "noindex, nofollow");
+        log("INFO", "redirect", "Redirect advertising click", {
+          reason: "advertising_click",
+          status: 302,
+        });
         return res.redirect(location);
       } else {
         return res.sendStatus(status ?? 502).end();
       }
-    } catch (e) {
-      console.error(e);
+    } catch (error) {
+      log("ERROR", "advertising_error", "Advertising click failed", {
+        operation: "click",
+        ...errorContext(error),
+      });
     }
   } else if (pathname === "/pong/viewed") {
     if (req.method !== "POST") {
@@ -108,8 +122,11 @@ export async function proxyBSA(req, res) {
         return res.sendStatus(status).end();
       }
       return res.sendStatus(201).end();
-    } catch (e) {
-      console.error(e);
+    } catch (error) {
+      log("ERROR", "advertising_error", "Advertising view failed", {
+        operation: "view",
+        ...errorContext(error),
+      });
     }
   } else if (pathname.startsWith("/pimg/")) {
     if (req.method !== "GET") {
@@ -121,23 +138,28 @@ export async function proxyBSA(req, res) {
     );
 
     if (!src) {
-      console.warn("[pimg] Invalid src");
+      log("WARNING", "request_rejected", "Reject advertising image", {
+        reason: "invalid_src",
+        route: "advertising_image",
+        status: 400,
+      });
       return res.sendStatus(400).end();
     }
 
     const { status, buf, contentType } = await fetchImage(src);
 
     if (status >= 400) {
-      console.warn(`[pimg] Image fetch failed: HTTP ${status}`);
       return res.set("cache-control", "no-store").sendStatus(status).end();
     }
 
     const type = imageContentType(contentType);
 
     if (!type) {
-      console.warn(
-        `[pimg] Refused content-type: ${JSON.stringify(contentType)}`
-      );
+      log("WARNING", "request_rejected", "Reject advertising image response", {
+        reason: "content_type",
+        route: "advertising_image",
+        status: 502,
+      });
       return res.set("cache-control", "no-store").sendStatus(502).end();
     }
 

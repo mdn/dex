@@ -27,6 +27,7 @@ export async function redirectFundamental(req, res, next) {
         url.search.substring(1);
     }
     return redirect(res, fundamentalRedirect.url, {
+      reason: "fundamental",
       status: fundamentalRedirect.status,
       cacheControlSeconds: THIRTY_DAYS,
     });

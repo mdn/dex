@@ -53,7 +53,9 @@ export async function redirectLocale(req, res, next) {
 
     // The only time we actually want a trailing slash is when the URL is just
     // the locale. E.g. `/en-US/` (not `/en-US`)
-    return redirect(res, `/${locale}${path || "/"}` + qs);
+    return redirect(res, `/${locale}${path || "/"}` + qs, {
+      reason: "missing_locale",
+    });
   }
 
   // At this point, the URI is guaranteed to start with a forward slash.
@@ -70,7 +72,11 @@ export async function redirectLocale(req, res, next) {
   ) {
     // Assemble the rest of the path without a trailing slash.
     const extra = uriParts.slice(2).filter(Boolean).join("/");
-    return redirect(res, `/${VALID_LOCALES.get(uriFirstPartLC)}/${extra}${qs}`);
+    return redirect(
+      res,
+      `/${VALID_LOCALES.get(uriFirstPartLC)}/${extra}${qs}`,
+      { reason: "locale_casing" }
+    );
   }
 
   next();
