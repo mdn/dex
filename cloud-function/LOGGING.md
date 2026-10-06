@@ -35,7 +35,7 @@ The Context column lists fields inside the `context` object. Fields listed after
 | `upstream_request`         | `INFO` for `success`; otherwise `WARNING`                  | An upstream proxy or fetch attempt completes or fails. One record per measured attempt.                                                     | Always `source`, `operation`, `outcome`, `duration_ms`; optionally `status`, `route`, `format`, `locale`. |
 | `content_fallback`         | `INFO`; `WARNING` when a localized 404 page is unavailable | A content or attachment request selects a fallback after an upstream 404.                                                                   | `decision`; optionally `route`, `format`, `status`.                                                       |
 | `redirect`                 | `INFO`                                                     | A redirect is selected by URL/locale middleware, search, advertising clicks, or the review asset fallback.                                  | `reason`, `status`; optionally `route`, `format`.                                                         |
-| `request_rejected`         | `WARNING`                                                  | Origin checks, playground validation, advertising referer/code validation, or image validation reject a request or upstream image response. | `reason`, `status`; optionally `route`, `format`.                                                         |
+| `request_rejected`         | `WARNING`                                                  | Origin checks, playground validation, advertising referer/code validation, or image validation reject a request or upstream image response. | `reason`, `status`; optionally `route`, `format`, `operation`.                                            |
 | `request_aborted`          | `WARNING`                                                  | The client connection closes before the response finishes.                                                                                  | `route`; optionally `format`.                                                                             |
 | `request_error`            | `ERROR`                                                    | Middleware reports an error to the router completion callback, or synchronous router dispatch fails without Sentry enabled.                 | `route`, `error_type`, `error_outcome`; optionally `format`.                                              |
 | `headers_already_sent`     | `WARNING`                                                  | Content response headers cannot be set because headers have already been sent.                                                              | `route`; optionally `format`.                                                                             |
@@ -111,6 +111,8 @@ Redirect `reason` values are `leading_slash`, `canonical`, `missing_locale`,
 Rejection `reason` values are `origin`, `missing_referer`, `disallowed_referer`,
 `missing_code`, `invalid_code`, `invalid_src`, `content_type`, `missing_state`,
 `invalid_state`, `fetch_destination`, and `referer`.
+
+Advertising code rejections include `operation: "click"` or `operation: "view"`.
 
 ## Latency and error handling
 
