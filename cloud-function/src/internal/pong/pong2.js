@@ -371,6 +371,7 @@ export function createPong2ClickHandler(coder) {
 
     if (!code) {
       log("WARNING", "request_rejected", "Reject advertising click", {
+        operation: "click",
         reason: "missing_code",
         status: 400,
       });
@@ -384,6 +385,7 @@ export function createPong2ClickHandler(coder) {
 
     if (!click) {
       log("WARNING", "request_rejected", "Reject advertising click", {
+        operation: "click",
         reason: "invalid_code",
         status: 404,
       });
@@ -424,6 +426,7 @@ export function createPong2ViewedHandler(coder) {
 
     if (!code) {
       log("WARNING", "request_rejected", "Reject advertising view", {
+        operation: "view",
         reason: "missing_code",
         status: 400,
       });
@@ -435,6 +438,7 @@ export function createPong2ViewedHandler(coder) {
     const view = coder.decodeAndVerify(code);
     if (!view) {
       log("WARNING", "request_rejected", "Reject advertising view", {
+        operation: "view",
         reason: "invalid_code",
         status: 404,
       });
