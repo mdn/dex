@@ -75,8 +75,8 @@ The call sites are in [app.js](./src/app.js), [handlers](./src/handlers/),
   before the upstream attempt completes.
 
 `status` is the upstream HTTP status when available. On redirect and rejection
-events, it is the selected client response status. `error_outcome` uses the same
-failure categories as `outcome`. `error_type` is an allowlisted built-in error
+events, it is the selected client response status. `error_outcome` is one of
+`error`, `timeout`, or `aborted`. `error_type` is an allowlisted built-in error
 name, or `unknown`.
 
 ### Routes and formats
