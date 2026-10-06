@@ -37,7 +37,7 @@ The Context column lists fields inside the `context` object. Fields listed after
 | `redirect`                 | `INFO`                                                     | A redirect is selected by URL/locale middleware, search, advertising clicks, or the review asset fallback.                                  | `reason`, `status`; optionally `route`, `format`.                                                         |
 | `request_rejected`         | `WARNING`                                                  | Origin checks, playground validation, advertising referer/code validation, or image validation reject a request or upstream image response. | `reason`, `status`; optionally `route`, `format`.                                                         |
 | `request_aborted`          | `WARNING`                                                  | The client connection closes before the response finishes.                                                                                  | `route`; optionally `format`.                                                                             |
-| `request_error`            | `ERROR`                                                    | Middleware reports an error to the router completion callback, or the handler throws without Sentry enabled.                                | `route`, `error_type`, `error_outcome`; optionally `format`.                                              |
+| `request_error`            | `ERROR`                                                    | Middleware reports an error to the router completion callback, or synchronous router dispatch fails without Sentry enabled.                 | `route`, `error_type`, `error_outcome`; optionally `format`.                                              |
 | `headers_already_sent`     | `WARNING`                                                  | Content response headers cannot be set because headers have already been sent.                                                              | `route`; optionally `format`.                                                                             |
 | `search_suggestions_error` | `ERROR`                                                    | Search suggestions fail and return HTTP 500.                                                                                                | `error_type`, `error_outcome`.                                                                            |
 | `search_fallback`          | `WARNING`                                                  | The search index cannot be loaded, so the search redirect uses full-text results.                                                           | `decision: "full_text"`, `error_type`, `error_outcome`.                                                   |
@@ -135,8 +135,13 @@ requests. Cached 404 pages and search indexes produce no new upstream record on
 a cache hit. Existing timeout policies are preserved.
 
 Errors handled locally are logged because they do not reach the Sentry wrapper.
-Handler exceptions that reach Sentry are not also emitted as local exception
-records when `SENTRY_DSN` is enabled. An upstream outcome measurement can
+Middleware exceptions and rejected handler promises reach the router completion
+callback, which logs `request_error`. Router dispatch returns before
+asynchronous middleware completes, so these failures do not reject the main
+handler's promise and are not captured by the Sentry wrapper.
+
+The main handler's defensive catch rethrows exceptions for Sentry and logs them
+locally only when `SENTRY_DSN` is disabled. An upstream outcome measurement can
 accompany a Sentry exception; it contains categories and measurements rather
 than serialized exception details.
 
