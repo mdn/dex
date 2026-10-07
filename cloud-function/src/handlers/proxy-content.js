@@ -5,7 +5,12 @@ import {
 } from "http-proxy-middleware";
 
 import { withContentResponseHeaders } from "../headers.js";
-import { REVIEW_ROUTING, Source, sourceUri } from "../env.js";
+import {
+  REVIEW_ROUTING,
+  SOURCE_STATIC_CONTENT,
+  Source,
+  sourceUri,
+} from "../env.js";
 import { PROXY_TIMEOUT } from "../constants.js";
 import { isLiveSampleURL } from "../utils.js";
 import { ACTIVE_LOCALES } from "../internal/constants/index.js";
@@ -87,6 +92,18 @@ export const proxyContent = createContentProxyMiddleware(
   async ({ target, req, res }) => {
     if (isLiveSampleURL(req.url ?? "")) {
       return null;
+    }
+
+    if (req.url?.startsWith("/static/") && SOURCE_STATIC_CONTENT) {
+      const staticAsset = await fetch(
+        new URL(req.url.slice(1), SOURCE_STATIC_CONTENT)
+      );
+
+      if (staticAsset.ok) {
+        res.statusCode = staticAsset.status;
+        staticAsset.headers.forEach((value, key) => res.setHeader(key, value));
+        return Buffer.from(await staticAsset.arrayBuffer());
+      }
     }
 
     const tryHtml = await fetch(`${target}${req.url?.slice(1)}/index.html`);
