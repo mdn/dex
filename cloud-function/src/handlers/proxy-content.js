@@ -4,7 +4,7 @@ import {
   responseInterceptor,
 } from "http-proxy-middleware";
 
-import { withContentResponseHeaders } from "../headers.js";
+import { getCacheControl, withContentResponseHeaders } from "../headers.js";
 import {
   REVIEW_ROUTING,
   SOURCE_STATIC_CONTENT,
@@ -101,7 +101,16 @@ export const proxyContent = createContentProxyMiddleware(
 
       if (staticAsset.ok) {
         res.statusCode = staticAsset.status;
-        staticAsset.headers.forEach((value, key) => res.setHeader(key, value));
+        for (const name of ["content-type", "etag", "last-modified"]) {
+          const value = staticAsset.headers.get(name);
+          if (value) {
+            res.setHeader(name, value);
+          }
+        }
+        const cacheControl = getCacheControl(staticAsset.status, req.url);
+        if (cacheControl) {
+          res.setHeader("Cache-Control", cacheControl);
+        }
         return Buffer.from(await staticAsset.arrayBuffer());
       }
     }
