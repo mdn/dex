@@ -105,7 +105,6 @@ jobs:
 
       - name: Checkout (content)
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-        if: ${{ ! vars.SKIP_BUILD || ! vars.SKIP_FUNCTION }}
         with:
           repository: mdn/content
           path: mdn/content
@@ -119,7 +118,6 @@ jobs:
 
       - name: Checkout (blog)
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-        if: ${{ ! vars.SKIP_BUILD }}
         with:
           repository: mdn/blog
           path: mdn/blog
@@ -129,7 +127,6 @@ jobs:
 
       - name: Checkout (generic-content)
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-        if: ${{ ! vars.SKIP_BUILD }}
         with:
           repository: mdn/generic-content
           path: mdn/generic-content
@@ -137,7 +134,6 @@ jobs:
 
       - name: Checkout (curriculum)
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-        if: ${{ ! vars.SKIP_BUILD }}
         with:
           repository: mdn/curriculum
           path: mdn/curriculum
@@ -145,7 +141,6 @@ jobs:
 
       - name: Checkout (translated-content)
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-        if: ${{ ! vars.SKIP_BUILD || ! vars.SKIP_FUNCTION }}
         with:
           repository: mdn/translated-content
           path: mdn/translated-content
@@ -156,20 +151,17 @@ jobs:
 
       - name: Checkout (translated-content-de)
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-        if: ${{ ! vars.SKIP_BUILD || ! vars.SKIP_FUNCTION }}
         with:
           repository: mdn/translated-content-de
           path: mdn/translated-content-de
           persist-credentials: false
 
       - name: Move de into translated-content
-        if: ${{ ! vars.SKIP_BUILD || ! vars.SKIP_FUNCTION }}
         run: |
           mv mdn/translated-content-de/files/de mdn/translated-content/files/
           rm -rf mdn/translated-content-de
 
       - name: Clean and commit de
-        if: ${{ ! vars.SKIP_BUILD || ! vars.SKIP_FUNCTION }}
         working-directory: mdn/translated-content
         run: |
           git add files/de
@@ -177,7 +169,6 @@ jobs:
 
       - name: Checkout (mdn-contributor-spotlight)
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-        if: ${{ ! vars.SKIP_BUILD }}
         with:
           repository: mdn/mdn-contributor-spotlight
           path: mdn/mdn-contributor-spotlight
@@ -185,7 +176,6 @@ jobs:
 
       - name: Checkout (fred)
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-        if: ${{ ! vars.SKIP_BUILD }}
         with:
           repository: mdn/fred
           path: mdn/fred
@@ -193,14 +183,12 @@ jobs:
           persist-credentials: false
 
       - name: Setup Node (fred)
-        if: ${{ ! vars.SKIP_BUILD || ! vars.SKIP_FUNCTION }}
         uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
         with:
           node-version-file: mdn/fred/.nvmrc
           package-manager-cache: false
 
       - name: Install (fred)
-        if: ${{ ! vars.SKIP_BUILD }}
         working-directory: mdn/fred
         env:
           # Use a GITHUB_TOKEN to bypass rate limiting for rari.
@@ -209,7 +197,7 @@ jobs:
 
       - name: Checkout (rari)
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-        if: ${{ !( vars.SKIP_BUILD || github.event.inputs.rari-ref == '' ) }}
+        if: ${{ github.event.inputs.rari-ref != '' }}
         with:
           repository: mdn/rari
           path: mdn/rari
@@ -217,7 +205,7 @@ jobs:
           persist-credentials: false
 
       - name: Cache Cargo registry
-        if: ${{ !( vars.SKIP_BUILD || github.event.inputs.rari-ref == '' ) }}
+        if: ${{ github.event.inputs.rari-ref != '' }}
         uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
         with:
           path: |
@@ -227,14 +215,14 @@ jobs:
           restore-keys: ${{ runner.os }}-cargo-
 
       - uses: dtolnay/rust-toolchain@5d458579430fc14a04a08a1e7d3694f545e91ce6 # stable
-        if: ${{ !( vars.SKIP_BUILD || github.event.inputs.rari-ref == '' ) }}
+        if: ${{ github.event.inputs.rari-ref != '' }}
 
       - name: sccache-cache
-        if: ${{ !( vars.SKIP_BUILD || github.event.inputs.rari-ref == '' ) }}
+        if: ${{ github.event.inputs.rari-ref != '' }}
         uses: mozilla-actions/sccache-action@fc920bf0ec8de6ee65d409111f7ec508035751ba # v0.0.11
 
       - name: Build rari
-        if: ${{ !( vars.SKIP_BUILD || github.event.inputs.rari-ref == '' ) }}
+        if: ${{ github.event.inputs.rari-ref != '' }}
         run: |
           cd mdn/rari
           cargo build --release
@@ -245,7 +233,6 @@ jobs:
         run: cat /proc/cpuinfo
 
       - name: Build (rari)
-        if: ${{ ! vars.SKIP_BUILD }}
         working-directory: mdn/fred
         env:
           # Remember, the mdn/content repo got cloned into `pwd` into a
@@ -274,7 +261,6 @@ jobs:
           npm run rari build -- --all --issues "$BUILD_OUT_ROOT/issues.json" --templ-stats
 
       - name: Build (fred)
-        if: ${{ ! vars.SKIP_BUILD }}
         working-directory: mdn/fred
         env:
           DEX_ROOT: ${{ github.workspace }}/mdn/dex
@@ -343,14 +329,12 @@ jobs:
           cp "$DEX_ROOT/assets/nonprod/robots.txt" "$BUILD_OUT_ROOT/robots.txt"
 
       - name: Setup Node (dex)
-        if: ${{ ! vars.SKIP_BUILD }}
         uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
         with:
           node-version-file: mdn/dex/.nvmrc
           package-manager-cache: false
 
       - name: Install (dex)
-        if: ${{ ! vars.SKIP_BUILD }}
         working-directory: mdn/dex
         run: npm ci
         env:
@@ -358,7 +342,6 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Run dex scripts
-        if: ${{ ! vars.SKIP_BUILD }}
         working-directory: mdn/dex
         env:
           FRED_ROOT: ${{ github.workspace }}/mdn/fred
@@ -384,7 +367,6 @@ jobs:
         uses: google-github-actions/setup-gcloud@aa5489c8933f4cc7a4f7d45035b3b1440c9c10db # v3.0.1
 
       - name: Sync build
-        if: ${{ ! vars.SKIP_BUILD }}
         working-directory: mdn/fred
         run: |-
           gsutil -q -m -h "Cache-Control: public, max-age=3600" cp -r out/static gs://${{ vars.GCP_BUCKET_NAME }}/fred/
