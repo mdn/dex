@@ -97,6 +97,7 @@ export const proxyContent = createContentProxyMiddleware(
       return Buffer.from(await tryHtml.arrayBuffer());
     }
 
+    await tryHtml.body?.cancel();
     res.setHeader("Content-Type", "text/html");
     const locale = req.url?.match(/[^/]+/)?.[0] ?? "en-us";
     return get404ForLocale(locale);
@@ -129,6 +130,7 @@ export const proxyContentAssets = createContentProxyMiddleware(
       return Buffer.from(await enUsAsset.arrayBuffer());
     }
 
+    await enUsAsset.body?.cancel();
     if (REVIEW_ROUTING) {
       // Fallback to prod.
       const prodUrl = new URL(req.url ?? "", "https://developer.mozilla.org/");
@@ -153,13 +155,13 @@ async function get404ForLocale(locale) {
     notFoundBuffer = notFoundBufferCache[locale];
   } else {
     const response = await fetch(`${target}${locale}/404/index.html`);
+    if (!REVIEW_ROUTING && !response.ok) {
+      await response.body?.cancel();
+      return locale === "en-us" ? "not found" : get404ForLocale("en-us");
+    }
     notFoundBuffer = response.arrayBuffer();
     if (!REVIEW_ROUTING) {
-      if (response.ok) {
-        notFoundBufferCache[locale] = notFoundBuffer;
-      } else {
-        return locale === "en-us" ? "not found" : get404ForLocale("en-us");
-      }
+      notFoundBufferCache[locale] = notFoundBuffer;
     }
   }
 
