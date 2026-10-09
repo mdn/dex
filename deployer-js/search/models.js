@@ -194,6 +194,27 @@ const text_analyzer = Object.freeze({
   ],
 });
 
+const code_analyzer = Object.freeze({
+  type: "custom",
+  tokenizer: "standard",
+  filter: ["dex_word_delimiter", "lowercase", "asciifolding"],
+  char_filter: [
+    "unicorns_char_filter",
+    "special_charater_name_char_filter",
+    "keep_html_char_filter",
+  ],
+});
+
+const code_partial_analyzer = Object.freeze({
+  ...code_analyzer,
+  filter: [...code_analyzer.filter, "code_edge_ngram"],
+});
+
+const lowercase_normalizer = Object.freeze({
+  type: "custom",
+  filter: ["lowercase"],
+});
+
 /** @type {import("@elastic/elasticsearch/lib/api/types").MappingTypeMapping} */
 export const mappings = {
   properties: {
@@ -221,6 +242,23 @@ export const mappings = {
       norms: false,
     },
     summary: { type: "text", analyzer: "text_analyzer" },
+    inline_code: {
+      type: "text",
+      analyzer: "code_analyzer",
+      norms: false,
+      fields: {
+        partial: {
+          type: "text",
+          analyzer: "code_partial_analyzer",
+          search_analyzer: "code_analyzer",
+          norms: false,
+        },
+        exact: {
+          type: "keyword",
+          normalizer: "lowercase_normalizer",
+        },
+      },
+    },
     locale: { type: "keyword" },
     slug: { type: "keyword" },
     popularity: { type: "float" },
@@ -233,6 +271,12 @@ export const settings = {
     filter: {
       dex_word_delimiter,
       custom_stopwords,
+      code_edge_ngram: {
+        type: "edge_ngram",
+        min_gram: 2,
+        max_gram: 30,
+        preserve_original: true,
+      },
     },
     char_filter: {
       keep_html_char_filter,
@@ -241,6 +285,11 @@ export const settings = {
     },
     analyzer: {
       text_analyzer,
+      code_analyzer,
+      code_partial_analyzer,
+    },
+    normalizer: {
+      lowercase_normalizer,
     },
   },
 };
