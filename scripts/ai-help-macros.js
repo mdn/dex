@@ -10,7 +10,7 @@ import { readFile } from "node:fs/promises";
 
 import yargs from "yargs";
 import { hideBin } from "yargs/helpers";
-import pg from "pg";
+import { Client } from "pg";
 import { registerTypes, toSql } from "pgvector/pg";
 import { fdir } from "fdir";
 import OpenAIClient from "openai";
@@ -39,7 +39,7 @@ export async function updateEmbeddings(
   }
 
   // Postgres.
-  const pgClient = new pg.Client({
+  const pgClient = new Client({
     connectionString: PG_URI,
   });
 
@@ -665,7 +665,7 @@ export function isNotSupportedAtAll(support) {
 }
 
 /**
- * @param {pg.Client} pgClient
+ * @param {import("pg").Client} pgClient
  * @returns {Promise<IndexedDoc[]>}
  */
 async function fetchAllExistingDocs(pgClient) {
