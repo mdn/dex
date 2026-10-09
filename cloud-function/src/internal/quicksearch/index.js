@@ -4,6 +4,7 @@
 
 import { Source, sourceUri } from "../../env.js";
 import { ACTIVE_LOCALES } from "../constants/index.js";
+import { discardBody } from "../../utils.js";
 
 const DEFAULT_LOCALE = "en-us";
 const MAX_RESULTS = 10;
@@ -239,7 +240,7 @@ async function loadSearchIndex(locale) {
     const target = sourceUri(Source.content);
     const response = await fetch(`${target}${locale}/search-index.json`);
     if (!response.ok) {
-      await response.body?.cancel().catch(() => {});
+      await discardBody(response);
       throw new Error(`Unexpected status ${response.status}`);
     }
     /** @type {SearchIndexEntry[]} */

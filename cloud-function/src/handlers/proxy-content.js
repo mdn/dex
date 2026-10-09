@@ -7,7 +7,7 @@ import {
 import { withContentResponseHeaders } from "../headers.js";
 import { REVIEW_ROUTING, Source, sourceUri } from "../env.js";
 import { PROXY_TIMEOUT } from "../constants.js";
-import { isLiveSampleURL } from "../utils.js";
+import { discardBody, isLiveSampleURL } from "../utils.js";
 import { ACTIVE_LOCALES } from "../internal/constants/index.js";
 
 /** @type {Record<string, Promise<ArrayBuffer>>} */
@@ -97,7 +97,7 @@ export const proxyContent = createContentProxyMiddleware(
       return Buffer.from(await tryHtml.arrayBuffer());
     }
 
-    await tryHtml.body?.cancel().catch(() => {});
+    await discardBody(tryHtml);
     res.setHeader("Content-Type", "text/html");
     const locale = req.url?.match(/[^/]+/)?.[0] ?? "en-us";
     return get404ForLocale(locale);
@@ -130,7 +130,7 @@ export const proxyContentAssets = createContentProxyMiddleware(
       return Buffer.from(await enUsAsset.arrayBuffer());
     }
 
-    await enUsAsset.body?.cancel().catch(() => {});
+    await discardBody(enUsAsset);
     if (REVIEW_ROUTING) {
       // Fallback to prod.
       const prodUrl = new URL(req.url ?? "", "https://developer.mozilla.org/");
@@ -156,7 +156,7 @@ async function get404ForLocale(locale) {
   } else {
     const response = await fetch(`${target}${locale}/404/index.html`);
     if (!REVIEW_ROUTING && !response.ok) {
-      await response.body?.cancel().catch(() => {});
+      await discardBody(response);
       return locale === "en-us" ? "not found" : get404ForLocale("en-us");
     }
     notFoundBuffer = response.arrayBuffer();
