@@ -113,61 +113,53 @@ describe("fetch response body cleanup", () => {
     },
   ];
   for (const { name, path, status, expected, cancellations } of fallbackCases) {
-    it(
-      `cancels open failed bodies for ${name}`,
-      { timeout: 5000 },
-      async () => {
-        let cancelled = 0;
-        const originalFetch = globalThis.fetch;
-        mock.method(
-          globalThis,
-          "fetch",
-          async (
-            /** @type {string | URL | Request} */ url,
-            /** @type {RequestInit} */ options
-          ) => {
-            if (String(url).startsWith(bucket.url)) {
-              return new Response(
-                new ReadableStream({
-                  cancel() {
-                    cancelled++;
-                  },
-                }),
-                { status: 404 }
-              );
-            }
-            return originalFetch(url, options);
+    it(`cancels open failed bodies for ${name}`, async () => {
+      let cancelled = 0;
+      const originalFetch = globalThis.fetch;
+      mock.method(
+        globalThis,
+        "fetch",
+        async (
+          /** @type {string | URL | Request} */ url,
+          /** @type {RequestInit} */ options
+        ) => {
+          if (String(url).startsWith(bucket.url)) {
+            return new Response(
+              new ReadableStream({
+                cancel() {
+                  cancelled++;
+                },
+              }),
+              { status: 404 }
+            );
           }
-        );
-        const response = await handler.request(path);
-        strictEqual(response.status, status);
-        strictEqual(response.text, expected);
-        strictEqual(cancelled, cancellations);
-      }
-    );
-    it(
-      `preserves ${name} when cancellation rejects`,
-      { timeout: 5000 },
-      async () => {
-        const originalFetch = globalThis.fetch;
-        mock.method(
-          globalThis,
-          "fetch",
-          async (
-            /** @type {string | URL | Request} */ url,
-            /** @type {RequestInit} */ options
-          ) => {
-            if (String(url).startsWith(bucket.url)) {
-              return new Response(erroredBody(), { status: 404 });
-            }
-            return originalFetch(url, options);
+          return originalFetch(url, options);
+        }
+      );
+      const response = await handler.request(path);
+      strictEqual(response.status, status);
+      strictEqual(response.text, expected);
+      strictEqual(cancelled, cancellations);
+    });
+    it(`preserves ${name} when cancellation rejects`, async () => {
+      const originalFetch = globalThis.fetch;
+      mock.method(
+        globalThis,
+        "fetch",
+        async (
+          /** @type {string | URL | Request} */ url,
+          /** @type {RequestInit} */ options
+        ) => {
+          if (String(url).startsWith(bucket.url)) {
+            return new Response(erroredBody(), { status: 404 });
           }
-        );
-        const response = await handler.request(path);
-        strictEqual(response.status, status);
-        strictEqual(response.text, expected);
-      }
-    );
+          return originalFetch(url, options);
+        }
+      );
+      const response = await handler.request(path);
+      strictEqual(response.status, status);
+      strictEqual(response.text, expected);
+    });
   }
 
   const searchIndexCases = [
