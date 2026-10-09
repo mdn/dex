@@ -42,14 +42,16 @@ describe("fetch response body cleanup", () => {
       name: "click",
       run: createPong2ClickHandler(coder),
       expected: { status: 302, location: "https://example.invalid/landing" },
+      bodylessStatus: 204,
     },
     {
       name: "view",
       run: createPong2ViewedHandler(coder),
       expected: { status: 200 },
+      bodylessStatus: 200,
     },
   ];
-  for (const { name, run, expected } of adCases) {
+  for (const { name, run, expected, bodylessStatus } of adCases) {
     it(`cancels an open ${name} response body while preserving the result`, async () => {
       let cancelled = false;
       mock.method(
@@ -90,7 +92,7 @@ describe("fetch response body cleanup", () => {
         async () => new Response(null, { status: 204 })
       );
       const result = await run(params, "US", "test-agent");
-      strictEqual(result.status, name === "click" ? 204 : 200);
+      strictEqual(result.status, bodylessStatus);
     });
   }
 
