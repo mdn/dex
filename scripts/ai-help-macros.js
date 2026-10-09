@@ -10,8 +10,8 @@ import { readFile } from "node:fs/promises";
 
 import yargs from "yargs";
 import { hideBin } from "yargs/helpers";
-import pg from "pg";
-import pgvector from "pgvector/pg";
+import { Client } from "pg";
+import { registerTypes, toSql } from "pgvector/pg";
 import { fdir } from "fdir";
 import OpenAIClient from "openai";
 import { load as cheerio } from "cheerio";
@@ -39,13 +39,13 @@ export async function updateEmbeddings(
   }
 
   // Postgres.
-  const pgClient = new pg.Client({
+  const pgClient = new Client({
     connectionString: PG_URI,
   });
 
   await pgClient.connect();
   await pgClient.query("CREATE EXTENSION IF NOT EXISTS vector");
-  await pgvector.registerType(pgClient);
+  await registerTypes(pgClient);
 
   // Open AI.
   const openai = new OpenAIClient({
@@ -244,8 +244,8 @@ export async function updateEmbeddings(
             markdown,
             markdown_hash,
             total_tokens,
-            pgvector.toSql(embedding),
-            pgvector.toSql(embedding_next ?? embedding),
+            toSql(embedding),
+            toSql(embedding_next ?? embedding),
             text_hash,
           ],
           rowMode: "array",
@@ -317,7 +317,7 @@ export async function updateEmbeddings(
             values: [
               mdn_url,
               total_tokens,
-              embedding ? pgvector.toSql(embedding) : null,
+              embedding ? toSql(embedding) : null,
             ],
             rowMode: "array",
           };
@@ -333,7 +333,7 @@ export async function updateEmbeddings(
           const query = {
             name: "upsert-doc-embedding-next",
             text: "UPDATE mdn_doc_macro SET embedding_next = $2 WHERE mdn_url = $1",
-            values: [mdn_url, embedding ? pgvector.toSql(embedding) : null],
+            values: [mdn_url, embedding ? toSql(embedding) : null],
             rowMode: "array",
           };
 
@@ -665,7 +665,7 @@ export function isNotSupportedAtAll(support) {
 }
 
 /**
- * @param {pg.Client} pgClient
+ * @param {import("pg").Client} pgClient
  * @returns {Promise<IndexedDoc[]>}
  */
 async function fetchAllExistingDocs(pgClient) {
