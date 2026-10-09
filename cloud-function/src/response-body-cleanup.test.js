@@ -168,47 +168,43 @@ describe("fetch response body cleanup", () => {
     );
   }
 
-  it("preserves the search-index status error and retry when cancellation rejects", async () => {
-    // Import lazily: env.js captures process.env at load, after startHandler.
-    const { getSearchIndex, clearSearchIndexCache } =
-      await import("./internal/quicksearch/index.js");
-    clearSearchIndexCache();
-    mock.method(
-      globalThis,
-      "fetch",
-      async () => new Response(erroredBody(), { status: 503 })
-    );
-    await rejects(getSearchIndex("en-us"), /Unexpected status 503/);
-    mock.reset();
-    mock.method(globalThis, "fetch", async () => Response.json([]));
-    strictEqual((await getSearchIndex("en-us")).items.length, 0);
-    clearSearchIndexCache();
-  });
-
-  it("cancels a failed search-index body and permits retry", async () => {
-    // Import lazily: env.js captures process.env at load, after startHandler.
-    const { getSearchIndex, clearSearchIndexCache } =
-      await import("./internal/quicksearch/index.js");
-    clearSearchIndexCache();
-    let cancelled = false;
-    mock.method(
-      globalThis,
-      "fetch",
-      async () =>
-        new Response(
-          new ReadableStream({
-            cancel() {
+  const searchIndexCases = [
+    {
+      name: "cancels a failed body",
+      body: (/** @type {() => void} */ onCancel) =>
+        new ReadableStream({ cancel: onCancel }),
+      expectCancelled: true,
+    },
+    {
+      name: "tolerates a rejecting cancellation",
+      body: () => erroredBody(),
+      expectCancelled: false,
+    },
+  ];
+  for (const { name, body, expectCancelled } of searchIndexCases) {
+    it(`${name} on a failed search-index response and permits retry`, async () => {
+      // Import lazily: env.js captures process.env at load, after startHandler.
+      const { getSearchIndex, clearSearchIndexCache } =
+        await import("./internal/quicksearch/index.js");
+      clearSearchIndexCache();
+      let cancelled = false;
+      mock.method(
+        globalThis,
+        "fetch",
+        async () =>
+          new Response(
+            body(() => {
               cancelled = true;
-            },
-          }),
-          { status: 503 }
-        )
-    );
-    await rejects(getSearchIndex("en-us"), /Unexpected status 503/);
-    strictEqual(cancelled, true);
-    mock.reset();
-    mock.method(globalThis, "fetch", async () => Response.json([]));
-    strictEqual((await getSearchIndex("en-us")).items.length, 0);
-    clearSearchIndexCache();
-  });
+            }),
+            { status: 503 }
+          )
+      );
+      await rejects(getSearchIndex("en-us"), /Unexpected status 503/);
+      strictEqual(cancelled, expectCancelled);
+      mock.reset();
+      mock.method(globalThis, "fetch", async () => Response.json([]));
+      strictEqual((await getSearchIndex("en-us")).items.length, 0);
+      clearSearchIndexCache();
+    });
+  }
 });
