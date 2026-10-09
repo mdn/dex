@@ -29,6 +29,7 @@ import { stripForwardedHostHeaders } from "./middlewares/stripForwardedHostHeade
 import { proxyPong } from "./handlers/proxy-pong.js";
 import { handleRunner } from "./internal/play/index.js";
 import { proxySharedAssets } from "./handlers/proxy-shared-assets.js";
+import { errorContext, log, requestContext } from "./logging.js";
 
 const router = Router();
 router.use(cookieParser());
@@ -167,8 +168,35 @@ router.all("{/*splat}", (_req, res) => res.set("Allow", "GET").sendStatus(405));
  */
 export function createHandler() {
   return async (req, res) => {
-    await router(req, res, () => {
-      /* noop */
+    const context = requestContext(req.url);
+    res.once("close", () => {
+      if (!res.writableFinished) {
+        log(
+          "WARNING",
+          "request_aborted",
+          "Client connection closed before response completed",
+          context
+        );
+      }
     });
+    try {
+      await router(req, res, (error) => {
+        // Completion errors are handled here and never reach the Sentry wrapper.
+        if (error) {
+          log("ERROR", "request_error", "Request middleware failed", {
+            ...context,
+            ...errorContext(error),
+          });
+        }
+      });
+    } catch (error) {
+      if (!process.env["SENTRY_DSN"]) {
+        log("ERROR", "request_error", "Request handler failed", {
+          ...context,
+          ...errorContext(error),
+        });
+      }
+      throw error;
+    }
   };
 }

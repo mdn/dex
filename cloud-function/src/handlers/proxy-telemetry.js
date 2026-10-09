@@ -1,6 +1,7 @@
 import { createProxyMiddleware, fixRequestBody } from "http-proxy-middleware";
 
 import { PROXY_TIMEOUT } from "../constants.js";
+import { upstreamLoggingPlugin } from "../logging.js";
 
 /**
  * Proxy middleware for Mozilla telemetry submissions
@@ -12,6 +13,7 @@ export const proxyTelemetry = createProxyMiddleware({
   autoRewrite: true,
   proxyTimeout: PROXY_TIMEOUT,
   xfwd: true,
+  plugins: [upstreamLoggingPlugin("telemetry")],
   on: {
     proxyReq: fixRequestBody,
   },

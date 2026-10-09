@@ -38,7 +38,7 @@ export async function redirectPreferredLocale(req, res, next) {
     CANONICALS[normalizePath(`/${preferredLocale}/${targetSlug}`)] ?? null;
   if (preferredPathname && preferredPathname !== targetPathname) {
     const location = preferredPathname + target.search;
-    return redirect(res, location);
+    return redirect(res, location, { reason: "preferred_locale" });
   }
 
   next();

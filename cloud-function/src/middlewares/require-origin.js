@@ -2,6 +2,7 @@
 /** @import { OriginType } from "../env.js" */
 
 import { REVIEW_ROUTING, getOriginFromRequest } from "../env.js";
+import { log, requestContext } from "../logging.js";
 
 /**
  * Creates a middleware that requires the request to come from one of the expected origins.
@@ -20,6 +21,12 @@ export function requireOrigin(...expectedOrigins) {
     if (expectedOrigins.includes(actualOrigin)) {
       return next();
     } else {
+      log(
+        "WARNING",
+        "request_rejected",
+        "Reject request for unexpected origin",
+        { reason: "origin", ...requestContext(req.url), status: 404 }
+      );
       return res.sendStatus(404).end();
     }
   };

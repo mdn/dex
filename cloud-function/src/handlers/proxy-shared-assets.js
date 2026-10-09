@@ -6,6 +6,7 @@ import {
 
 import { Source, sourceUri } from "../env.js";
 import { PROXY_TIMEOUT } from "../constants.js";
+import { completeProxyResponse, upstreamLoggingPlugin } from "../logging.js";
 
 const target = sourceUri(Source.sharedAssets);
 
@@ -23,10 +24,12 @@ export const proxySharedAssets = createProxyMiddleware({
   proxyTimeout: PROXY_TIMEOUT,
   xfwd: true,
   selfHandleResponse: true,
+  plugins: [upstreamLoggingPlugin("shared_assets", true)],
   on: {
     proxyReq: fixRequestBody,
     proxyRes: responseInterceptor(
-      async (responseBuffer, _proxyRes, _req, res) => {
+      async (responseBuffer, proxyRes, req, res) => {
+        completeProxyResponse(req, proxyRes);
         if (!res.headersSent) {
           let cacheControl = "no-store, must-revalidate";
           if (200 <= res.statusCode && res.statusCode < 300) {

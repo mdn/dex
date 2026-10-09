@@ -6,6 +6,7 @@ import {
 } from "../internal/quicksearch/index.js";
 import { getQueryLocale } from "../internal/locale-utils/index.js";
 import { BASE_URL_MAIN } from "../env.js";
+import { errorContext, log } from "../logging.js";
 
 /**
  * Handle searches from OpenSearch: when the query exactly matches an entry from
@@ -30,7 +31,12 @@ export async function handleSearchRedirect(req, res) {
     try {
       index = await getSearchIndex(locale);
     } catch (error) {
-      console.error("Failed to fetch search index:", error);
+      log(
+        "WARNING",
+        "search_fallback",
+        "Search index unavailable, use full-text search",
+        { decision: "full_text", ...errorContext(error) }
+      );
       index = null;
     }
   }
@@ -40,10 +46,18 @@ export async function handleSearchRedirect(req, res) {
     if (redirectParams.size > 0) {
       url += `?${redirectParams}`;
     }
+    log("INFO", "redirect", "Redirect search to exact match", {
+      reason: "search_exact_match",
+      status: 302,
+    });
     res.redirect(302, url);
     return;
   }
 
   const target = `${BASE_URL_MAIN}/${locale}/search?${new URLSearchParams([["q", query], ...redirectParams])}`;
+  log("INFO", "redirect", "Redirect search to full-text results", {
+    reason: "search_full_text",
+    status: 302,
+  });
   res.redirect(302, target);
 }

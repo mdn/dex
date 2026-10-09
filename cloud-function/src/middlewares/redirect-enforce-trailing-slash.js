@@ -20,6 +20,7 @@ export async function redirectEnforceTrailingSlash(req, res, next) {
     // All other requests with a trailing slash should redirect to the
     // same URL without the trailing slash.
     return redirect(res, requestURI + "/" + qs, {
+      reason: "trailing_slash",
       cacheControlSeconds: THIRTY_DAYS,
     });
   }
