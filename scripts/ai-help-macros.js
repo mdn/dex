@@ -11,7 +11,7 @@ import { readFile } from "node:fs/promises";
 import yargs from "yargs";
 import { hideBin } from "yargs/helpers";
 import pg from "pg";
-import { registerType, toSql } from "pgvector/pg";
+import { registerTypes, toSql } from "pgvector/pg";
 import { fdir } from "fdir";
 import OpenAIClient from "openai";
 import { load as cheerio } from "cheerio";
@@ -45,7 +45,7 @@ export async function updateEmbeddings(
 
   await pgClient.connect();
   await pgClient.query("CREATE EXTENSION IF NOT EXISTS vector");
-  await registerType(pgClient);
+  await registerTypes(pgClient);
 
   // Open AI.
   const openai = new OpenAIClient({
