@@ -357,7 +357,7 @@ export function createPong2ClickHandler(coder) {
     });
     const status = res.status;
     const location = res.headers.get("location");
-    await res.body?.cancel();
+    await res.body?.cancel().catch(() => {});
     return { status, location };
   };
 }
@@ -395,7 +395,7 @@ export function createPong2ViewedHandler(coder) {
     const res = await fetch(viewURL, {
       redirect: "manual",
     });
-    await res.body?.cancel();
+    await res.body?.cancel().catch(() => {});
     return { status: 200 };
   };
 }

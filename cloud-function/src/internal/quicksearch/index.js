@@ -239,7 +239,7 @@ async function loadSearchIndex(locale) {
     const target = sourceUri(Source.content);
     const response = await fetch(`${target}${locale}/search-index.json`);
     if (!response.ok) {
-      await response.body?.cancel();
+      await response.body?.cancel().catch(() => {});
       throw new Error(`Unexpected status ${response.status}`);
     }
     /** @type {SearchIndexEntry[]} */

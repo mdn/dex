@@ -13,6 +13,14 @@ const params = new URLSearchParams({
   code: coder.encodeAndSign("https://example.invalid/ad"),
 });
 
+function erroredBody() {
+  return new ReadableStream({
+    start(controller) {
+      controller.error(new Error("upstream body failed"));
+    },
+  });
+}
+
 describe("fetch response body cleanup", () => {
   /** @type {Awaited<ReturnType<typeof startDummyBucket>>} */
   let bucket;
@@ -62,6 +70,18 @@ describe("fetch response body cleanup", () => {
       );
       deepStrictEqual(await run(params, "US", "test-agent"), expected);
       strictEqual(cancelled, true);
+    });
+    it(`preserves the ${name} result when cancellation rejects`, async () => {
+      mock.method(
+        globalThis,
+        "fetch",
+        async () =>
+          new Response(erroredBody(), {
+            status: 302,
+            headers: { location: "https://example.invalid/landing" },
+          })
+      );
+      deepStrictEqual(await run(params, "US", "test-agent"), expected);
     });
     it(`accepts a bodyless ${name} response`, async () => {
       mock.method(
@@ -123,7 +143,46 @@ describe("fetch response body cleanup", () => {
         strictEqual(cancelled, cancellations);
       }
     );
+    it(
+      `preserves ${name} when cancellation rejects`,
+      { timeout: 5000 },
+      async () => {
+        const originalFetch = globalThis.fetch;
+        mock.method(
+          globalThis,
+          "fetch",
+          async (
+            /** @type {string | URL | Request} */ url,
+            /** @type {RequestInit} */ options
+          ) => {
+            if (String(url).startsWith(bucket.url)) {
+              return new Response(erroredBody(), { status: 404 });
+            }
+            return originalFetch(url, options);
+          }
+        );
+        const response = await handler.request(path);
+        strictEqual(response.status, status);
+        strictEqual(response.text, expected);
+      }
+    );
   }
+
+  it("preserves the search-index status error and retry when cancellation rejects", async () => {
+    const { getSearchIndex, clearSearchIndexCache } =
+      await import("./internal/quicksearch/index.js");
+    clearSearchIndexCache();
+    mock.method(
+      globalThis,
+      "fetch",
+      async () => new Response(erroredBody(), { status: 503 })
+    );
+    await rejects(getSearchIndex("en-us"), /Unexpected status 503/);
+    mock.reset();
+    mock.method(globalThis, "fetch", async () => Response.json([]));
+    strictEqual((await getSearchIndex("en-us")).items.length, 0);
+    clearSearchIndexCache();
+  });
 
   it("cancels a failed search-index body and permits retry", async () => {
     const { getSearchIndex, clearSearchIndexCache } =
