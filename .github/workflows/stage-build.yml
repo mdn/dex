@@ -347,9 +347,9 @@ jobs:
           path: mdn/fred/out
           destination: ${{ vars.GCP_BUCKET_NAME }}/${{ steps.deployment-prefix.outputs.prefix }}
           parent: false
-          gzip: false
+          gzip: true
           resumable: false
-          concurrency: 500
+          concurrency: 1000
           process_gcloudignore: false
           headers: |-
             cache-control: public, max-age=3600
@@ -361,9 +361,9 @@ jobs:
           destination: ${{ vars.GCP_BUCKET_NAME }}/fred
           parent: false
           glob: "{issues.json,*/metadata.json,static/**}"
-          gzip: false
+          gzip: true
           resumable: false
-          concurrency: 500
+          concurrency: 1000
           process_gcloudignore: false
           headers: |-
             cache-control: public, max-age=3600
