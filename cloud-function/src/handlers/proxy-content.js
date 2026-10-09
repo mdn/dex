@@ -4,8 +4,13 @@ import {
   responseInterceptor,
 } from "http-proxy-middleware";
 
-import { withContentResponseHeaders } from "../headers.js";
-import { REVIEW_ROUTING, Source, sourceUri } from "../env.js";
+import { getCacheControl, withContentResponseHeaders } from "../headers.js";
+import {
+  REVIEW_ROUTING,
+  SOURCE_STATIC_CONTENT,
+  Source,
+  sourceUri,
+} from "../env.js";
 import { PROXY_TIMEOUT } from "../constants.js";
 import { isLiveSampleURL } from "../utils.js";
 import { ACTIVE_LOCALES } from "../internal/constants/index.js";
@@ -87,6 +92,27 @@ export const proxyContent = createContentProxyMiddleware(
   async ({ target, req, res }) => {
     if (isLiveSampleURL(req.url ?? "")) {
       return null;
+    }
+
+    if (req.url?.startsWith("/static/") && SOURCE_STATIC_CONTENT) {
+      const staticAsset = await fetch(
+        new URL(req.url.slice(1), SOURCE_STATIC_CONTENT)
+      );
+
+      if (staticAsset.ok) {
+        res.statusCode = staticAsset.status;
+        for (const name of ["content-type", "etag", "last-modified"]) {
+          const value = staticAsset.headers.get(name);
+          if (value) {
+            res.setHeader(name, value);
+          }
+        }
+        const cacheControl = getCacheControl(staticAsset.status, req.url);
+        if (cacheControl) {
+          res.setHeader("Cache-Control", cacheControl);
+        }
+        return Buffer.from(await staticAsset.arrayBuffer());
+      }
     }
 
     const tryHtml = await fetch(`${target}${req.url?.slice(1)}/index.html`);
