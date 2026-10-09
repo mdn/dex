@@ -169,6 +169,7 @@ describe("fetch response body cleanup", () => {
   }
 
   it("preserves the search-index status error and retry when cancellation rejects", async () => {
+    // Import lazily: env.js captures process.env at load, after startHandler.
     const { getSearchIndex, clearSearchIndexCache } =
       await import("./internal/quicksearch/index.js");
     clearSearchIndexCache();
@@ -185,6 +186,7 @@ describe("fetch response body cleanup", () => {
   });
 
   it("cancels a failed search-index body and permits retry", async () => {
+    // Import lazily: env.js captures process.env at load, after startHandler.
     const { getSearchIndex, clearSearchIndexCache } =
       await import("./internal/quicksearch/index.js");
     clearSearchIndexCache();
