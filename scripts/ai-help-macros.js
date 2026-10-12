@@ -665,7 +665,7 @@ export function isNotSupportedAtAll(support) {
 }
 
 /**
- * @param {import("pg").Client} pgClient
+ * @param {Client} pgClient
  * @returns {Promise<IndexedDoc[]>}
  */
 async function fetchAllExistingDocs(pgClient) {
