@@ -28,6 +28,11 @@ locally-trusted development certificate. Add the key and certificate paths as
 automatically enable an HTTPS proxy at https://localhost/ in addition to
 `http://localhost:7100/`.
 
+## Logging
+
+See the [logging reference](./LOGGING.md) for runtime events, context fields,
+upstream latency measurements, and Cloud Logging query examples.
+
 ## Environment variables
 
 The function uses the following environment variables:

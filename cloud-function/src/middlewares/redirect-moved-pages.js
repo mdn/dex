@@ -37,6 +37,7 @@ export async function redirectMovedPages(req, res, next) {
     if (typeof REDIRECTS[source] == "string") {
       const target = REDIRECTS[source] + suffix;
       return redirect(res, target, {
+        reason: "moved_page",
         status: 301,
         cacheControlSeconds: THIRTY_DAYS,
       });

@@ -5,6 +5,7 @@
 import * as crypto from "node:crypto";
 
 import he from "he";
+import { log } from "../../logging.js";
 
 export const ORIGIN_PLAY = process.env["ORIGIN_PLAY"] || "localhost";
 export const ORIGIN_MAIN = process.env["ORIGIN_MAIN"] || "localhost";
@@ -705,14 +706,22 @@ export async function handleRunner(req, res) {
   const stateParam = url.searchParams.get("state");
 
   if (!stateParam) {
-    console.warn("[runner] Missing state parameter");
+    log("WARNING", "request_rejected", "Reject playground runner request", {
+      reason: "missing_state",
+      route: "runner",
+      status: 400,
+    });
     return res.status(400).end();
   }
 
   const { state, hash } = await decompressFromBase64(stateParam);
 
   if (!state) {
-    console.warn("[runner] Invalid state value");
+    log("WARNING", "request_rejected", "Reject playground runner request", {
+      reason: "invalid_state",
+      route: "runner",
+      status: 404,
+    });
     return res.status(404).end();
   }
 
@@ -727,18 +736,22 @@ export async function handleRunner(req, res) {
       const secFetchDest = req.headers["sec-fetch-dest"];
 
       if (secFetchDest !== "iframe") {
-        console.warn(
-          `[runner] Disallowed Sec-Fetch-Dest (expected "iframe", was ${JSON.stringify(secFetchDest)})`
-        );
+        log("WARNING", "request_rejected", "Reject playground runner request", {
+          reason: "fetch_destination",
+          route: "runner",
+          status: 403,
+        });
         return res.status(403).end();
       }
 
       const { hostname } = referer;
 
       if (!isMDNHost(hostname)) {
-        console.warn(
-          `[runner] Disallowed Referer (expected MDN host, was ${JSON.stringify(hostname)})`
-        );
+        log("WARNING", "request_rejected", "Reject playground runner request", {
+          reason: "referer",
+          route: "runner",
+          status: 403,
+        });
         return res.status(403).end();
       }
     }

@@ -4,6 +4,7 @@
 
 import { Source, sourceUri } from "../../env.js";
 import { ACTIVE_LOCALES } from "../constants/index.js";
+import { fetchUpstream } from "../../logging.js";
 
 const DEFAULT_LOCALE = "en-us";
 const MAX_RESULTS = 10;
@@ -237,12 +238,17 @@ export function getSearchIndex(locale) {
 async function loadSearchIndex(locale) {
   try {
     const target = sourceUri(Source.content);
-    const response = await fetch(`${target}${locale}/search-index.json`);
-    if (!response.ok) {
-      throw new Error(`Unexpected status ${response.status}`);
-    }
     /** @type {SearchIndexEntry[]} */
-    const entries = await response.json();
+    const entries = await fetchUpstream(
+      `${target}${locale}/search-index.json`,
+      { source: "content", operation: "search_index", locale },
+      async (response) => {
+        if (!response.ok) {
+          throw new Error(`Unexpected status ${response.status}`);
+        }
+        return response.json();
+      }
+    );
     return buildIndex(entries);
   } catch (error) {
     indexCache.delete(locale);
