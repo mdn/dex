@@ -62,4 +62,10 @@ export default [
       "unicorn/throw-new-error": "off",
     },
   },
+  {
+    files: ["cloud-function/**/*.test.js", "cloud-function/src/proxy.js"],
+    rules: {
+      "n/no-unpublished-import": "off",
+    },
+  },
 ];
