@@ -3,6 +3,7 @@
 import cookieParser from "cookie-parser";
 import express, { Router } from "express";
 
+import { createMemoryDiagnostics } from "./memory-diagnostics.js";
 import { ANY_ATTACHMENT_REGEXP } from "./internal/constants/index.js";
 
 import { Origin } from "./env.js";
@@ -166,7 +167,12 @@ router.all("{/*splat}", (_req, res) => res.set("Allow", "GET").sendStatus(405));
  * @returns {(req: Request, res: Response) => Promise<void>} Express-compatible handler
  */
 export function createHandler() {
+  const diagnoseMemory =
+    process.env["MEMORY_DIAGNOSTICS"] === "true"
+      ? createMemoryDiagnostics()
+      : null;
   return async (req, res) => {
+    diagnoseMemory?.(res);
     await router(req, res, () => {
       /* noop */
     });
