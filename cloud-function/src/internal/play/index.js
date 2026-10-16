@@ -4,7 +4,7 @@
 
 import * as crypto from "node:crypto";
 
-import he from "he";
+import * as he from "he";
 
 export const ORIGIN_PLAY = process.env["ORIGIN_PLAY"] || "localhost";
 export const ORIGIN_MAIN = process.env["ORIGIN_MAIN"] || "localhost";
