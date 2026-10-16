@@ -64,6 +64,7 @@ jobs:
           GH_TOKEN: ${{ secrets.AUTOMERGE_TOKEN }}
 
   build:
+    # Queue runs so a delayed older run can't deploy over a newer one.
     concurrency:
       group: test-deploy
       cancel-in-progress: false

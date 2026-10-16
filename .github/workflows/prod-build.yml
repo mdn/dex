@@ -39,6 +39,7 @@ permissions:
 
 jobs:
   build:
+    # Queue runs so a delayed older run can't deploy over a newer one.
     concurrency:
       group: prod-deploy
       cancel-in-progress: false
