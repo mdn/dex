@@ -159,7 +159,7 @@ async function cleanupDeployments(
   activeDeployments
 ) {
   const cutoff = Date.now() - retentionDays * 24 * 60 * 60 * 1000;
-  const { expired, unrecognized } = classifyDeployments(
+  const { expired, retained, unrecognized } = classifyDeployments(
     await listDeploymentFolders(bucketName),
     { cutoff, activeDeployments }
   );
@@ -175,6 +175,10 @@ async function cleanupDeployments(
     console.log(`Deleting expired deployment: ${url}`);
     await runGcloud(["storage", "rm", "--recursive", url]);
   }
+
+  console.log(
+    `Deleted ${expired.length} expired, retained ${retained.length}, skipped ${unrecognized.length} deployment folders`
+  );
 }
 
 async function main() {
