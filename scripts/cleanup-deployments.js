@@ -68,7 +68,7 @@ async function getActiveDeployment(bucketName, target) {
   const deployment = sourceContent
     .slice(deploymentBaseUrl.length)
     .replace(/\/$/, "");
-  if (!/^\d{8}-\d{6}-\d+-\d+$/.test(deployment)) {
+  if (getDeploymentTime(deployment) === null) {
     throw new Error(
       `Unexpected deployment prefix for ${functionName} in ${region}: ${deployment}`
     );
