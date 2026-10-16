@@ -39,6 +39,9 @@ permissions:
 
 jobs:
   build:
+    concurrency:
+      group: prod-deploy
+      cancel-in-progress: false
     environment: prod
     runs-on: ubuntu-latest-dex-builder
 
@@ -420,6 +423,37 @@ jobs:
           for pid in "${pids[@]}"; do
             wait $pid
           done
+
+      - name: Read active deployment prefixes
+        id: active-deployments
+        if: ${{ ! vars.SKIP_FUNCTION }}
+        working-directory: mdn/dex
+        env:
+          GCP_BUCKET_NAME: ${{ vars.GCP_BUCKET_NAME }}
+        run: |
+          prefixes="$(node scripts/cleanup-deployments.js get-active "$GCP_BUCKET_NAME" \
+            mdn-prod-prod-europe-west1@europe-west1 \
+            mdn-prod-prod-us-west1@us-west1 \
+            mdn-prod-prod-asia-east1@asia-east1)"
+          echo "prefixes=$prefixes" >> "$GITHUB_OUTPUT"
+
+      - name: Authenticate for deployment cleanup
+        if: ${{ ! vars.SKIP_FUNCTION }}
+        uses: google-github-actions/auth@7c6bc770dae815cd3e89ee6cdf493a5fab2cc093 # v3.0.0
+        with:
+          token_format: access_token
+          service_account: deploy-prod-content@${{ secrets.GCP_PROJECT_NAME }}.iam.gserviceaccount.com
+          workload_identity_provider: projects/${{ secrets.WIP_PROJECT_ID }}/locations/global/workloadIdentityPools/github-actions/providers/github-actions
+
+      - name: Clean up old deployments
+        if: ${{ ! vars.SKIP_FUNCTION }}
+        working-directory: mdn/dex
+        env:
+          GCP_BUCKET_NAME: ${{ vars.GCP_BUCKET_NAME }}
+          DEPLOYMENTS_RETENTION_DAYS: ${{ vars.DEPLOYMENTS_RETENTION_DAYS || '30' }}
+          ACTIVE_DEPLOYMENTS: ${{ steps.active-deployments.outputs.prefixes }}
+        run: |
+          node scripts/cleanup-deployments.js cleanup "$GCP_BUCKET_NAME" "$DEPLOYMENTS_RETENTION_DAYS"
 
       - name: Update AI Help index with macros
         working-directory: mdn/dex
