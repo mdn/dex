@@ -13,6 +13,7 @@ const fixture = (name) => new URL(`fixtures/${name}`, import.meta.url).pathname;
  * @typedef {object} BucketFile
  * @property {string | Buffer} body
  * @property {string} [contentType]
+ * @property {Record<string, string>} [headers] - extra response headers
  */
 
 /**
@@ -54,6 +55,9 @@ export async function startDummyBucket(files) {
       "Content-Type",
       file.contentType ?? "application/octet-stream"
     );
+    for (const [name, value] of Object.entries(file.headers ?? {})) {
+      res.setHeader(name, value);
+    }
     res.end(file.body);
   });
 
@@ -82,8 +86,9 @@ export async function startDummyBucket(files) {
  * must be called after the dummy bucket is listening and only once per test
  * process.
  * @param {string} sourceContent - trailing-slashed upstream URL (the dummy bucket)
- * @param {{ sourceSharedAssets?: string }} [options] - optional overrides;
- *   `sourceSharedAssets` is the trailing-slashed shared-assets upstream URL
+ * @param {{ sourceSharedAssets?: string, sourceStaticContent?: string }} [options] - optional overrides;
+ *   `sourceSharedAssets` is the trailing-slashed shared-assets upstream URL,
+ *   `sourceStaticContent` the trailing-slashed shared static upstream URL
  * @returns {Promise<Handler>}
  */
 export async function startHandler(sourceContent, options = {}) {
@@ -98,6 +103,9 @@ export async function startHandler(sourceContent, options = {}) {
   process.env["SOURCE_CONTENT"] = sourceContent;
   if (options.sourceSharedAssets) {
     process.env["SOURCE_SHARED_ASSETS"] = options.sourceSharedAssets;
+  }
+  if (options.sourceStaticContent) {
+    process.env["SOURCE_STATIC_CONTENT"] = options.sourceStaticContent;
   }
   // Make the origin guards accept requests we send to 127.0.0.1.
   process.env["ORIGIN_MAIN"] = "127.0.0.1";

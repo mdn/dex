@@ -114,24 +114,46 @@ const BUCKET_FILES = {
   },
 };
 
+/**
+ * Shared static assets that outlive a single deployment folder.
+ * @type {Record<string, import("./proxy-helpers.js").BucketFile>}
+ */
+const STATIC_BUCKET_FILES = {
+  "static/client/previous.0123abcd.js": {
+    body: "console.log('previous');",
+    contentType: "application/javascript",
+    headers: {
+      "Cache-Control": "public, max-age=3600",
+      "X-Goog-Hash": "md5=abc",
+    },
+  },
+};
+
 describe("proxied content routes", () => {
   /** @type {Awaited<ReturnType<typeof startDummyBucket>>} */
   let bucket;
+  /** @type {Awaited<ReturnType<typeof startDummyBucket>>} */
+  let staticBucket;
   /** @type {Awaited<ReturnType<typeof startHandler>>} */
   let handler;
 
   before(async () => {
     bucket = await startDummyBucket(BUCKET_FILES);
-    handler = await startHandler(bucket.url);
+    staticBucket = await startDummyBucket(STATIC_BUCKET_FILES);
+    handler = await startHandler(bucket.url, {
+      sourceStaticContent: staticBucket.url,
+    });
   });
 
   after(async () => {
     await handler?.close();
+    await staticBucket?.close();
     await bucket?.close();
   });
 
   beforeEach(() => {
     bucket.requests.length = 0;
+    staticBucket.requests.length = 0;
   });
 
   /**
@@ -399,5 +421,53 @@ describe("proxied content routes", () => {
         `expected no en-US data fallback, got ${JSON.stringify(bucket.requests)}`
       );
     });
+  });
+
+  describe("shared static fallback", () => {
+    const cases = [
+      {
+        label: "serves a static asset missing from the deployment",
+        path: "/static/client/previous.0123abcd.js",
+        status: 200,
+        body: STATIC_BUCKET_FILES["static/client/previous.0123abcd.js"]?.body,
+        headers: {
+          "content-type": "application/javascript",
+          "cache-control": "public, max-age=31536000",
+          "x-goog-hash": null,
+        },
+        staticRequest: "static/client/previous.0123abcd.js",
+      },
+      {
+        label: "serves the 404 page for a static asset missing everywhere",
+        path: "/static/client/missing.0123abcd.js",
+        status: 404,
+        body: BUCKET_FILES["en-us/404/index.html"]?.body,
+        staticRequest: "static/client/missing.0123abcd.js",
+      },
+      {
+        label: "skips shared static for non-static paths",
+        path: "/assets/missing.png",
+        status: 404,
+        staticRequest: null,
+      },
+    ];
+
+    for (const { label, path, status, body, headers, staticRequest } of cases) {
+      it(`${label}: ${path}`, async () => {
+        const response = await handler.request(path);
+
+        strictEqual(response.status, status);
+        if (body !== undefined) {
+          strictEqual(response.text, body);
+        }
+        for (const [name, value] of Object.entries(headers ?? {})) {
+          strictEqual(response.headers.get(name), value, name);
+        }
+        deepStrictEqual(
+          staticBucket.requests,
+          staticRequest ? [staticRequest] : []
+        );
+      });
+    }
   });
 });
