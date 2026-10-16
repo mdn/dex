@@ -1,4 +1,5 @@
 import { spawn } from "node:child_process";
+import { fileURLToPath } from "node:url";
 
 const DEPLOYMENTS_PREFIX = "deployments/";
 const STDERR_TAIL_LINES = 20;
@@ -115,16 +116,20 @@ async function listDeploymentFolders(bucketName) {
     .map((line) => line.slice(baseUrl.length));
 }
 
-/** @param {string} bucketName @param {number} retentionDays @param {Set<string>} activeDeployments */
-async function cleanupDeployments(
-  bucketName,
-  retentionDays,
-  activeDeployments
+/**
+ * Sorts deployment folders into those to delete and those to keep.
+ * @param {string[]} folderPrefixes bucket-relative, e.g. `deployments/20261009-120000-1-1/`
+ * @param {{ cutoff: number, activeDeployments: Set<string> }} options
+ * @returns {{ expired: string[], retained: string[], unrecognized: string[] }}
+ */
+export function classifyDeployments(
+  folderPrefixes,
+  { cutoff, activeDeployments }
 ) {
-  const cutoff = Date.now() - retentionDays * 24 * 60 * 60 * 1000;
-  const deployments = await listDeploymentFolders(bucketName);
+  /** @type {{ expired: string[], retained: string[], unrecognized: string[] }} */
+  const result = { expired: [], retained: [], unrecognized: [] };
 
-  for (const folderPrefix of deployments) {
+  for (const folderPrefix of folderPrefixes) {
     if (!folderPrefix.startsWith(DEPLOYMENTS_PREFIX)) {
       throw new Error(
         `Unexpected deployment prefix from Cloud Storage: ${folderPrefix}`
@@ -136,17 +141,39 @@ async function cleanupDeployments(
       .replace(/\/$/, "");
     const deploymentTime = getDeploymentTime(deployment);
     if (deploymentTime === null) {
-      console.log(
-        `Skipping unrecognized deployment folder: gs://${bucketName}/${folderPrefix}`
-      );
-      continue;
+      result.unrecognized.push(folderPrefix);
+    } else if (deploymentTime < cutoff && !activeDeployments.has(deployment)) {
+      result.expired.push(folderPrefix);
+    } else {
+      result.retained.push(folderPrefix);
     }
+  }
 
-    if (deploymentTime < cutoff && !activeDeployments.has(deployment)) {
-      const url = `gs://${bucketName}/${folderPrefix}`;
-      console.log(`Deleting expired deployment: ${url}`);
-      await runGcloud(["storage", "rm", "--recursive", url]);
-    }
+  return result;
+}
+
+/** @param {string} bucketName @param {number} retentionDays @param {Set<string>} activeDeployments */
+async function cleanupDeployments(
+  bucketName,
+  retentionDays,
+  activeDeployments
+) {
+  const cutoff = Date.now() - retentionDays * 24 * 60 * 60 * 1000;
+  const { expired, unrecognized } = classifyDeployments(
+    await listDeploymentFolders(bucketName),
+    { cutoff, activeDeployments }
+  );
+
+  for (const folderPrefix of unrecognized) {
+    console.log(
+      `Skipping unrecognized deployment folder: gs://${bucketName}/${folderPrefix}`
+    );
+  }
+
+  for (const folderPrefix of expired) {
+    const url = `gs://${bucketName}/${folderPrefix}`;
+    console.log(`Deleting expired deployment: ${url}`);
+    await runGcloud(["storage", "rm", "--recursive", url]);
   }
 }
 
@@ -187,7 +214,9 @@ async function main() {
   );
 }
 
-main().catch((error) => {
-  console.error(error);
-  process.exitCode = 1;
-});
+if (process.argv[1] === fileURLToPath(import.meta.url)) {
+  main().catch((error) => {
+    console.error(error);
+    process.exitCode = 1;
+  });
+}
