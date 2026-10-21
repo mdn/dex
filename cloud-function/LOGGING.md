@@ -30,20 +30,20 @@ severity is available as the log entry's `severity` field. For example:
 The Context column lists fields inside the `context` object. Fields listed after
 "optionally" depend on the call site or outcome.
 
-| Event                      | Severity                                                   | When it is logged                                                                                                                           | Context                                                                                                   |
-| -------------------------- | ---------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------- |
-| `upstream_request`         | `INFO` for `success`; otherwise `WARNING`                  | An upstream proxy or fetch attempt completes or fails. One record per measured attempt.                                                     | Always `source`, `operation`, `outcome`, `duration_ms`; optionally `status`, `route`, `format`, `locale`. |
-| `content_fallback`         | `INFO`; `WARNING` when a localized 404 page is unavailable | A content or attachment request selects a fallback after an upstream 404.                                                                   | `decision`; optionally `route`, `format`, `status`.                                                       |
-| `redirect`                 | `INFO`                                                     | A redirect is selected by URL/locale middleware, search, advertising clicks, or the review asset fallback.                                  | `reason`, `status`; optionally `route`, `format`.                                                         |
-| `request_rejected`         | `WARNING`                                                  | Origin checks, playground validation, advertising referer/code validation, or image validation reject a request or upstream image response. | `reason`, `status`; optionally `route`, `format`, `operation`.                                            |
-| `request_aborted`          | `WARNING`                                                  | The client connection closes before the response finishes.                                                                                  | `route`; optionally `format`.                                                                             |
-| `request_error`            | `ERROR`                                                    | Middleware reports an error to the router completion callback, or synchronous router dispatch fails without Sentry enabled.                 | `route`, `error_type`, `error_outcome`; optionally `format`.                                              |
-| `headers_already_sent`     | `WARNING`                                                  | Content response headers cannot be set because headers have already been sent.                                                              | `route`; optionally `format`.                                                                             |
-| `search_suggestions_error` | `ERROR`                                                    | Search suggestions fail and return HTTP 500.                                                                                                | `error_type`, `error_outcome`.                                                                            |
-| `search_fallback`          | `WARNING`                                                  | The search index cannot be loaded, so the search redirect uses full-text results.                                                           | `decision: "full_text"`, `error_type`, `error_outcome`.                                                   |
-| `advertising_fallback`     | `INFO`                                                     | A sidedoor request yields no usable placements, so individual placements are requested.                                                     | `decision: "individual_placements"`.                                                                      |
-| `advertising_error`        | `ERROR`                                                    | Advertising click/view handling or sidedoor processing fails, or individual placement requests are rejected.                                | `operation`; either `error_type` and `error_outcome`, or `rejected_count` for placement failures.         |
-| `advertising_invalid_url`  | `WARNING`                                                  | A decoded advertising URL uses an unexpected protocol. This event does not itself reject the URL.                                           | No additional fields.                                                                                     |
+| Event                      | Severity                                                        | When it is logged                                                                                                                           | Context                                                                                                   |
+| -------------------------- | --------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------- |
+| `upstream_request`         | `INFO` for `success` or a 404 `http_error`; otherwise `WARNING` | An upstream proxy or fetch attempt completes or fails. One record per measured attempt.                                                     | Always `source`, `operation`, `outcome`, `duration_ms`; optionally `status`, `route`, `format`, `locale`. |
+| `content_fallback`         | `INFO`; `WARNING` when a localized 404 page is unavailable      | A content or attachment request selects a fallback after an upstream 404.                                                                   | `decision`; optionally `route`, `format`, `status`.                                                       |
+| `redirect`                 | `INFO`                                                          | A redirect is selected by URL/locale middleware, search, advertising clicks, or the review asset fallback.                                  | `reason`, `status`; optionally `route`, `format`.                                                         |
+| `request_rejected`         | `WARNING`                                                       | Origin checks, playground validation, advertising referer/code validation, or image validation reject a request or upstream image response. | `reason`, `status`; optionally `route`, `format`, `operation`.                                            |
+| `request_aborted`          | `WARNING`                                                       | The client connection closes before the response finishes, unless the upstream failed (see `upstream_request`).                             | `route`; optionally `format`.                                                                             |
+| `request_error`            | `ERROR`                                                         | Middleware reports an error to the router completion callback, which responds with HTTP 500 if headers were not sent.                       | `route`, `error_type`, `error_outcome`; optionally `format`.                                              |
+| `headers_already_sent`     | `WARNING`                                                       | Content response headers cannot be set because headers have already been sent.                                                              | `route`; optionally `format`.                                                                             |
+| `search_suggestions_error` | `ERROR`                                                         | Search suggestions fail and return HTTP 500.                                                                                                | `error_type`, `error_outcome`.                                                                            |
+| `search_fallback`          | `WARNING`                                                       | The search index cannot be loaded, so the search redirect uses full-text results.                                                           | `decision: "full_text"`, `error_type`, `error_outcome`.                                                   |
+| `advertising_fallback`     | `INFO`                                                          | A sidedoor request yields no usable placements, so individual placements are requested.                                                     | `decision: "individual_placements"`.                                                                      |
+| `advertising_error`        | `ERROR`                                                         | Advertising click/view handling or sidedoor processing fails, or individual placement requests are rejected.                                | `operation`; either `error_type` and `error_outcome`, or `rejected_count` for placement failures.         |
+| `advertising_invalid_url`  | `WARNING`                                                       | A decoded advertising URL uses an unexpected protocol. This event does not itself reject the URL.                                           | No additional fields.                                                                                     |
 
 The call sites are in [app.js](./src/app.js), [handlers](./src/handlers/),
 [middlewares](./src/middlewares/), [headers.js](./src/headers.js),
@@ -67,8 +67,9 @@ The call sites are in [app.js](./src/app.js), [handlers](./src/handlers/),
 
 - `success`: the upstream response has a status below 400 and the measured body
   handling completes, including upstream redirects.
-- `http_error`: the upstream returns HTTP 400 or higher. An upstream 404 can
-  lead to a successful fallback response to the client.
+- `http_error`: the upstream returns HTTP 400 or higher. An upstream 404 is
+  expected and logged at `INFO`, and can lead to a successful fallback response
+  to the client.
 - `error`: another transport or response-consumption failure occurs.
 - `timeout`: a proxy timeout or recognized fetch timeout occurs.
 - `aborted`: the request or response is aborted, including a client disconnect
@@ -82,10 +83,10 @@ name, or `unknown`.
 ### Routes and formats
 
 Path classification returns `live_sample`, `runner`, `api`, `telemetry`,
-`advertising`, `shared_assets`, `static_asset`, `search_index`, `docs`, `blog`,
-`curriculum`, or `other`. `other` means the path did not match a known category.
-Some handlers supply the more specific `attachment`, `advertising_click`, or
-`advertising_image` categories.
+`advertising`, `shared_assets`, `static_asset`, `attachment`, `search_index`,
+`docs`, `blog`, `curriculum`, or `other`. `other` means the path did not match a
+known category. `attachment` covers audio, font, image, and video paths outside
+`static_asset`, including those under `/docs/`.
 
 Where request context is included, paths ending in `/index.json` also receive
 `format: "index_json"`, while retaining their route category. For example, a
@@ -112,7 +113,7 @@ Rejection `reason` values are `origin`, `missing_referer`, `disallowed_referer`,
 `missing_code`, `invalid_code`, `invalid_src`, `content_type`, `missing_state`,
 `invalid_state`, `fetch_destination`, and `referer`.
 
-Advertising code rejections include `operation: "click"` or `operation: "view"`.
+Advertising rejections include `operation: "click"`, `"view"`, or `"image"`.
 
 ## Latency and error handling
 
@@ -136,16 +137,15 @@ produce multiple upstream records, so their count is not a count of client
 requests. Cached 404 pages and search indexes produce no new upstream record on
 a cache hit. Existing timeout policies are preserved.
 
-Errors handled locally are logged because they do not reach the Sentry wrapper.
-Middleware exceptions and rejected handler promises reach the router completion
-callback, which logs `request_error`. Router dispatch returns before
-asynchronous middleware completes, so these failures do not reject the main
-handler's promise and are not captured by the Sentry wrapper.
+Errors handled locally (advertising, search, and router completion errors) are
+logged and also sent to Sentry with `Sentry.captureException`, because they
+never reach the Sentry wrapper. This does nothing when `SENTRY_DSN` is unset.
+Router dispatch returns before asynchronous middleware completes, so middleware
+exceptions and rejected handler promises reach the router completion callback,
+which logs `request_error`.
 
-The main handler's defensive catch rethrows exceptions for Sentry and logs them
-locally only when `SENTRY_DSN` is disabled. An upstream outcome measurement can
-accompany a Sentry exception; it contains categories and measurements rather
-than serialized exception details.
+The log records contain categories and measurements rather than serialized
+exception details; the exception details are in Sentry.
 
 ## Privacy and coverage
 
