@@ -152,7 +152,7 @@ export const proxyContentAssets = createContentProxyMiddleware(
     ) {
       log("INFO", "content_fallback", "Keep upstream asset 404", {
         decision: "original_404",
-        route: "attachment",
+        ...requestContext(req.url),
       });
       return null;
     }
@@ -162,7 +162,7 @@ export const proxyContentAssets = createContentProxyMiddleware(
       {
         source: "content",
         operation: "english_asset_fallback",
-        route: "attachment",
+        ...requestContext(req.url),
       },
       async (response) => {
         if (!response.ok) {
@@ -177,7 +177,7 @@ export const proxyContentAssets = createContentProxyMiddleware(
     if (asset) {
       log("INFO", "content_fallback", "Serve English asset", {
         decision: "english_asset",
-        route: "attachment",
+        ...requestContext(req.url),
       });
       return asset;
     }
@@ -190,7 +190,7 @@ export const proxyContentAssets = createContentProxyMiddleware(
       log("INFO", "redirect", "Redirect missing review asset to production", {
         reason: "production_asset_fallback",
         status: 303,
-        route: "attachment",
+        ...requestContext(req.url),
       });
       return "";
     }
@@ -199,7 +199,7 @@ export const proxyContentAssets = createContentProxyMiddleware(
       "INFO",
       "content_fallback",
       "Keep upstream asset 404 after English fallback",
-      { decision: "original_404", route: "attachment" }
+      { decision: "original_404", ...requestContext(req.url) }
     );
     return null;
   }

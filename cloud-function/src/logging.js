@@ -5,6 +5,8 @@ import { performance } from "node:perf_hooks";
 
 import * as Sentry from "@sentry/google-cloud-serverless";
 
+import { ANY_ATTACHMENT_REGEXP } from "./internal/constants/index.js";
+
 /**
  * @typedef {"success" | "http_error" | "error" | "timeout" | "aborted"} Outcome
  * @typedef {Record<string, string | number | boolean | undefined>} Context
@@ -53,6 +55,9 @@ export function routeCategory(url = "") {
   }
   if (/^\/(assets|static|sitemaps)\//.test(pathname)) {
     return "static_asset";
+  }
+  if (ANY_ATTACHMENT_REGEXP.test(pathname)) {
+    return "attachment";
   }
   if (pathname.endsWith("/search-index.json")) {
     return "search_index";
