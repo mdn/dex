@@ -14,7 +14,7 @@ import prodPlusLookup from "../stripe-plans/prod.js";
 import * as env from "../env.js";
 
 import { getRequestCountry } from "../utils.js";
-import { errorContext, log } from "../logging.js";
+import { errorContext, log, reportError } from "../logging.js";
 
 const { SIGN_SECRET, BSA_ZONE_KEYS, ORIGIN_MAIN } = env;
 
@@ -106,6 +106,7 @@ export async function proxyBSA(req, res) {
         return res.sendStatus(status ?? 502).end();
       }
     } catch (error) {
+      reportError(error);
       log("ERROR", "advertising_error", "Advertising click failed", {
         operation: "click",
         ...errorContext(error),
@@ -123,6 +124,7 @@ export async function proxyBSA(req, res) {
       }
       return res.sendStatus(201).end();
     } catch (error) {
+      reportError(error);
       log("ERROR", "advertising_error", "Advertising view failed", {
         operation: "view",
         ...errorContext(error),

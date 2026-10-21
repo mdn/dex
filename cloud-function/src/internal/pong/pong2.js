@@ -5,6 +5,7 @@ import {
   errorOutcome,
   fetchUpstream,
   log,
+  reportError,
   startUpstream,
 } from "../../logging.js";
 
@@ -183,6 +184,7 @@ export function createPong2GetHandler(zoneKeys, coder) {
           outcome === "error" && res.status >= 400 ? "http_error" : outcome,
           res.status
         );
+        reportError(error);
         log(
           "ERROR",
           "advertising_error",
@@ -296,6 +298,11 @@ export function createPong2GetHandler(zoneKeys, coder) {
     );
     const settled = await Promise.allSettled(requests);
     const rejectedCount = settled.filter((p) => p.status === "rejected").length;
+    for (const p of settled) {
+      if (p.status === "rejected") {
+        reportError(p.reason);
+      }
+    }
     if (rejectedCount) {
       log("ERROR", "advertising_error", "Advertising placements failed", {
         operation: "placement",

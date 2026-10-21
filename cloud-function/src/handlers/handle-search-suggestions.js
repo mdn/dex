@@ -2,7 +2,7 @@
 
 import { getSearchIndex, quickSearch } from "../internal/quicksearch/index.js";
 import { getQueryLocale } from "../internal/locale-utils/index.js";
-import { errorContext, log } from "../logging.js";
+import { errorContext, log, reportError } from "../logging.js";
 
 /**
  * Returns the OpenSearch Suggestions JSON.
@@ -29,6 +29,7 @@ export async function handleSearchSuggestions(req, res) {
       .setHeader("Cache-Control", "public, max-age=3600")
       .end(JSON.stringify([query, completions]));
   } catch (error) {
+    reportError(error);
     log(
       "ERROR",
       "search_suggestions_error",

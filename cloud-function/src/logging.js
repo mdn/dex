@@ -3,6 +3,8 @@
 
 import { performance } from "node:perf_hooks";
 
+import * as Sentry from "@sentry/google-cloud-serverless";
+
 /**
  * @typedef {"success" | "http_error" | "error" | "timeout" | "aborted"} Outcome
  * @typedef {Record<string, string | number | boolean | undefined>} Context
@@ -17,6 +19,15 @@ import { performance } from "node:perf_hooks";
  */
 export function log(severity, event, message, context = {}) {
   console.log(JSON.stringify({ severity, message, event, context }));
+}
+
+/**
+ * Report an error handled locally, so it never reaches the Sentry wrapper.
+ * Does nothing when Sentry is not initialized.
+ * @param {unknown} error
+ */
+export function reportError(error) {
+  Sentry.captureException(error);
 }
 
 /** @param {string} [url] */
@@ -242,12 +253,12 @@ export function upstreamLoggingPlugin(source, buffered = false) {
         return;
       }
       timing.status = response.statusCode;
-      response.once("error", (error) =>
-        timing.complete(errorOutcome(error), response.statusCode)
-      );
-      response.once("aborted", () =>
-        timing.complete("aborted", response.statusCode)
-      );
+      response.once("error", (error) => {
+        timing.complete(errorOutcome(error), response.statusCode);
+      });
+      response.once("aborted", () => {
+        timing.complete("aborted", response.statusCode);
+      });
       response.once("end", () => {
         if (
           !buffered ||

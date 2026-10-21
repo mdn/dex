@@ -6,7 +6,7 @@ import {
 } from "../internal/quicksearch/index.js";
 import { getQueryLocale } from "../internal/locale-utils/index.js";
 import { BASE_URL_MAIN } from "../env.js";
-import { errorContext, log } from "../logging.js";
+import { errorContext, log, reportError } from "../logging.js";
 
 /**
  * Handle searches from OpenSearch: when the query exactly matches an entry from
@@ -31,6 +31,7 @@ export async function handleSearchRedirect(req, res) {
     try {
       index = await getSearchIndex(locale);
     } catch (error) {
+      reportError(error);
       log(
         "WARNING",
         "search_fallback",
