@@ -139,7 +139,9 @@ export function startUpstream(context) {
     }
     completed = true;
     log(
-      outcome === "success" ? "INFO" : "WARNING",
+      outcome === "success" || (outcome === "http_error" && status === 404)
+        ? "INFO"
+        : "WARNING",
       "upstream_request",
       "Upstream request completed",
       {
