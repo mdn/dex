@@ -70,8 +70,8 @@ export async function proxyBSA(req, res) {
     const referer = req.get("referer");
     if (!referer) {
       log("WARNING", "request_rejected", "Reject advertising click", {
+        operation: "click",
         reason: "missing_referer",
-        route: "advertising_click",
         status: 400,
       });
       return res.sendStatus(400).end();
@@ -80,8 +80,8 @@ export async function proxyBSA(req, res) {
     const refererUrl = new URL(referer);
     if (refererUrl.host != parsedUrl.host) {
       log("WARNING", "request_rejected", "Reject advertising click", {
+        operation: "click",
         reason: "disallowed_referer",
-        route: "advertising_click",
         status: 400,
       });
       return res.sendStatus(400).end();
@@ -141,8 +141,8 @@ export async function proxyBSA(req, res) {
 
     if (!src) {
       log("WARNING", "request_rejected", "Reject advertising image", {
+        operation: "image",
         reason: "invalid_src",
-        route: "advertising_image",
         status: 400,
       });
       return res.sendStatus(400).end();
@@ -158,8 +158,8 @@ export async function proxyBSA(req, res) {
 
     if (!type) {
       log("WARNING", "request_rejected", "Reject advertising image response", {
+        operation: "image",
         reason: "content_type",
-        route: "advertising_image",
         status: 502,
       });
       return res.set("cache-control", "no-store").sendStatus(502).end();
