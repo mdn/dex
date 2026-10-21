@@ -29,7 +29,7 @@ import { stripForwardedHostHeaders } from "./middlewares/stripForwardedHostHeade
 import { proxyPong } from "./handlers/proxy-pong.js";
 import { handleRunner } from "./internal/play/index.js";
 import { proxySharedAssets } from "./handlers/proxy-shared-assets.js";
-import { errorContext, log, requestContext } from "./logging.js";
+import { errorContext, log, reportError, requestContext } from "./logging.js";
 
 const router = Router();
 router.use(cookieParser());
@@ -179,24 +179,19 @@ export function createHandler() {
         );
       }
     });
-    try {
-      await router(req, res, (error) => {
-        // Completion errors are handled here and never reach the Sentry wrapper.
-        if (error) {
-          log("ERROR", "request_error", "Request middleware failed", {
-            ...context,
-            ...errorContext(error),
-          });
-        }
-      });
-    } catch (error) {
-      if (!process.env["SENTRY_DSN"]) {
-        log("ERROR", "request_error", "Request handler failed", {
+    // Dispatch returns before async middleware settles, so errors only surface
+    // in this callback and never reach the Sentry wrapper.
+    router(req, res, (error) => {
+      if (error) {
+        log("ERROR", "request_error", "Request middleware failed", {
           ...context,
           ...errorContext(error),
         });
+        reportError(error);
+        if (!res.headersSent) {
+          res.sendStatus(500);
+        }
       }
-      throw error;
-    }
+    });
   };
 }
