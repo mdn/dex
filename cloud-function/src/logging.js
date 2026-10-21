@@ -196,10 +196,18 @@ export async function fetchUpstream(input, context, consume, init) {
 }
 
 /**
- * @typedef {{ complete: ReturnType<typeof startUpstream>, status?: number | undefined, timedOut: boolean }} ProxyTiming
+ * @typedef {{ complete: ReturnType<typeof startUpstream>, status?: number | undefined, timedOut: boolean, upstreamFailed: boolean }} ProxyTiming
  */
 /** @type {WeakMap<IncomingMessage, ProxyTiming>} */
 const proxyTimings = new WeakMap();
+
+/**
+ * Whether the upstream failed, as opposed to the client disconnecting.
+ * @param {IncomingMessage} req
+ */
+export function upstreamFailed(req) {
+  return proxyTimings.get(req)?.upstreamFailed ?? false;
+}
 
 /** @param {IncomingMessage} req @param {IncomingMessage} response */
 export function completeProxyResponse(req, response) {
@@ -229,10 +237,12 @@ export function upstreamLoggingPlugin(source, buffered = false) {
           ),
         }),
         timedOut: false,
+        upstreamFailed: false,
       };
       proxyTimings.set(req, timing);
       proxyReq.once("timeout", () => {
         timing.timedOut = true;
+        timing.upstreamFailed = true;
         timing.complete("timeout", proxyTimings.get(req)?.status);
       });
       res.once("close", () => {
@@ -254,9 +264,11 @@ export function upstreamLoggingPlugin(source, buffered = false) {
       }
       timing.status = response.statusCode;
       response.once("error", (error) => {
+        timing.upstreamFailed = true;
         timing.complete(errorOutcome(error), response.statusCode);
       });
       response.once("aborted", () => {
+        timing.upstreamFailed = true;
         timing.complete("aborted", response.statusCode);
       });
       response.once("end", () => {
@@ -279,6 +291,9 @@ export function upstreamLoggingPlugin(source, buffered = false) {
         return;
       }
       const timing = proxyTimings.get(req);
+      if (timing) {
+        timing.upstreamFailed = true;
+      }
       timing?.complete(
         timing.timedOut ? "timeout" : errorOutcome(error),
         timing.status

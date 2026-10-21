@@ -29,7 +29,13 @@ import { stripForwardedHostHeaders } from "./middlewares/stripForwardedHostHeade
 import { proxyPong } from "./handlers/proxy-pong.js";
 import { handleRunner } from "./internal/play/index.js";
 import { proxySharedAssets } from "./handlers/proxy-shared-assets.js";
-import { errorContext, log, reportError, requestContext } from "./logging.js";
+import {
+  errorContext,
+  log,
+  reportError,
+  requestContext,
+  upstreamFailed,
+} from "./logging.js";
 
 const router = Router();
 router.use(cookieParser());
@@ -170,7 +176,7 @@ export function createHandler() {
   return async (req, res) => {
     const context = requestContext(req.url);
     res.once("close", () => {
-      if (!res.writableFinished) {
+      if (!res.writableFinished && !upstreamFailed(req)) {
         log(
           "WARNING",
           "request_aborted",
