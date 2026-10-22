@@ -20,12 +20,6 @@ on:
         required: false
         default: ""
 
-      invalidate:
-        description: "Invalidate CDN (use only in exceptional circumstances)"
-        type: boolean
-        required: false
-        default: false
-
   workflow_call:
     secrets:
       GCP_PROJECT_NAME:
@@ -415,7 +409,3 @@ jobs:
           SLACK_MESSAGE: "Build failed :collision:"
           SLACK_FOOTER: "Powered by prod-build.yml"
           SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK }}
-
-      - name: Invalidate Google Cloud CDN
-        if: ${{ github.event.inputs.invalidate }}
-        run: gcloud compute url-maps invalidate-cdn-cache ${{ secrets.GCP_LOAD_BALANCER_NAME }} --path "/*" --async
