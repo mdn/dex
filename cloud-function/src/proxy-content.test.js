@@ -126,10 +126,11 @@ const BUCKET_FILES = {
  */
 const STATIC_BUCKET_FILES = {
   "static/client/previous.0123abcd.js": {
-    body: "console.log('previous');",
+    body: gzipSync("console.log('previous');"),
     contentType: "application/javascript",
     headers: {
       "Cache-Control": "public, max-age=3600",
+      "Content-Encoding": "gzip",
       "X-Goog-Hash": "md5=abc",
     },
   },
@@ -446,10 +447,11 @@ describe("proxied content routes", () => {
         label: "serves a static asset missing from the deployment",
         path: "/static/client/previous.0123abcd.js",
         status: 200,
-        body: STATIC_BUCKET_FILES["static/client/previous.0123abcd.js"]?.body,
+        body: "console.log('previous');",
         headers: {
           "content-type": "application/javascript",
           "cache-control": "public, max-age=31536000",
+          "content-encoding": null,
           "x-goog-hash": null,
         },
         staticRequest: "static/client/previous.0123abcd.js",
