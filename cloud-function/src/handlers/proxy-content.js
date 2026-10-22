@@ -18,6 +18,14 @@ import { ACTIVE_LOCALES } from "../internal/constants/index.js";
 /** @type {Record<string, Promise<ArrayBuffer>>} */
 const notFoundBufferCache = {};
 
+// `fetch` decodes the body but keeps the upstream encoding/framing headers,
+// which would mislabel the decoded body (gzipped bucket objects).
+const DECODED_RESPONSE_HEADERS = new Set([
+  "content-encoding",
+  "content-length",
+  "transfer-encoding",
+]);
+
 const target = sourceUri(Source.content);
 
 /**
@@ -151,7 +159,11 @@ export const proxyContentAssets = createContentProxyMiddleware(
 
     if (enUsAsset?.ok) {
       res.statusCode = enUsAsset.status;
-      enUsAsset.headers.forEach((value, key) => res.setHeader(key, value));
+      enUsAsset.headers.forEach((value, key) => {
+        if (!DECODED_RESPONSE_HEADERS.has(key)) {
+          res.setHeader(key, value);
+        }
+      });
       return Buffer.from(await enUsAsset.arrayBuffer());
     }
 
