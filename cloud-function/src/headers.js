@@ -62,7 +62,7 @@ export function withContentResponseHeaders(proxyRes, req, res) {
  * @param {string} url - Request URL
  * @returns {string | null} Cache control value
  */
-function getCacheControl(statusCode, url) {
+export function getCacheControl(statusCode, url) {
   if (
     statusCode === 404 ||
     url.endsWith("/service-worker.js") ||
