@@ -38,6 +38,7 @@ export async function redirectNonCanonicals(req, res, next) {
       const target = joinPath(CANONICALS[source], suffix) + parsedUrl.search;
       if (pathname !== target) {
         return redirect(res, target, {
+          reason: "canonical",
           status: 301,
           cacheControlSeconds: THIRTY_DAYS,
         });

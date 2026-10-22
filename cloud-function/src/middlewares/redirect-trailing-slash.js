@@ -45,6 +45,7 @@ export async function redirectTrailingSlash(req, res, next) {
     // Locale home pages are the special case on MDN: they must have a
     // trailing slash, so redirect e.g. /en-US to /en-US/.
     return redirect(res, requestURI + "/" + qs, {
+      reason: "trailing_slash",
       cacheControlSeconds: THIRTY_DAYS,
     });
   } else if (
@@ -55,6 +56,7 @@ export async function redirectTrailingSlash(req, res, next) {
     // All other requests with a trailing slash should redirect to the
     // same URL without the trailing slash.
     return redirect(res, requestURI.slice(0, -1) + qs, {
+      reason: "trailing_slash",
       cacheControlSeconds: THIRTY_DAYS,
     });
   }
