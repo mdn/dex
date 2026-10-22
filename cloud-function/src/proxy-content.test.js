@@ -98,6 +98,12 @@ const BUCKET_FILES = {
     body: "foo-png-en-us",
     contentType: "image/png",
   },
+  // Uploaded with `Content-Encoding: gzip`, like every object in the bucket.
+  "en-us/docs/web/api/gzipped.png": {
+    body: gzipSync("gzipped-png-en-us"),
+    contentType: "image/png",
+    headers: { "Content-Encoding": "gzip" },
+  },
   "en-us/404/index.html": {
     body: "<h1>Not found</h1>",
     contentType: "text/html",
@@ -364,6 +370,17 @@ describe("proxied content routes", () => {
         [true, true],
         `expected fr miss then en-us fallback, got ${JSON.stringify(bucket.requests)}`
       );
+    });
+
+    it("serves a gzip-encoded en-US attachment decoded", async () => {
+      // `fetch` decodes the body, so the upstream encoding headers must not be
+      // copied onto the response.
+      const response = await handler.request("/fr/docs/Web/API/gzipped.png");
+
+      strictEqual(response.status, 200);
+      strictEqual(response.text, "gzipped-png-en-us");
+      strictEqual(response.headers.get("content-encoding"), null);
+      strictEqual(response.headers.get("content-type"), "image/png");
     });
 
     it("passes the upstream 404 through for a missing live sample", async () => {
