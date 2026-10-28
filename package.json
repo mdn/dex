@@ -14,8 +14,8 @@
     "prepare": "npm run install:all",
     "prettier-check": "prettier --check .",
     "prettier-format": "prettier --write .",
-    "test": "node --test",
-    "test:coverage": "c8 node --test",
+    "test": "node --test --import ./test-setup.js",
+    "test:coverage": "c8 node --test --import ./test-setup.js",
     "tool:legacy": "node ./tool/cli.js"
   },
   "resolutions": {

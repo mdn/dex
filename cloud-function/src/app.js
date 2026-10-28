@@ -29,6 +29,13 @@ import { stripForwardedHostHeaders } from "./middlewares/stripForwardedHostHeade
 import { proxyPong } from "./handlers/proxy-pong.js";
 import { handleRunner } from "./internal/play/index.js";
 import { proxySharedAssets } from "./handlers/proxy-shared-assets.js";
+import {
+  errorContext,
+  log,
+  reportError,
+  requestContext,
+  upstreamFailed,
+} from "./logging.js";
 
 const router = Router();
 router.use(cookieParser());
@@ -167,8 +174,30 @@ router.all("{/*splat}", (_req, res) => res.set("Allow", "GET").sendStatus(405));
  */
 export function createHandler() {
   return async (req, res) => {
-    await router(req, res, () => {
-      /* noop */
+    const context = requestContext(req.url);
+    res.once("close", () => {
+      if (!res.writableFinished && !upstreamFailed(req)) {
+        log(
+          "WARNING",
+          "request_aborted",
+          "Client connection closed before response completed",
+          context
+        );
+      }
+    });
+    // Dispatch returns before async middleware settles, so errors only surface
+    // in this callback and never reach the Sentry wrapper.
+    router(req, res, (error) => {
+      if (error) {
+        log("ERROR", "request_error", "Request middleware failed", {
+          ...context,
+          ...errorContext(error),
+        });
+        reportError(error);
+        if (!res.headersSent) {
+          res.sendStatus(500);
+        }
+      }
     });
   };
 }
