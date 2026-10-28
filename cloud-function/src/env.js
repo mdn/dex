@@ -53,6 +53,7 @@ export const REDIRECTS_FILE =
   new URL("../redirects.json", import.meta.url).pathname;
 
 export const SOURCE_CONTENT = process.env["SOURCE_CONTENT"] || LOCAL_CONTENT;
+export const SOURCE_STATIC_CONTENT = process.env["SOURCE_STATIC_CONTENT"] || "";
 export const SOURCE_API =
   process.env["SOURCE_API"] || "https://developer.allizom.org/";
 export const SOURCE_SHARED_ASSETS =
