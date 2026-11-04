@@ -18,6 +18,11 @@
     "test:coverage": "c8 node --test",
     "tool:legacy": "node ./tool/cli.js"
   },
+  "allowScripts": {
+    "@mdn/rari": true,
+    "lefthook": true,
+    "unrs-resolver": true
+  },
   "resolutions": {
     "lodash": ">=4.17.15"
   },
@@ -64,10 +69,5 @@
       "name": "npm",
       "version": ">=11.8.0"
     }
-  },
-  "allowScripts": {
-    "@mdn/rari": true,
-    "lefthook": true,
-    "unrs-resolver": true
   }
 }

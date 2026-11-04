@@ -16,6 +16,9 @@
     "server:watch": "nodemon --exec npm run server",
     "start": "nf start"
   },
+  "allowScripts": {
+    "fsevents": false
+  },
   "nodemonConfig": {
     "ext": "json,js",
     "watch": [
@@ -54,8 +57,5 @@
   "packageManager": "npm@11.19.0",
   "engines": {
     "node": ">=24"
-  },
-  "allowScripts": {
-    "fsevents": false
   }
 }
