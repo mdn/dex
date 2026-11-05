@@ -225,6 +225,14 @@ const punctuation_analyzer = Object.freeze({
   filter: ["lowercase", "asciifolding"],
 });
 
+// Joins adjacent title words ("Web Workers API" -> `webworkers`), so the
+// zero-hit fallback can match concatenated queries like `webworker`.
+const joined_analyzer = Object.freeze({
+  type: "custom",
+  tokenizer: "standard",
+  filter: ["lowercase", "asciifolding", "joined_shingle"],
+});
+
 const lowercase_normalizer = Object.freeze({
   type: "custom",
   filter: ["lowercase"],
@@ -239,6 +247,12 @@ export const mappings = {
       fields: {
         // Matches symbol queries like `%` against "Remainder (%)".
         code: { type: "text", analyzer: "punctuation_analyzer" },
+        // `joined_analyzer` emits no tokens for one-word queries.
+        joined: {
+          type: "text",
+          analyzer: "joined_analyzer",
+          search_analyzer: "standard",
+        },
       },
     },
     body: {
@@ -290,6 +304,9 @@ export const mappings = {
     },
     locale: { type: "keyword" },
     slug: { type: "keyword" },
+    // Last slug segment (`then` for `.../Promise/then`), so the zero-hit
+    // fallback can boost the canonical page for queries like `then` or `a`.
+    slug_leaf: { type: "keyword" },
     popularity: { type: "float" },
   },
 };
@@ -300,6 +317,13 @@ export const settings = {
     filter: {
       dex_word_delimiter,
       custom_stopwords,
+      joined_shingle: {
+        type: "shingle",
+        min_shingle_size: 2,
+        max_shingle_size: 2,
+        output_unigrams: false,
+        token_separator: "",
+      },
       code_edge_ngram: {
         type: "edge_ngram",
         min_gram: 2,
@@ -317,6 +341,7 @@ export const settings = {
       code_analyzer,
       code_partial_analyzer,
       punctuation_analyzer,
+      joined_analyzer,
     },
     tokenizer: {
       punctuation_tokenizer,
