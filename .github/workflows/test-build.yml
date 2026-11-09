@@ -380,6 +380,8 @@ jobs:
         env:
           BUCKET: gs://${{ vars.GCP_BUCKET_NAME }}
           PREFIX: ${{ steps.deployment-prefix.outputs.prefix }}
+          CLOUDSDK_STORAGE_PROCESS_COUNT: 4
+          CLOUDSDK_STORAGE_THREAD_COUNT: 16
         run: |-
           nproc
           gcloud config get storage/process_count || true
