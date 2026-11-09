@@ -376,35 +376,33 @@ jobs:
         uses: google-github-actions/setup-gcloud@aa5489c8933f4cc7a4f7d45035b3b1440c9c10db # v3.0.1
 
       - name: Upload build
-        working-directory: mdn/fred/out
-        env:
-          BUCKET: gs://${{ vars.GCP_BUCKET_NAME }}
-          PREFIX: ${{ steps.deployment-prefix.outputs.prefix }}
-          CLOUDSDK_STORAGE_PROCESS_COUNT: 4
-          CLOUDSDK_STORAGE_THREAD_COUNT: 16
-        run: |-
-          nproc
-          gcloud config get storage/process_count || true
-          gcloud config get storage/thread_count || true
-          gcloud storage cp --recursive --gzip-local-all --no-user-output-enabled \
-            --cache-control="public, max-age=3600" \
-            ./* "$BUCKET/$PREFIX/"
+        uses: google-github-actions/upload-cloud-storage@6397bd7208e18d13ba2619ee21b9873edc94427a # v3.0.0
+        with:
+          path: mdn/fred/out
+          destination: ${{ vars.GCP_BUCKET_NAME }}/${{ steps.deployment-prefix.outputs.prefix }}
+          parent: false
+          gzip: true
+          resumable: false
+          concurrency: 100
+          process_gcloudignore: false
+          headers: |-
+            cache-control: public, max-age=3600
 
       # Static assets are also uploaded here so clients on a cached page from an
       # earlier deployment can still load their hashed bundles.
       - name: Upload shared files
-        working-directory: mdn/fred/out
-        env:
-          BUCKET: gs://${{ vars.GCP_BUCKET_NAME }}
-        run: |-
-          gcloud storage cp --recursive --gzip-local-all --no-user-output-enabled \
-            --cache-control="public, max-age=3600" \
-            static issues.json "$BUCKET/fred/"
-          for f in */metadata.json; do
-            gcloud storage cp --gzip-local-all --no-user-output-enabled \
-              --cache-control="public, max-age=3600" \
-              "$f" "$BUCKET/fred/$f"
-          done
+        uses: google-github-actions/upload-cloud-storage@6397bd7208e18d13ba2619ee21b9873edc94427a # v3.0.0
+        with:
+          path: mdn/fred/out
+          destination: ${{ vars.GCP_BUCKET_NAME }}/fred
+          parent: false
+          glob: "{issues.json,*/metadata.json,static/**}"
+          gzip: true
+          resumable: false
+          concurrency: 100
+          process_gcloudignore: false
+          headers: |-
+            cache-control: public, max-age=3600
 
       - name: Authenticate with GCP
         if: ${{ ! vars.SKIP_FUNCTION }}
