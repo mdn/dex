@@ -3,6 +3,7 @@
 import { CSP_VALUE } from "./internal/constants/index.js";
 import { isLiveSampleURL } from "./utils.js";
 import { REVIEW_ROUTING } from "./env.js";
+import { log, requestContext } from "./logging.js";
 
 const HASHED_MAX_AGE = 60 * 60 * 24 * 365;
 const DEFAULT_MAX_AGE = 60 * 60;
@@ -20,8 +21,11 @@ const HASHED_REGEX = /\.[a-f0-9]{8,32}\./;
  */
 export function withContentResponseHeaders(proxyRes, req, res) {
   if (res.headersSent) {
-    console.warn(
-      `Cannot set content response headers. Headers already sent for: ${req.url}`
+    log(
+      "WARNING",
+      "headers_already_sent",
+      "Cannot set content response headers",
+      requestContext(req.url)
     );
     return res;
   }

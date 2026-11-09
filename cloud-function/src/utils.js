@@ -6,6 +6,7 @@ import {
 } from "./internal/constants/index.js";
 
 import { DEFAULT_COUNTRY } from "./constants.js";
+import { log, requestContext } from "./logging.js";
 
 /**
  * Get the country code from the request headers
@@ -29,12 +30,13 @@ export function getRequestCountry(req) {
  * @param {object} options - Redirect options
  * @param {number} [options.status=302] - HTTP status code
  * @param {number} [options.cacheControlSeconds=3600] - Cache duration in seconds
+ * @param {string} [options.reason] - Redirect category
  * @returns {void}
  */
 export function redirect(
   res,
   location,
-  { status = 302, cacheControlSeconds = 3600 } = {}
+  { status = 302, cacheControlSeconds = 3600, reason = "normalization" } = {}
 ) {
   let cacheControlValue;
   if (cacheControlSeconds) {
@@ -55,6 +57,11 @@ export function redirect(
     newLocation += `?${querystring}`;
   }
 
+  log("INFO", "redirect", "Redirect request", {
+    reason,
+    status,
+    ...requestContext(res.req?.originalUrl ?? res.req?.url),
+  });
   res.set("Cache-Control", cacheControlValue).redirect(status, newLocation);
 }
 

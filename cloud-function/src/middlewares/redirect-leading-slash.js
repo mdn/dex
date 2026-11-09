@@ -27,7 +27,7 @@ export async function redirectLeadingSlash(req, res, next) {
   const pathname = req.url;
   const normalizedPathname = normalizeLeadingSlash(pathname);
   if (pathname !== normalizedPathname) {
-    return redirect(res, normalizedPathname);
+    return redirect(res, normalizedPathname, { reason: "leading_slash" });
   }
 
   next();
