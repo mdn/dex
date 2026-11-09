@@ -383,7 +383,7 @@ jobs:
           parent: false
           gzip: true
           resumable: false
-          concurrency: 250
+          concurrency: 500
           process_gcloudignore: false
           headers: |-
             cache-control: public, max-age=3600
@@ -399,7 +399,7 @@ jobs:
           glob: "{issues.json,*/metadata.json,static/**}"
           gzip: true
           resumable: false
-          concurrency: 250
+          concurrency: 500
           process_gcloudignore: false
           headers: |-
             cache-control: public, max-age=3600
