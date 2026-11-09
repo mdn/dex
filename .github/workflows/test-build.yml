@@ -377,7 +377,8 @@ jobs:
           PREFIX: ${{ steps.deployment-prefix.outputs.prefix }}
         run: |-
           nproc
-          gcloud config list storage
+          gcloud config get storage/process_count || true
+          gcloud config get storage/thread_count || true
           gcloud storage cp --recursive --gzip-local-all --no-user-output-enabled \
             --cache-control="public, max-age=3600" \
             ./* "$BUCKET/$PREFIX/"
