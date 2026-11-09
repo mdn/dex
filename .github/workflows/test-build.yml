@@ -361,6 +361,20 @@ jobs:
       - name: Print disk usage
         run: df -h
 
+      - name: Pack en-us (experiment)
+        run: |-
+          du -sh mdn/fred/out/en-us
+          tar -C mdn/fred/out -I 'zstd -T0 -3' -cf "$RUNNER_TEMP/en-us.tar.zst" en-us
+          ls -lh "$RUNNER_TEMP/en-us.tar.zst"
+
+      - name: Upload en-us artifact (experiment)
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: en-us
+          path: ${{ runner.temp }}/en-us.tar.zst
+          compression-level: 0
+          retention-days: 1
+
       - name: Determine deployment prefix
         id: deployment-prefix
         run: echo "prefix=deployments/$(date -u +%Y%m%d-%H%M%S)-${GITHUB_RUN_ID}-${GITHUB_RUN_ATTEMPT}" >> "$GITHUB_OUTPUT"
@@ -481,3 +495,21 @@ jobs:
       - name: Print disk usage (final)
         if: ${{ always() }}
         run: df -h
+
+  roundtrip:
+    needs: build
+    if: ${{ !cancelled() && needs.build.result != 'skipped' }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Download en-us artifact (experiment)
+        uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
+        with:
+          name: en-us
+          path: ${{ runner.temp }}/artifact
+
+      - name: Unpack en-us (experiment)
+        run: |-
+          ls -lh "$RUNNER_TEMP/artifact"
+          mkdir "$RUNNER_TEMP/out"
+          tar -C "$RUNNER_TEMP/out" -I zstd -xf "$RUNNER_TEMP/artifact/en-us.tar.zst"
+          find "$RUNNER_TEMP/out" -type f | wc -l
