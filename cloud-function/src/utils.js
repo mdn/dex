@@ -59,6 +59,16 @@ export function redirect(
 }
 
 /**
+ * Release the connection behind a response whose body is never read.
+ * `cancel()` rejects on an already-errored stream, so failures are swallowed.
+ * @param {globalThis.Response} response
+ * @returns {Promise<void>}
+ */
+export async function discardBody(response) {
+  await response.body?.cancel().catch(() => {});
+}
+
+/**
  * Check if a URL is a live sample URL
  * @param {string} url - URL to check
  * @returns {boolean} True if the URL contains '/_sample_.'
