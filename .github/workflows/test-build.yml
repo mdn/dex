@@ -230,7 +230,9 @@ jobs:
           rm -rf target
 
       - name: Print information about CPU
-        run: cat /proc/cpuinfo
+        run: |-
+          cat /proc/cpuinfo
+          df -h
 
       - name: Build (rari)
         working-directory: mdn/fred
@@ -356,6 +358,9 @@ jobs:
           # Sort DE search index by en-US popularity.
           node scripts/reorder-search-index.mjs "$FRED_ROOT/out/en-us/search-index.json" "$FRED_ROOT/out/de/search-index.json"
 
+      - name: Print disk usage
+        run: df -h
+
       - name: Determine deployment prefix
         id: deployment-prefix
         run: echo "prefix=deployments/$(date -u +%Y%m%d-%H%M%S)-${GITHUB_RUN_ID}-${GITHUB_RUN_ATTEMPT}" >> "$GITHUB_OUTPUT"
@@ -472,3 +477,7 @@ jobs:
       - name: Invalidate CDN
         if: ${{ github.event.inputs.invalidate }}
         run: gcloud compute url-maps invalidate-cdn-cache ${{ secrets.GCP_LOAD_BALANCER_NAME }} --path "/*" --async
+
+      - name: Print disk usage (final)
+        if: ${{ always() }}
+        run: df -h
