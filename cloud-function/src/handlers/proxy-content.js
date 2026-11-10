@@ -10,8 +10,8 @@ import { PROXY_TIMEOUT } from "../constants.js";
 import { discardBody, isLiveSampleURL } from "../utils.js";
 import { ACTIVE_LOCALES } from "../internal/constants/index.js";
 
-/** @type {Record<string, Promise<ArrayBuffer>>} */
-const notFoundBufferCache = {};
+/** @type {Map<string, Promise<ArrayBuffer>>} */
+const notFoundBufferCache = new Map();
 
 const target = sourceUri(Source.content);
 
@@ -99,7 +99,8 @@ export const proxyContent = createContentProxyMiddleware(
 
     await discardBody(tryHtml);
     res.setHeader("Content-Type", "text/html");
-    const locale = req.url?.match(/[^/]+/)?.[0] ?? "en-us";
+    const segment = req.url?.match(/[^/]+/)?.[0]?.toLowerCase() ?? "";
+    const locale = ACTIVE_LOCALES.has(segment) ? segment : "en-us";
     return get404ForLocale(locale);
   }
 );
@@ -149,11 +150,8 @@ export const proxyContentAssets = createContentProxyMiddleware(
  * @returns {Promise<Buffer | string>} The 404 page content as a Buffer or fallback string
  */
 async function get404ForLocale(locale) {
-  /** @type {Promise<ArrayBuffer>} */
-  let notFoundBuffer;
-  if (notFoundBufferCache[locale]) {
-    notFoundBuffer = notFoundBufferCache[locale];
-  } else {
+  let notFoundBuffer = notFoundBufferCache.get(locale);
+  if (!notFoundBuffer) {
     const response = await fetch(`${target}${locale}/404/index.html`);
     if (!REVIEW_ROUTING && !response.ok) {
       await discardBody(response);
@@ -161,7 +159,7 @@ async function get404ForLocale(locale) {
     }
     notFoundBuffer = response.arrayBuffer();
     if (!REVIEW_ROUTING) {
-      notFoundBufferCache[locale] = notFoundBuffer;
+      notFoundBufferCache.set(locale, notFoundBuffer);
     }
   }
 
