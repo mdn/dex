@@ -40,6 +40,11 @@ The function uses the following environment variables:
   client build is served.
 - `SOURCE_API` (default: `"https://developer.allizom.org/"`) - The URL at which
   the API is served.
+- `MEMORY_DIAGNOSTICS` (default: `false`) - Set to `true` to emit a structured
+  `cloud-function-memory` log at most once per minute per handler instance,
+  triggered by request starts and completions. Logs include a process
+  identifier, uptime, request counts, and Node.js memory measurements in bytes.
+  No timer runs while the instance is idle. Enabled in production deployments.
 - `REVIEW_ROUTING` (default: `false`) - If enabled, accepts any `Host` header
   value, uses the leftmost subdomain to route into a subdirectory of
   `SOURCE_CONTENT`, falls back to production for missing assets, and disables
