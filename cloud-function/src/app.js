@@ -25,6 +25,7 @@ import { redirectPreferredLocale } from "./middlewares/redirect-preferred-locale
 import { redirectTrailingSlash } from "./middlewares/redirect-trailing-slash.js";
 import { requireOrigin } from "./middlewares/require-origin.js";
 import { notFound } from "./middlewares/not-found.js";
+import { handleError } from "./middlewares/handle-error.js";
 import { stripForwardedHostHeaders } from "./middlewares/stripForwardedHostHeaders.js";
 import { rejectDotSegments } from "./middlewares/reject-dot-segments.js";
 import { proxyPong } from "./handlers/proxy-pong.js";
@@ -83,7 +84,15 @@ router.get(
     "/runner.html",
   ],
   requireOrigin(Origin.play),
-  handleRunner
+  async (req, res) => {
+    try {
+      await handleRunner(req, res);
+    } catch (e) {
+      // The runner throws on an undecodable `state` or an invalid `Referer`.
+      console.warn(`[runner] Invalid request: ${e}`);
+      res.status(400).set("Cache-Control", "no-store").end();
+    }
+  }
 );
 // Interactive example assets
 router.get(
@@ -169,8 +178,8 @@ router.all("{/*splat}", (_req, res) => res.set("Allow", "GET").sendStatus(405));
  */
 export function createHandler() {
   return async (req, res) => {
-    await router(req, res, () => {
-      /* noop */
-    });
+    await router(req, res, (/** @type {unknown} */ err) =>
+      handleError(err, req, res)
+    );
   };
 }

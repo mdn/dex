@@ -47,9 +47,8 @@ export async function proxyBSA(req, res) {
       return res.sendStatus(405).end();
     }
 
-    const { body } = req;
     const { statusCode: status, payload } = await handleGet(
-      body,
+      req.body ?? {},
       countryCode,
       userAgent
     );
@@ -72,8 +71,8 @@ export async function proxyBSA(req, res) {
       return res.sendStatus(400).end();
     }
 
-    const refererUrl = new URL(referer);
-    if (refererUrl.host != parsedUrl.host) {
+    const refererUrl = URL.parse(referer);
+    if (refererUrl?.host != parsedUrl.host) {
       console.warn(
         `[pong/click] Disallowed Referer (expected MDN host, was ${JSON.stringify(referer)})`
       );

@@ -16,7 +16,8 @@ export async function redirectPreferredLocale(req, res, next) {
 
   const preferredLocale = req.cookies["preferredlocale"];
 
-  if (!preferredLocale) {
+  // `cookie-parser` turns `j:`-prefixed values into JSON.
+  if (typeof preferredLocale !== "string" || !preferredLocale) {
     next();
     return;
   }
