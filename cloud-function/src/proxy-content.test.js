@@ -1,5 +1,6 @@
 import { after, before, beforeEach, describe, it } from "node:test";
 import { deepStrictEqual, ok, strictEqual } from "node:assert/strict";
+import { request } from "node:http";
 import { gzipSync } from "node:zlib";
 
 import { startDummyBucket, startHandler } from "./proxy-helpers.js";
@@ -273,6 +274,24 @@ describe("proxied content routes", () => {
         );
       });
     }
+  });
+
+  it("rejects a path that escapes the bucket prefix", async () => {
+    // `fetch` would normalize the path, so send it as is.
+    const status = await new Promise((resolve, reject) => {
+      request(
+        { host: "127.0.0.1", port: handler.port, path: "/assets/../../x" },
+        (res) => {
+          res.resume();
+          resolve(res.statusCode);
+        }
+      )
+        .on("error", reject)
+        .end();
+    });
+
+    strictEqual(status, 400);
+    deepStrictEqual(bucket.requests, []);
   });
 
   describe("fallbacks", () => {

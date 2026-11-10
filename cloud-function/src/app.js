@@ -26,6 +26,7 @@ import { redirectTrailingSlash } from "./middlewares/redirect-trailing-slash.js"
 import { requireOrigin } from "./middlewares/require-origin.js";
 import { notFound } from "./middlewares/not-found.js";
 import { stripForwardedHostHeaders } from "./middlewares/stripForwardedHostHeaders.js";
+import { rejectDotSegments } from "./middlewares/reject-dot-segments.js";
 import { proxyPong } from "./handlers/proxy-pong.js";
 import { handleRunner } from "./internal/play/index.js";
 import { proxySharedAssets } from "./handlers/proxy-shared-assets.js";
@@ -33,6 +34,7 @@ import { proxySharedAssets } from "./handlers/proxy-shared-assets.js";
 const router = Router();
 router.use(cookieParser());
 router.use(stripForwardedHostHeaders);
+router.use(rejectDotSegments);
 router.use(redirectLeadingSlash);
 // MDN Plus plans.
 router.all(
