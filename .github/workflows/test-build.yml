@@ -260,10 +260,10 @@ jobs:
         run: |
           set -eo pipefail
 
-          npm run rari content sync-translated-content
-          npm run rari git-history
+          time npm run rari content sync-translated-content
+          time npm run rari git-history
 
-          npm run rari build -- --all --issues "$BUILD_OUT_ROOT/issues.json" --templ-stats
+          time npm run rari build -- --all --issues "$BUILD_OUT_ROOT/issues.json" --templ-stats
 
       - name: Build (fred)
         working-directory: mdn/fred
@@ -327,8 +327,8 @@ jobs:
           set -eo pipefail
 
           # SSR all pages
-          npm run build
-          node build/ssr.js
+          time npm run build
+          time node build/ssr.js
 
           cp -r "$DEX_ROOT/client/public/assets" "$BUILD_OUT_ROOT"
           cp "$DEX_ROOT/assets/nonprod/robots.txt" "$BUILD_OUT_ROOT/robots.txt"
