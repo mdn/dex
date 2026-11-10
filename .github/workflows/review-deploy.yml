@@ -63,8 +63,6 @@ jobs:
       - name: Setup gcloud
         if: ${{ ! vars.SKIP_FUNCTION }}
         uses: google-github-actions/setup-gcloud@aa5489c8933f4cc7a4f7d45035b3b1440c9c10db # v3.0.1
-        with:
-          install_components: "beta"
 
       - name: Deploy Function
         if: ${{ ! vars.SKIP_FUNCTION }}
@@ -72,7 +70,7 @@ jobs:
           set -eo pipefail
 
           for region in europe-west3; do
-            gcloud beta functions deploy mdn-review-$region \
+            gcloud functions deploy mdn-review-$region \
             --gen2 \
             --runtime=nodejs24 \
             --region=$region \
