@@ -304,6 +304,30 @@ describe("proxied content routes", () => {
       });
     }
 
+    // Inherited `Object.prototype` names, plus a plain unknown segment.
+    // The timeout turns a crashed handler, which never responds, into a failure.
+    for (const segment of ["constructor", "__proto__", "toString", "foo"]) {
+      it(
+        `serves the en-US 404 page for the unknown first segment ${segment}`,
+        { timeout: 5000 },
+        async () => {
+          const response = await handler.request(`/${segment}`);
+
+          strictEqual(response.status, 404);
+          strictEqual(
+            response.text,
+            BUCKET_FILES["en-us/404/index.html"]?.body
+          );
+          ok(
+            !bucket.requests.includes(
+              `${segment.toLowerCase()}/404/index.html`
+            ),
+            `expected no ${segment} 404 fetch, got ${JSON.stringify(bucket.requests)}`
+          );
+        }
+      );
+    }
+
     it("caches the 404 page after the first fetch", async () => {
       // Uses the dedicated `de` locale so its cache entry starts cold and this
       // test is independent of the order the suites above run in.
