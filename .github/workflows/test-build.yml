@@ -463,7 +463,8 @@ jobs:
           GCS_ACCESS_TOKEN: ${{ steps.auth.outputs.access_token }}
           DESTINATION: gs://${{ vars.GCP_BUCKET_NAME }}/${{ steps.deployment-prefix.outputs.prefix }}-rs
           VARIANTS: |-
-            http1-1024-2048|--http1 --concurrency 1024 --max-concurrency 2048
+            shuffled|--concurrency 1024 --max-concurrency 2048 --shuffle
+            ordered|--concurrency 1024 --max-concurrency 2048
         run: |-
           set -o pipefail
           status=0
