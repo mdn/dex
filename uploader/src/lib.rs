@@ -42,10 +42,8 @@ pub struct Config {
     /// 0 uploads everything uncompressed.
     pub gzip_level: u32,
     pub concurrency: Bounds,
-    /// Number of HTTP clients to spread requests over; each HTTP/2 connection
-    /// only carries a limited number of concurrent streams.
-    pub connections: usize,
-    pub http1: bool,
+    /// Upload in random order, to spread writes across the bucket's key range.
+    pub shuffle: bool,
     pub max_attempts: u32,
     pub backoff_base: Duration,
     pub timeout: Duration,
@@ -56,7 +54,7 @@ pub struct Config {
 struct Shared {
     config: Config,
     base_url: Url,
-    clients: Vec<Client>,
+    client: Client,
     limiter: Arc<Limiter>,
     stats: Arc<Stats>,
     cpu: Semaphore,
@@ -84,16 +82,17 @@ enum Outcome {
 }
 
 pub async fn run(config: Config) -> Result<Summary> {
-    let files = collect_files(&config.source)?;
+    let mut files = collect_files(&config.source)?;
+    if config.shuffle {
+        fastrand::shuffle(&mut files);
+    }
     if files.is_empty() {
         bail!("no files found in {}", config.source.display());
     }
 
     let base_url = Url::parse(&config.endpoint)
         .with_context(|| format!("invalid endpoint {}", config.endpoint))?;
-    let clients = (0..config.connections.max(1))
-        .map(|_| build_client(&config))
-        .collect::<Result<Vec<_>>>()?;
+    let client = build_client(&config)?;
     let limiter = Limiter::new(config.concurrency, Duration::from_secs(1));
     let stats = Arc::new(Stats::new(files.len() as u64));
     let cpus = std::thread::available_parallelism().map_or(1, |n| n.get());
@@ -110,7 +109,7 @@ pub async fn run(config: Config) -> Result<Summary> {
     let shared = Arc::new(Shared {
         config,
         base_url,
-        clients,
+        client,
         limiter,
         stats,
         cpu: Semaphore::new(cpus),
@@ -119,7 +118,7 @@ pub async fn run(config: Config) -> Result<Summary> {
 
     let mut failures = Vec::new();
     let mut tasks = JoinSet::new();
-    for (index, (path, key)) in files.into_iter().enumerate() {
+    for (path, key) in files {
         while tasks.len() >= max_tasks {
             collect(&mut tasks, &mut failures).await;
         }
@@ -128,7 +127,7 @@ pub async fn run(config: Config) -> Result<Summary> {
         }
         let shared = Arc::clone(&shared);
         tasks.spawn(async move {
-            let result = upload(&shared, index, &path, &key).await;
+            let result = upload(&shared, &path, &key).await;
             if result.is_err() {
                 shared.stats.failed();
             }
@@ -167,14 +166,15 @@ async fn collect(tasks: &mut JoinSet<Result<()>>, failures: &mut Vec<anyhow::Err
 }
 
 fn build_client(config: &Config) -> Result<Client> {
-    let mut builder = Client::builder()
+    // One connection per request: multiplexing over HTTP/2 caused frequent
+    // connection-level failures under load.
+    Client::builder()
+        .http1_only()
         .timeout(config.timeout)
         .connect_timeout(Duration::from_secs(10))
-        .pool_max_idle_per_host(config.concurrency.max);
-    if config.http1 {
-        builder = builder.http1_only();
-    }
-    builder.build().context("cannot build HTTP client")
+        .pool_max_idle_per_host(config.concurrency.max)
+        .build()
+        .context("cannot build HTTP client")
 }
 
 fn collect_files(source: &Path) -> Result<Vec<(PathBuf, String)>> {
@@ -239,7 +239,7 @@ fn prepare(path: &Path, gzip_level: u32) -> Result<Payload> {
     })
 }
 
-async fn upload(shared: &Arc<Shared>, index: usize, path: &Path, key: &str) -> Result<()> {
+async fn upload(shared: &Arc<Shared>, path: &Path, key: &str) -> Result<()> {
     let config = &shared.config;
     let payload = {
         let _cpu = shared.cpu.acquire().await?;
@@ -248,7 +248,6 @@ async fn upload(shared: &Arc<Shared>, index: usize, path: &Path, key: &str) -> R
     };
     let url = object_url(&shared.base_url, &config.bucket, &config.prefix, key)?;
     let content_type = mime_guess::from_path(path).first_or_octet_stream();
-    let client = &shared.clients[index % shared.clients.len()];
 
     let mut last_reason = String::new();
     for attempt in 0..config.max_attempts {
@@ -257,7 +256,8 @@ async fn upload(shared: &Arc<Shared>, index: usize, path: &Path, key: &str) -> R
         }
         let outcome = {
             let _permit = shared.limiter.acquire().await;
-            let mut request = client
+            let mut request = shared
+                .client
                 .put(url.clone())
                 .bearer_auth(&config.token)
                 .header(CONTENT_TYPE, content_type.as_ref())
@@ -320,7 +320,7 @@ async fn classify(response: reqwest::Result<reqwest::Response>) -> Outcome {
             };
             return Outcome::Retry {
                 cause: cause.to_owned(),
-                reason: format!("{error:#}"),
+                reason: error_chain(&error),
                 after: None,
             };
         }
@@ -357,6 +357,18 @@ async fn classify(response: reqwest::Result<reqwest::Response>) -> Outcome {
             abort: false,
         },
     }
+}
+
+/// reqwest's `Display` omits the underlying cause, which is the informative part.
+fn error_chain(error: &dyn std::error::Error) -> String {
+    let mut chain = error.to_string();
+    let mut source = error.source();
+    while let Some(cause) = source {
+        chain.push_str(": ");
+        chain.push_str(&cause.to_string());
+        source = cause.source();
+    }
+    chain
 }
 
 /// Exponential backoff with full jitter.

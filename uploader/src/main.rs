@@ -38,16 +38,12 @@ struct Cli {
     min_concurrency: usize,
 
     /// Upper bound for the adaptive concurrency limit.
-    #[arg(long, default_value_t = 1024)]
+    #[arg(long, default_value_t = 2048)]
     max_concurrency: usize,
 
-    /// Number of HTTP clients (and so HTTP/2 connections) to spread requests over.
-    #[arg(long, default_value_t = 16)]
-    connections: usize,
-
-    /// Use HTTP/1.1 with one connection per in-flight request instead of HTTP/2.
+    /// Upload in random order, to spread writes across the bucket's key range.
     #[arg(long)]
-    http1: bool,
+    shuffle: bool,
 
     /// Attempts per object before giving up.
     #[arg(long, default_value_t = 8)]
@@ -116,8 +112,7 @@ async fn main_inner() -> Result<()> {
             min: cli.min_concurrency,
             max: cli.max_concurrency,
         },
-        connections: cli.connections,
-        http1: cli.http1,
+        shuffle: cli.shuffle,
         max_attempts: cli.max_attempts,
         backoff_base: Duration::from_millis(500),
         timeout: Duration::from_secs(cli.timeout),
