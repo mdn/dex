@@ -337,10 +337,12 @@ async fn classify(response: reqwest::Result<reqwest::Response>) -> Outcome {
     let body = response.text().await.unwrap_or_default();
     let reason = format!("{status}: {}", body.chars().take(300).collect::<String>());
     match status {
-        // Cloud Storage answers 412 under load even though no precondition is sent.
+        // Under load, Cloud Storage answers 412 although no precondition is sent, and
+        // 409 FolderAlreadyExists when concurrent writes create the same parent folder.
         StatusCode::REQUEST_TIMEOUT
         | StatusCode::TOO_MANY_REQUESTS
-        | StatusCode::PRECONDITION_FAILED => Outcome::Retry {
+        | StatusCode::PRECONDITION_FAILED
+        | StatusCode::CONFLICT => Outcome::Retry {
             cause: status.as_u16().to_string(),
             reason,
             after,

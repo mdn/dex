@@ -189,6 +189,10 @@ async fn fails_on_rejected_credentials_and_exhausted_retries() {
             status: StatusCode::PRECONDITION_FAILED,
             expected: "gave up after 3 attempts: 412 Precondition Failed",
         },
+        Case {
+            status: StatusCode::CONFLICT,
+            expected: "gave up after 3 attempts: 409 Conflict",
+        },
     ];
     for case in cases {
         let source = tempfile::tempdir().unwrap();
