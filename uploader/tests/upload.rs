@@ -88,7 +88,6 @@ fn config(source: &Path, endpoint: String) -> Config {
             min: 2,
             max: 128,
         },
-        shuffle: false,
         max_attempts: 10,
         backoff_base: Duration::from_millis(5),
         timeout: Duration::from_secs(10),
@@ -158,9 +157,9 @@ async fn backs_off_and_completes_when_throttled() {
         capacity: Some(16),
         ..Default::default()
     });
-    let mut config = config(source.path(), serve(Arc::clone(&bucket)).await);
-    config.shuffle = true;
-    let summary = run(config).await.unwrap();
+    let summary = run(config(source.path(), serve(Arc::clone(&bucket)).await))
+        .await
+        .unwrap();
 
     assert_eq!(summary.files, 600);
     assert_eq!(summary.failed, 0);

@@ -41,10 +41,6 @@ struct Cli {
     #[arg(long, default_value_t = 2048)]
     max_concurrency: usize,
 
-    /// Upload in random order, to spread writes across the bucket's key range.
-    #[arg(long)]
-    shuffle: bool,
-
     /// Attempts per object before giving up.
     #[arg(long, default_value_t = 8)]
     max_attempts: u32,
@@ -112,7 +108,6 @@ async fn main_inner() -> Result<()> {
             min: cli.min_concurrency,
             max: cli.max_concurrency,
         },
-        shuffle: cli.shuffle,
         max_attempts: cli.max_attempts,
         backoff_base: Duration::from_millis(500),
         timeout: Duration::from_secs(cli.timeout),
