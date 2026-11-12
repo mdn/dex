@@ -22,3 +22,6 @@ yarn-error.log*
 
 function.zip
 .eslintcache
+
+# rust
+/uploader/target/
