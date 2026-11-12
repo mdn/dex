@@ -1,5 +1,6 @@
 use std::sync::atomic::{AtomicU64, AtomicUsize, Ordering};
 use std::sync::{Arc, Mutex};
+use std::time::{Duration, Instant};
 
 use tokio::sync::Semaphore;
 
@@ -15,6 +16,7 @@ pub struct Limiter {
     semaphore: Semaphore,
     state: Mutex<State>,
     bounds: Bounds,
+    cut_interval: Duration,
     limit: AtomicUsize,
     generation: AtomicU64,
     in_flight: AtomicUsize,
@@ -28,6 +30,7 @@ struct State {
     successes: usize,
     /// Limit at which backpressure last set in.
     ceiling: Option<usize>,
+    last_cut: Option<Instant>,
 }
 
 pub struct Permit {
@@ -36,7 +39,7 @@ pub struct Permit {
 }
 
 impl Limiter {
-    pub fn new(bounds: Bounds) -> Arc<Self> {
+    pub fn new(bounds: Bounds, cut_interval: Duration) -> Arc<Self> {
         let min = bounds.min.max(1);
         let max = bounds.max.max(min);
         let start = bounds.start.clamp(min, max);
@@ -47,8 +50,10 @@ impl Limiter {
                 debt: 0,
                 successes: 0,
                 ceiling: None,
+                last_cut: None,
             }),
             bounds: Bounds { start, min, max },
+            cut_interval,
             limit: AtomicUsize::new(start),
             generation: AtomicU64::new(0),
             in_flight: AtomicUsize::new(0),
@@ -93,8 +98,10 @@ impl Limiter {
         self.limit.store(state.limit, Ordering::Relaxed);
     }
 
-    /// Cuts the limit to 3/4, once per generation: failures of requests that
-    /// started before the last cut belong to the same episode.
+    /// Cuts the limit to 3/4, once per episode: failures of requests that started
+    /// before the last cut, or that follow it within the cut interval, belong to
+    /// the same one. A throttled bucket keeps rejecting for a few seconds
+    /// whatever the request rate.
     pub fn on_backpressure(&self, generation: u64) {
         let mut state = self.state.lock().unwrap();
         // Growth needs a full window without errors, stale ones included.
@@ -102,6 +109,14 @@ impl Limiter {
         if generation < self.generation.load(Ordering::Relaxed) {
             return;
         }
+        let now = Instant::now();
+        if state
+            .last_cut
+            .is_some_and(|last| now.duration_since(last) < self.cut_interval)
+        {
+            return;
+        }
+        state.last_cut = Some(now);
         self.generation.fetch_add(1, Ordering::Relaxed);
         state.ceiling = Some(state.limit);
         let target = (state.limit * 3 / 4).max(self.bounds.min);
@@ -161,7 +176,7 @@ mod tests {
     use super::*;
 
     fn limiter(start: usize, min: usize, max: usize) -> Arc<Limiter> {
-        Limiter::new(Bounds { start, min, max })
+        Limiter::new(Bounds { start, min, max }, Duration::ZERO)
     }
 
     fn succeed(limiter: &Limiter, count: usize) {
@@ -239,6 +254,23 @@ mod tests {
 
         limiter.on_backpressure(limiter.generation());
         assert_eq!(limiter.limit(), 36);
+    }
+
+    #[test]
+    fn failures_right_after_a_cut_do_not_cut_again() {
+        let limiter = Limiter::new(
+            Bounds {
+                start: 64,
+                min: 1,
+                max: 64,
+            },
+            Duration::from_secs(60),
+        );
+        for _ in 0..10 {
+            limiter.on_backpressure(limiter.generation());
+        }
+        assert_eq!(limiter.limit(), 48);
+        assert_eq!(limiter.decreases(), 1);
     }
 
     #[test]
