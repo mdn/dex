@@ -93,7 +93,7 @@ pub async fn run(config: Config) -> Result<Summary> {
     let base_url = Url::parse(&config.endpoint)
         .with_context(|| format!("invalid endpoint {}", config.endpoint))?;
     let client = build_client(&config)?;
-    let limiter = Limiter::new(config.concurrency, Duration::from_secs(1));
+    let limiter = Limiter::new(config.concurrency);
     let stats = Arc::new(Stats::new(files.len() as u64));
     let cpus = std::thread::available_parallelism().map_or(1, |n| n.get());
 
@@ -254,8 +254,8 @@ async fn upload(shared: &Arc<Shared>, path: &Path, key: &str) -> Result<()> {
         if shared.abort.load(Ordering::Relaxed) {
             bail!("aborted");
         }
-        let outcome = {
-            let _permit = shared.limiter.acquire().await;
+        let (outcome, generation) = {
+            let permit = shared.limiter.acquire().await;
             let mut request = shared
                 .client
                 .put(url.clone())
@@ -268,7 +268,7 @@ async fn upload(shared: &Arc<Shared>, path: &Path, key: &str) -> Result<()> {
             if let Some(cache_control) = &config.cache_control {
                 request = request.header(CACHE_CONTROL, cache_control);
             }
-            classify(request.send().await).await
+            (classify(request.send().await).await, permit.generation())
         };
         match outcome {
             Outcome::Done => {
@@ -289,7 +289,7 @@ async fn upload(shared: &Arc<Shared>, path: &Path, key: &str) -> Result<()> {
                 reason,
                 after,
             } => {
-                shared.limiter.on_backpressure();
+                shared.limiter.on_backpressure(generation);
                 if attempt + 1 < config.max_attempts && shared.stats.retried(&cause) {
                     eprintln!("first retry caused by {cause}: {reason}");
                 }
