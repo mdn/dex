@@ -576,14 +576,8 @@ jobs:
       max-parallel: 1
       matrix:
         include:
-          - variant: h2
-            args: ""
-          - variant: http1
-            args: "--http1"
-          - variant: h2-4096
-            args: "--max-concurrency 4096 --connections 64"
-          - variant: http1-4096
-            args: "--http1 --max-concurrency 4096"
+          - variant: http1-1024-2048
+            args: "--http1 --concurrency 1024 --max-concurrency 2048"
     steps:
       - name: Checkout
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
