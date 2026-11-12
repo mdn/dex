@@ -1,8 +1,9 @@
+use std::collections::BTreeMap;
 use std::fs::File;
 use std::io::{BufWriter, Write};
 use std::path::Path;
-use std::sync::Arc;
 use std::sync::atomic::{AtomicU64, Ordering};
+use std::sync::{Arc, Mutex};
 use std::time::{Duration, Instant};
 
 use anyhow::{Context, Result};
@@ -19,6 +20,7 @@ pub struct Stats {
     raw_bytes: AtomicU64,
     wire_bytes: AtomicU64,
     retries: AtomicU64,
+    retry_causes: Mutex<BTreeMap<String, u64>>,
     failed: AtomicU64,
 }
 
@@ -36,6 +38,7 @@ pub struct Summary {
     pub raw_bytes: u64,
     pub wire_bytes: u64,
     pub retries: u64,
+    pub retry_causes: BTreeMap<String, u64>,
     pub limit_decreases: u64,
     pub final_limit: usize,
     pub peak_files_per_s: f64,
@@ -57,8 +60,13 @@ impl Stats {
         self.wire_bytes.fetch_add(wire_bytes, Ordering::Relaxed);
     }
 
-    pub fn retried(&self) {
+    /// Returns whether this is the first retry with this cause.
+    pub fn retried(&self, cause: &str) -> bool {
         self.retries.fetch_add(1, Ordering::Relaxed);
+        let mut causes = self.retry_causes.lock().unwrap();
+        let count = causes.entry(cause.to_owned()).or_default();
+        *count += 1;
+        *count == 1
     }
 
     pub fn failed(&self) {
@@ -119,7 +127,17 @@ impl std::fmt::Display for Summary {
             f,
             "  retries: {}, concurrency decreases: {}, final concurrency limit: {}",
             self.retries, self.limit_decreases, self.final_limit
-        )
+        )?;
+        if !self.retry_causes.is_empty() {
+            let causes = self
+                .retry_causes
+                .iter()
+                .map(|(cause, count)| format!("{cause} x{count}"))
+                .collect::<Vec<_>>()
+                .join(", ");
+            write!(f, "\n  retry causes: {causes}")?;
+        }
+        Ok(())
     }
 }
 
@@ -209,6 +227,7 @@ pub async fn report(
         raw_bytes: total.raw_bytes,
         wire_bytes: total.wire_bytes,
         retries: stats.retries.load(Ordering::Relaxed),
+        retry_causes: stats.retry_causes.lock().unwrap().clone(),
         limit_decreases: limiter.decreases(),
         final_limit: limiter.limit(),
         peak_files_per_s,

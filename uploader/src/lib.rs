@@ -72,6 +72,8 @@ struct Payload {
 enum Outcome {
     Done,
     Retry {
+        /// Status code or kind of transport error, for the retry statistics.
+        cause: String,
         reason: String,
         after: Option<Duration>,
     },
@@ -282,11 +284,17 @@ async fn upload(shared: &Arc<Shared>, index: usize, path: &Path, key: &str) -> R
                 }
                 bail!(reason);
             }
-            Outcome::Retry { reason, after } => {
+            Outcome::Retry {
+                cause,
+                reason,
+                after,
+            } => {
                 shared.limiter.on_backpressure();
+                if attempt + 1 < config.max_attempts && shared.stats.retried(&cause) {
+                    eprintln!("first retry caused by {cause}: {reason}");
+                }
                 last_reason = reason;
                 if attempt + 1 < config.max_attempts {
-                    shared.stats.retried();
                     tokio::time::sleep(after.unwrap_or_else(|| backoff(config, attempt))).await;
                 }
             }
@@ -303,7 +311,15 @@ async fn classify(response: reqwest::Result<reqwest::Response>) -> Outcome {
         Ok(response) => response,
         // Timeouts and resets are how an overloaded endpoint usually shows up.
         Err(error) => {
+            let cause = if error.is_timeout() {
+                "timeout"
+            } else if error.is_connect() {
+                "connect"
+            } else {
+                "transport"
+            };
             return Outcome::Retry {
+                cause: cause.to_owned(),
                 reason: format!("{error:#}"),
                 after: None,
             };
@@ -322,10 +338,16 @@ async fn classify(response: reqwest::Result<reqwest::Response>) -> Outcome {
     let body = response.text().await.unwrap_or_default();
     let reason = format!("{status}: {}", body.chars().take(300).collect::<String>());
     match status {
-        StatusCode::REQUEST_TIMEOUT | StatusCode::TOO_MANY_REQUESTS => {
-            Outcome::Retry { reason, after }
-        }
-        status if status.is_server_error() => Outcome::Retry { reason, after },
+        StatusCode::REQUEST_TIMEOUT | StatusCode::TOO_MANY_REQUESTS => Outcome::Retry {
+            cause: status.as_u16().to_string(),
+            reason,
+            after,
+        },
+        status if status.is_server_error() => Outcome::Retry {
+            cause: status.as_u16().to_string(),
+            reason,
+            after,
+        },
         StatusCode::UNAUTHORIZED | StatusCode::FORBIDDEN => Outcome::Fatal {
             reason,
             abort: true,
