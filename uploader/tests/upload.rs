@@ -186,6 +186,10 @@ async fn fails_on_rejected_credentials_and_exhausted_retries() {
             status: StatusCode::SERVICE_UNAVAILABLE,
             expected: "gave up after 3 attempts: 503 Service Unavailable",
         },
+        Case {
+            status: StatusCode::PRECONDITION_FAILED,
+            expected: "gave up after 3 attempts: 412 Precondition Failed",
+        },
     ];
     for case in cases {
         let source = tempfile::tempdir().unwrap();

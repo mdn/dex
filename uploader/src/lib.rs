@@ -338,7 +338,10 @@ async fn classify(response: reqwest::Result<reqwest::Response>) -> Outcome {
     let body = response.text().await.unwrap_or_default();
     let reason = format!("{status}: {}", body.chars().take(300).collect::<String>());
     match status {
-        StatusCode::REQUEST_TIMEOUT | StatusCode::TOO_MANY_REQUESTS => Outcome::Retry {
+        // Cloud Storage answers 412 under load even though no precondition is sent.
+        StatusCode::REQUEST_TIMEOUT
+        | StatusCode::TOO_MANY_REQUESTS
+        | StatusCode::PRECONDITION_FAILED => Outcome::Retry {
             cause: status.as_u16().to_string(),
             reason,
             after,
