@@ -167,6 +167,7 @@ async fn backs_off_and_completes_when_throttled() {
     assert_eq!(summary.failed, 0);
     assert_eq!(bucket.objects.lock().unwrap().len(), 600);
     assert!(summary.retries > 0, "expected retries");
+    assert_eq!(summary.retry_causes.get("429"), Some(&summary.retries));
     assert!(summary.limit_decreases > 0, "expected the limit to drop");
     assert!(summary.final_limit < 64, "limit {}", summary.final_limit);
 }
