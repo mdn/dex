@@ -419,7 +419,6 @@ jobs:
         run: echo "prefix=deployments/$(date -u +%Y%m%d-%H%M%S)-${GITHUB_RUN_ID}-${GITHUB_RUN_ATTEMPT}" >> "$GITHUB_OUTPUT"
 
       - name: Authenticate with GCP
-        id: auth
         uses: google-github-actions/auth@7c6bc770dae815cd3e89ee6cdf493a5fab2cc093 # v3.0.0
         with:
           token_format: access_token
@@ -444,21 +443,6 @@ jobs:
           process_gcloudignore: false
           headers: |-
             cache-control: public, max-age=3600
-
-      - name: Upload build with dex-uploader (experiment)
-        continue-on-error: true
-        working-directory: mdn/dex/uploader
-        env:
-          GCS_ACCESS_TOKEN: ${{ steps.auth.outputs.access_token }}
-          DESTINATION: gs://${{ vars.GCP_BUCKET_NAME }}/${{ steps.deployment-prefix.outputs.prefix }}-rs
-        run: |-
-          time cargo build --release
-          status=0
-          time ./target/release/dex-uploader "$GITHUB_WORKSPACE/mdn/fred/out" "$DESTINATION" \
-            --cache-control "public, max-age=3600" \
-            --stats-file "$RUNNER_TEMP/upload-stats.csv" || status=$?
-          cat "$RUNNER_TEMP/upload-stats.csv"
-          exit "$status"
 
       - name: Print disk usage (final)
         if: ${{ always() }}
@@ -580,3 +564,80 @@ jobs:
       - name: Invalidate CDN
         if: ${{ github.event.inputs.invalidate }}
         run: gcloud compute url-maps invalidate-cdn-cache ${{ secrets.GCP_LOAD_BALANCER_NAME }} --path "/*" --async
+
+  # TEMP: compares dex-uploader settings one after the other, after the upload
+  # jobs, so the variants compete neither with each other nor with the deployment.
+  uploader-experiment:
+    needs: [build, upload]
+    environment: test
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      max-parallel: 1
+      matrix:
+        include:
+          - variant: h2
+            args: ""
+          - variant: http1
+            args: "--http1"
+          - variant: h2-4096
+            args: "--max-concurrency 4096 --connections 64"
+          - variant: http1-4096
+            args: "--http1 --max-concurrency 4096"
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Cache dex-uploader binary
+        id: cache
+        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+        with:
+          path: uploader/target/release/dex-uploader
+          key: dex-uploader-${{ runner.os }}-${{ hashFiles('uploader/Cargo.lock', 'uploader/Cargo.toml', 'uploader/src/**') }}
+
+      - name: Build dex-uploader
+        if: ${{ steps.cache.outputs.cache-hit != 'true' }}
+        working-directory: uploader
+        run: cargo build --release
+
+      - name: Download pieces artifact
+        uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
+        with:
+          name: pieces
+          path: ${{ runner.temp }}/pieces
+
+      - name: Unpack pieces
+        run: |-
+          mkdir "$RUNNER_TEMP/out"
+          for piece in "$RUNNER_TEMP"/pieces/*.tar.zst; do
+            tar -C "$RUNNER_TEMP/out" -I zstd -xf "$piece" &
+          done
+          wait
+          find "$RUNNER_TEMP/out" -type f | wc -l
+
+      - name: Authenticate with GCP
+        id: auth
+        uses: google-github-actions/auth@7c6bc770dae815cd3e89ee6cdf493a5fab2cc093 # v3.0.0
+        with:
+          token_format: access_token
+          service_account: deploy-test-content@${{ secrets.GCP_PROJECT_NAME }}.iam.gserviceaccount.com
+          workload_identity_provider: projects/${{ secrets.WIP_PROJECT_ID }}/locations/global/workloadIdentityPools/github-actions/providers/github-actions
+
+      - name: Upload (${{ matrix.variant }})
+        env:
+          GCS_ACCESS_TOKEN: ${{ steps.auth.outputs.access_token }}
+          DESTINATION: gs://${{ vars.GCP_BUCKET_NAME }}/${{ needs.build.outputs.prefix }}-rs-${{ matrix.variant }}
+          ARGS: ${{ matrix.args }}
+        run: |-
+          set -o pipefail
+          # shellcheck disable=SC2086
+          ./uploader/target/release/dex-uploader "$RUNNER_TEMP/out" "$DESTINATION" \
+            --cache-control "public, max-age=3600, no-transform" \
+            --stats-file "$RUNNER_TEMP/upload-stats.csv" $ARGS | tee "$RUNNER_TEMP/upload.log"
+          {
+            echo '```'
+            sed -n '/^Uploaded /,$p' "$RUNNER_TEMP/upload.log"
+            echo '```'
+          } >> "$GITHUB_STEP_SUMMARY"
