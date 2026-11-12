@@ -1,3 +1,4 @@
+pub mod conflicts;
 pub mod limiter;
 pub mod stats;
 
@@ -17,6 +18,7 @@ use tokio::sync::{Semaphore, oneshot};
 use tokio::task::JoinSet;
 use walkdir::WalkDir;
 
+use conflicts::Conflicts;
 use limiter::{Bounds, Limiter};
 use stats::{Stats, Summary};
 
@@ -30,6 +32,7 @@ const INCOMPRESSIBLE: &[&str] = &[
 
 const MAX_BACKOFF: Duration = Duration::from_secs(30);
 const CUT_INTERVAL: Duration = Duration::from_secs(3);
+const CONFLICT_WINDOW: Duration = Duration::from_secs(2);
 const MAX_REPORTED_FAILURES: usize = 20;
 
 #[derive(Clone, Debug)]
@@ -57,6 +60,7 @@ struct Shared {
     limiter: Arc<Limiter>,
     stats: Arc<Stats>,
     cpu: Semaphore,
+    conflicts: Conflicts,
     abort: AtomicBool,
 }
 
@@ -112,6 +116,7 @@ pub async fn run(config: Config) -> Result<Summary> {
         limiter,
         stats,
         cpu: Semaphore::new(cpus),
+        conflicts: Conflicts::new(CONFLICT_WINDOW),
         abort: AtomicBool::new(false),
     });
 
@@ -255,6 +260,7 @@ async fn upload(shared: &Arc<Shared>, path: &Path, key: &str) -> Result<()> {
         }
         let (outcome, generation) = {
             let permit = shared.limiter.acquire().await;
+            shared.conflicts.started(key);
             let mut request = shared
                 .client
                 .put(url.clone())
@@ -284,10 +290,13 @@ async fn upload(shared: &Arc<Shared>, path: &Path, key: &str) -> Result<()> {
                 bail!(reason);
             }
             Outcome::Retry {
-                cause,
+                mut cause,
                 reason,
                 after,
             } => {
+                if cause == "409" {
+                    cause = format!("409 next to {}", shared.conflicts.neighbour(key));
+                }
                 shared.limiter.on_backpressure(generation);
                 if attempt + 1 < config.max_attempts && shared.stats.retried(&cause) {
                     eprintln!("first retry caused by {cause}: {reason}");
