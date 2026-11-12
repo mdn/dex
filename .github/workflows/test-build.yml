@@ -419,6 +419,7 @@ jobs:
         run: echo "prefix=deployments/$(date -u +%Y%m%d-%H%M%S)-${GITHUB_RUN_ID}-${GITHUB_RUN_ATTEMPT}" >> "$GITHUB_OUTPUT"
 
       - name: Authenticate with GCP
+        id: auth
         uses: google-github-actions/auth@7c6bc770dae815cd3e89ee6cdf493a5fab2cc093 # v3.0.0
         with:
           token_format: access_token
@@ -443,6 +444,21 @@ jobs:
           process_gcloudignore: false
           headers: |-
             cache-control: public, max-age=3600
+
+      - name: Upload build with dex-uploader (experiment)
+        continue-on-error: true
+        working-directory: mdn/dex/uploader
+        env:
+          GCS_ACCESS_TOKEN: ${{ steps.auth.outputs.access_token }}
+          DESTINATION: gs://${{ vars.GCP_BUCKET_NAME }}/${{ steps.deployment-prefix.outputs.prefix }}-rs
+        run: |-
+          time cargo build --release
+          status=0
+          time ./target/release/dex-uploader "$GITHUB_WORKSPACE/mdn/fred/out" "$DESTINATION" \
+            --cache-control "public, max-age=3600" \
+            --stats-file "$RUNNER_TEMP/upload-stats.csv" || status=$?
+          cat "$RUNNER_TEMP/upload-stats.csv"
+          exit "$status"
 
       - name: Print disk usage (final)
         if: ${{ always() }}
