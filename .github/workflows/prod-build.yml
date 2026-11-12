@@ -35,6 +35,10 @@ jobs:
   build:
     environment: prod
     runs-on: ubuntu-latest-dex-builder
+    timeout-minutes: 120
+
+    concurrency:
+      group: ${{ github.workflow }}
 
     # Only run the scheduled workflows on the main repo.
     if: github.repository == 'mdn/dex'
