@@ -1,6 +1,5 @@
 use std::sync::atomic::{AtomicU64, AtomicUsize, Ordering};
 use std::sync::{Arc, Mutex};
-use std::time::{Duration, Instant};
 
 use tokio::sync::Semaphore;
 
@@ -11,13 +10,13 @@ pub struct Bounds {
     pub max: usize,
 }
 
-/// Adaptive concurrency limit: grows while requests succeed, halves on backpressure.
+/// Adaptive concurrency limit: grows while requests succeed, shrinks on backpressure.
 pub struct Limiter {
     semaphore: Semaphore,
     state: Mutex<State>,
     bounds: Bounds,
-    cooldown: Duration,
     limit: AtomicUsize,
+    generation: AtomicU64,
     in_flight: AtomicUsize,
     decreases: AtomicU64,
 }
@@ -27,15 +26,17 @@ struct State {
     /// Permits still to be withdrawn after a decrease, collected as requests finish.
     debt: usize,
     successes: usize,
-    last_decrease: Option<Instant>,
+    /// Limit at which backpressure last set in.
+    ceiling: Option<usize>,
 }
 
 pub struct Permit {
     limiter: Arc<Limiter>,
+    generation: u64,
 }
 
 impl Limiter {
-    pub fn new(bounds: Bounds, cooldown: Duration) -> Arc<Self> {
+    pub fn new(bounds: Bounds) -> Arc<Self> {
         let min = bounds.min.max(1);
         let max = bounds.max.max(min);
         let start = bounds.start.clamp(min, max);
@@ -45,11 +46,11 @@ impl Limiter {
                 limit: start,
                 debt: 0,
                 successes: 0,
-                last_decrease: None,
+                ceiling: None,
             }),
             bounds: Bounds { start, min, max },
-            cooldown,
             limit: AtomicUsize::new(start),
+            generation: AtomicU64::new(0),
             in_flight: AtomicUsize::new(0),
             decreases: AtomicU64::new(0),
         })
@@ -64,10 +65,12 @@ impl Limiter {
         self.in_flight.fetch_add(1, Ordering::Relaxed);
         Permit {
             limiter: Arc::clone(self),
+            generation: self.generation.load(Ordering::Relaxed),
         }
     }
 
-    /// Grows the limit by 1/8 once a full window of requests has succeeded.
+    /// Grows the limit once a full window of requests has succeeded: by 1/8
+    /// while well below the last ceiling, by 1/64 when probing near or beyond it.
     pub fn on_success(&self) {
         let mut state = self.state.lock().unwrap();
         state.successes += 1;
@@ -75,7 +78,14 @@ impl Limiter {
             return;
         }
         state.successes = 0;
-        let step = (state.limit / 8).max(1).min(self.bounds.max - state.limit);
+        let limit = state.limit;
+        let knee = state.ceiling.map(|ceiling| ceiling * 9 / 10);
+        let step = match knee {
+            Some(knee) if limit >= knee => limit / 64,
+            Some(knee) => (limit / 8).min(knee - limit),
+            None => limit / 8,
+        };
+        let step = step.max(1).min(self.bounds.max - limit);
         state.limit += step;
         let repaid = step.min(state.debt);
         state.debt -= repaid;
@@ -83,20 +93,18 @@ impl Limiter {
         self.limit.store(state.limit, Ordering::Relaxed);
     }
 
-    /// Halves the limit, at most once per cooldown so a burst of errors counts once.
-    pub fn on_backpressure(&self) {
+    /// Cuts the limit to 3/4, once per generation: failures of requests that
+    /// started before the last cut belong to the same episode.
+    pub fn on_backpressure(&self, generation: u64) {
         let mut state = self.state.lock().unwrap();
-        // Growth needs a full window without errors, even during the cooldown.
+        // Growth needs a full window without errors, stale ones included.
         state.successes = 0;
-        let now = Instant::now();
-        if state
-            .last_decrease
-            .is_some_and(|last| now.duration_since(last) < self.cooldown)
-        {
+        if generation < self.generation.load(Ordering::Relaxed) {
             return;
         }
-        state.last_decrease = Some(now);
-        let target = (state.limit / 2).max(self.bounds.min);
+        self.generation.fetch_add(1, Ordering::Relaxed);
+        state.ceiling = Some(state.limit);
+        let target = (state.limit * 3 / 4).max(self.bounds.min);
         state.debt += state.limit - target;
         state.limit = target;
         while state.debt > 0 {
@@ -112,6 +120,10 @@ impl Limiter {
         self.decreases.fetch_add(1, Ordering::Relaxed);
     }
 
+    pub fn generation(&self) -> u64 {
+        self.generation.load(Ordering::Relaxed)
+    }
+
     pub fn limit(&self) -> usize {
         self.limit.load(Ordering::Relaxed)
     }
@@ -122,6 +134,12 @@ impl Limiter {
 
     pub fn decreases(&self) -> u64 {
         self.decreases.load(Ordering::Relaxed)
+    }
+}
+
+impl Permit {
+    pub fn generation(&self) -> u64 {
+        self.generation
     }
 }
 
@@ -143,7 +161,13 @@ mod tests {
     use super::*;
 
     fn limiter(start: usize, min: usize, max: usize) -> Arc<Limiter> {
-        Limiter::new(Bounds { start, min, max }, Duration::ZERO)
+        Limiter::new(Bounds { start, min, max })
+    }
+
+    fn succeed(limiter: &Limiter, count: usize) {
+        for _ in 0..count {
+            limiter.on_success();
+        }
     }
 
     #[test]
@@ -178,48 +202,56 @@ mod tests {
                 expected: 64,
             },
             Case {
-                name: "halves on backpressure",
+                name: "cut to 3/4 on backpressure",
                 bounds: (16, 4, 64),
                 successes: 0,
                 backpressure: 1,
-                expected: 8,
+                expected: 12,
             },
             Case {
                 name: "floored at min",
                 bounds: (16, 4, 64),
                 successes: 0,
-                backpressure: 5,
+                backpressure: 8,
                 expected: 4,
             },
         ];
         for case in cases {
             let (start, min, max) = case.bounds;
             let limiter = limiter(start, min, max);
-            for _ in 0..case.successes {
-                limiter.on_success();
-            }
+            succeed(&limiter, case.successes);
             for _ in 0..case.backpressure {
-                limiter.on_backpressure();
+                limiter.on_backpressure(limiter.generation());
             }
             assert_eq!(limiter.limit(), case.expected, "{}", case.name);
         }
     }
 
     #[test]
-    fn cooldown_collapses_error_bursts() {
-        let limiter = Limiter::new(
-            Bounds {
-                start: 64,
-                min: 1,
-                max: 64,
-            },
-            Duration::from_secs(60),
-        );
+    fn failures_from_before_a_cut_do_not_cut_again() {
+        let limiter = limiter(64, 1, 64);
+        let generation = limiter.generation();
         for _ in 0..10 {
-            limiter.on_backpressure();
+            limiter.on_backpressure(generation);
         }
-        assert_eq!(limiter.limit(), 32);
+        assert_eq!(limiter.limit(), 48);
         assert_eq!(limiter.decreases(), 1);
+
+        limiter.on_backpressure(limiter.generation());
+        assert_eq!(limiter.limit(), 36);
+    }
+
+    #[test]
+    fn growth_slows_near_the_last_ceiling() {
+        let limiter = limiter(64, 1, 1024);
+        limiter.on_backpressure(limiter.generation());
+        assert_eq!(limiter.limit(), 48);
+
+        // Fast up to 90% of the ceiling of 64, then one step of 1/64 per window.
+        for expected in [54, 57, 58, 59] {
+            succeed(&limiter, limiter.limit());
+            assert_eq!(limiter.limit(), expected);
+        }
     }
 
     #[tokio::test]
@@ -229,11 +261,11 @@ mod tests {
         for _ in 0..4 {
             permits.push(limiter.acquire().await);
         }
-        limiter.on_backpressure();
-        assert_eq!(limiter.limit(), 2);
+        limiter.on_backpressure(permits[0].generation());
+        assert_eq!(limiter.limit(), 3);
 
         permits.truncate(1);
         assert_eq!(limiter.in_flight(), 1);
-        assert_eq!(limiter.semaphore.available_permits(), 1);
+        assert_eq!(limiter.semaphore.available_permits(), 2);
     }
 }
