@@ -29,6 +29,7 @@ const INCOMPRESSIBLE: &[&str] = &[
 ];
 
 const MAX_BACKOFF: Duration = Duration::from_secs(30);
+const CUT_INTERVAL: Duration = Duration::from_secs(3);
 const MAX_REPORTED_FAILURES: usize = 20;
 
 #[derive(Clone, Debug)]
@@ -91,7 +92,7 @@ pub async fn run(config: Config) -> Result<Summary> {
     let base_url = Url::parse(&config.endpoint)
         .with_context(|| format!("invalid endpoint {}", config.endpoint))?;
     let client = build_client(&config)?;
-    let limiter = Limiter::new(config.concurrency);
+    let limiter = Limiter::new(config.concurrency, CUT_INTERVAL);
     let stats = Arc::new(Stats::new(files.len() as u64));
     let cpus = std::thread::available_parallelism().map_or(1, |n| n.get());
 
