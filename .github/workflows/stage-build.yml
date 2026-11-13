@@ -45,6 +45,10 @@ jobs:
   build:
     environment: stage
     runs-on: ubuntu-latest-dex-builder
+    timeout-minutes: 120
+
+    concurrency:
+      group: ${{ github.workflow }}
 
     # We only ever want to deploy the `next` branch to stage.
     if: ${{ github.repository == 'mdn/dex' && github.ref_name == 'next' }}

@@ -66,6 +66,10 @@ jobs:
   build:
     environment: test
     runs-on: ubuntu-latest-dex-builder
+    timeout-minutes: 120
+
+    concurrency:
+      group: ${{ github.workflow }}
 
     # When run from `main` branch, only trigger workflow on `test` branch (see above).
     if: github.repository == 'mdn/dex' && github.ref_name != 'main'
