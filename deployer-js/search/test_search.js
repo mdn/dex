@@ -1,7 +1,7 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
 
-import { htmlStrip, htmlToSearchFields } from "./index.js";
+import { htmlStrip, htmlToSearchFields, slugLeaf } from "./index.js";
 import { mappings, settings } from "./models.js";
 
 test("html_strip basic", () => {
@@ -75,6 +75,21 @@ test("inline code mapping supports exact punctuation and identifier prefixes", (
   });
 });
 
+test("slugLeaf returns the lowercased last slug segment", async (t) => {
+  const cases = [
+    {
+      slug: "Web/JavaScript/Reference/Global_Objects/Promise/then",
+      expected: "then",
+    },
+    { slug: "Web/HTML/Reference/Elements/a", expected: "a" },
+    { slug: "Web/CSS/Reference/Selectors/::before", expected: "::before" },
+    { slug: "Glossary", expected: "glossary" },
+  ];
+  for (const { slug, expected } of cases) {
+    await t.test(slug, () => assert.equal(slugLeaf(slug), expected));
+  }
+});
+
 test("search field mappings", async (t) => {
   const properties = mappings.properties ?? {};
   /** @param {string} path */
@@ -93,6 +108,15 @@ test("search field mappings", async (t) => {
     {
       path: "summary.code",
       expected: { type: "text", analyzer: "punctuation_analyzer" },
+    },
+    { path: "slug_leaf", expected: { type: "keyword" } },
+    {
+      path: "title.joined",
+      expected: {
+        type: "text",
+        analyzer: "joined_analyzer",
+        search_analyzer: "standard",
+      },
     },
   ];
   for (const { path, expected } of cases) {
@@ -158,6 +182,11 @@ test(
         analyzer: "punctuation_analyzer",
         text: ":has()",
         expected: [":has"],
+      },
+      {
+        analyzer: "joined_analyzer",
+        text: "Web Workers API",
+        expected: ["webworkers", "workersapi"],
       },
     ];
     for (const { analyzer, text, expected } of cases) {
