@@ -29,6 +29,10 @@ struct Cli {
     #[arg(long, default_value_t = 6, value_parser = clap::value_parser!(u32).range(0..=9))]
     gzip_level: u32,
 
+    /// Do not send the CRC32C of each object for Cloud Storage to verify.
+    #[arg(long)]
+    no_crc32c: bool,
+
     /// Initial number of concurrent requests.
     #[arg(long, default_value_t = 128)]
     concurrency: usize,
@@ -103,6 +107,7 @@ async fn main_inner() -> Result<()> {
         token,
         cache_control: cli.cache_control,
         gzip_level: cli.gzip_level,
+        crc32c: !cli.no_crc32c,
         concurrency: Bounds {
             start: cli.concurrency,
             min: cli.min_concurrency,

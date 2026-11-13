@@ -10,6 +10,8 @@ use axum::body::Bytes;
 use axum::extract::{Path as UrlPath, State};
 use axum::http::{HeaderMap, StatusCode};
 use axum::routing::put;
+use base64::Engine;
+use base64::engine::general_purpose::STANDARD;
 use dex_uploader::limiter::Bounds;
 use dex_uploader::{Config, run};
 use flate2::read::GzDecoder;
@@ -19,6 +21,7 @@ struct Object {
     content_type: String,
     content_encoding: Option<String>,
     cache_control: Option<String>,
+    hash: Option<String>,
 }
 
 #[derive(Default)]
@@ -59,6 +62,7 @@ async fn put_object(
             content_type: header("content-type").unwrap_or_default(),
             content_encoding: header("content-encoding"),
             cache_control: header("cache-control"),
+            hash: header("x-goog-hash"),
         },
     );
     StatusCode::OK
@@ -83,6 +87,7 @@ fn config(source: &Path, endpoint: String) -> Config {
         token: "token".into(),
         cache_control: Some("public, max-age=3600".into()),
         gzip_level: 6,
+        crc32c: true,
         concurrency: Bounds {
             start: 64,
             min: 2,
@@ -142,6 +147,15 @@ async fn uploads_tree_with_metadata() {
     assert_eq!(logo.content_type, "image/png");
     assert_eq!(logo.content_encoding, None);
     assert_eq!(&logo.body[..], [0x89, b'P', b'N', b'G']);
+
+    // CRC32C is computed over the stored (gzipped) bytes.
+    for object in objects.values() {
+        let expected = STANDARD.encode(crc32c::crc32c(&object.body).to_be_bytes());
+        assert_eq!(
+            object.hash.as_deref(),
+            Some(format!("crc32c={expected}").as_str())
+        );
+    }
 
     let csv = std::fs::read_to_string(&stats_file).unwrap();
     std::fs::remove_file(&stats_file).unwrap();

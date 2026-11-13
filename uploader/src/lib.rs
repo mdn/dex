@@ -8,6 +8,8 @@ use std::sync::atomic::{AtomicBool, Ordering};
 use std::time::Duration;
 
 use anyhow::{Context, Result, anyhow, bail};
+use base64::Engine;
+use base64::engine::general_purpose::STANDARD;
 use bytes::Bytes;
 use flate2::Compression;
 use flate2::write::GzEncoder;
@@ -42,6 +44,8 @@ pub struct Config {
     pub cache_control: Option<String>,
     /// 0 uploads everything uncompressed.
     pub gzip_level: u32,
+    /// Send the CRC32C of each body so Cloud Storage rejects corrupted uploads.
+    pub crc32c: bool,
     pub concurrency: Bounds,
     pub max_attempts: u32,
     pub backoff_base: Duration,
@@ -64,6 +68,8 @@ struct Payload {
     body: Bytes,
     raw_len: u64,
     gzipped: bool,
+    /// Base64 big-endian CRC32C of `body`, as expected by `x-goog-hash`.
+    crc32c: Option<String>,
 }
 
 enum Outcome {
@@ -216,11 +222,12 @@ fn should_gzip(path: &Path) -> bool {
         .is_none_or(|extension| !INCOMPRESSIBLE.contains(&extension.to_ascii_lowercase().as_str()))
 }
 
-fn prepare(path: &Path, gzip_level: u32) -> Result<Payload> {
+fn prepare(path: &Path, gzip_level: u32, crc32c: bool) -> Result<Payload> {
     let raw = std::fs::read(path).with_context(|| format!("cannot read {}", path.display()))?;
     let raw_len = raw.len() as u64;
     if gzip_level == 0 || !should_gzip(path) {
         return Ok(Payload {
+            crc32c: crc32c.then(|| checksum(&raw)),
             body: raw.into(),
             raw_len,
             gzipped: false,
@@ -231,19 +238,25 @@ fn prepare(path: &Path, gzip_level: u32) -> Result<Payload> {
         Compression::new(gzip_level),
     );
     encoder.write_all(&raw)?;
+    let body = encoder.finish()?;
     Ok(Payload {
-        body: encoder.finish()?.into(),
+        crc32c: crc32c.then(|| checksum(&body)),
+        body: body.into(),
         raw_len,
         gzipped: true,
     })
+}
+
+fn checksum(body: &[u8]) -> String {
+    STANDARD.encode(crc32c::crc32c(body).to_be_bytes())
 }
 
 async fn upload(shared: &Arc<Shared>, path: &Path, key: &str) -> Result<()> {
     let config = &shared.config;
     let payload = {
         let _cpu = shared.cpu.acquire().await?;
-        let (path, level) = (path.to_owned(), config.gzip_level);
-        tokio::task::spawn_blocking(move || prepare(&path, level)).await??
+        let (path, level, crc32c) = (path.to_owned(), config.gzip_level, config.crc32c);
+        tokio::task::spawn_blocking(move || prepare(&path, level, crc32c)).await??
     };
     let url = object_url(&shared.base_url, &config.bucket, &config.prefix, key)?;
     let content_type = mime_guess::from_path(path).first_or_octet_stream();
@@ -263,6 +276,9 @@ async fn upload(shared: &Arc<Shared>, path: &Path, key: &str) -> Result<()> {
                 .body(payload.body.clone());
             if payload.gzipped {
                 request = request.header(CONTENT_ENCODING, "gzip");
+            }
+            if let Some(crc32c) = &payload.crc32c {
+                request = request.header("x-goog-hash", format!("crc32c={crc32c}"));
             }
             if let Some(cache_control) = &config.cache_control {
                 request = request.header(CACHE_CONTROL, cache_control);
