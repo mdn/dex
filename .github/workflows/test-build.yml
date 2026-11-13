@@ -467,12 +467,12 @@ jobs:
           headers: |-
             cache-control: public, max-age=3600
 
-      # TEMP: `rucs` from source until it is wired in via npm.
+      # TEMP: unreleased `rucs` branch under test.
       - name: Checkout rucs
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           repository: mdn/rucs
-          ref: main
+          ref: zstd-compression
           path: mdn/rucs
           # mdn/rucs is private for now; read-only fine-grained token.
           token: ${{ secrets.MDN_RUCS_PAT }}
@@ -489,12 +489,39 @@ jobs:
           path: mdn/rucs/target/release/rucs
           key: rucs-${{ runner.os }}-${{ steps.rucs.outputs.sha }}
 
+      # TEMP: `rucs` main as the control.
+      - name: Checkout rucs main
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          repository: mdn/rucs
+          ref: main
+          path: mdn/rucs-main
+          # mdn/rucs is private for now; read-only fine-grained token.
+          token: ${{ secrets.MDN_RUCS_PAT }}
+          persist-credentials: false
+
+      - name: Get rucs main commit
+        id: rucs-main
+        run: echo "sha=$(git -C mdn/rucs-main rev-parse HEAD)" >> "$GITHUB_OUTPUT"
+
+      - name: Cache rucs main binary
+        id: uploader-cache-main
+        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+        with:
+          path: mdn/rucs-main/target/release/rucs
+          key: rucs-${{ runner.os }}-${{ steps.rucs-main.outputs.sha }}
+
       - uses: dtolnay/rust-toolchain@5d458579430fc14a04a08a1e7d3694f545e91ce6 # stable
-        if: ${{ steps.uploader-cache.outputs.cache-hit != 'true' }}
+        if: ${{ steps.uploader-cache.outputs.cache-hit != 'true' || steps.uploader-cache-main.outputs.cache-hit != 'true' }}
 
       - name: Build rucs
         if: ${{ steps.uploader-cache.outputs.cache-hit != 'true' }}
         working-directory: mdn/rucs
+        run: cargo build --release --locked
+
+      - name: Build rucs main
+        if: ${{ steps.uploader-cache-main.outputs.cache-hit != 'true' }}
+        working-directory: mdn/rucs-main
         run: cargo build --release --locked
 
       - name: Upload build
@@ -507,35 +534,37 @@ jobs:
           TIMEFORMAT='rucs: %R s real, %U s user, %S s sys'
           time mdn/rucs/target/release/rucs mdn/fred/out "$DESTINATION" \
             --cache-control "public, max-age=3600, no-transform" \
-            --concurrency 1024 --max-concurrency 4096 \
+            --concurrency 1024 --max-concurrency 4096 --zstd-level 3 \
             --stats-file "$RUNNER_TEMP/upload-stats.csv" 2>&1 | tee "$RUNNER_TEMP/upload.log"
           {
-            echo '### Upload build (gzip 6)'
+            echo '### Upload build (zstd 3, deployed)'
             echo '```'
             sed -n '/^Uploaded /,$p' "$RUNNER_TEMP/upload.log"
             echo '```'
           } >> "$GITHUB_STEP_SUMMARY"
 
-      # TEMP: one `<name>|<args>` line per variant, uploaded to separate prefixes.
-      # The step above is the control (gzip 6); repeating it last exposes drift.
+      # TEMP: one `<name>|<rucs dir>|<args>` line per variant, uploaded to separate prefixes.
+      # `rucs-main` is the control; repeating zstd 3 last exposes drift.
       - name: Upload build with rucs (experiment)
         continue-on-error: true
         env:
           GCS_ACCESS_TOKEN: ${{ steps.auth.outputs.access_token }}
           DESTINATION: gs://${{ vars.GCP_BUCKET_NAME }}/${{ steps.deployment-prefix.outputs.prefix }}-rs
           VARIANTS: |-
-            gzip1|--concurrency 1024 --max-concurrency 4096 --gzip-level 1
-            gzip0|--concurrency 1024 --max-concurrency 4096 --gzip-level 0
-            gzip6|--concurrency 1024 --max-concurrency 4096
+            main-gzip6|rucs-main|--concurrency 1024 --max-concurrency 4096
+            zlibrs-gzip6|rucs|--concurrency 1024 --max-concurrency 4096
+            zlibrs-gzip1|rucs|--concurrency 1024 --max-concurrency 4096 --gzip-level 1
+            zstd1|rucs|--concurrency 1024 --max-concurrency 4096 --zstd-level 1
+            zstd3|rucs|--concurrency 1024 --max-concurrency 4096 --zstd-level 3
         run: |-
           set -o pipefail
           ulimit -n 65536 || true
           TIMEFORMAT='rucs: %R s real, %U s user, %S s sys'
           status=0
-          while IFS='|' read -r name args; do
+          while IFS='|' read -r name bin args; do
             echo "::group::$name ($args)"
             # shellcheck disable=SC2086
-            time mdn/rucs/target/release/rucs mdn/fred/out "$DESTINATION-$name" \
+            time "mdn/$bin/target/release/rucs" mdn/fred/out "$DESTINATION-$name" \
               --cache-control "public, max-age=3600, no-transform" \
               --stats-file "$RUNNER_TEMP/upload-stats-$name.csv" $args 2>&1 | tee "$RUNNER_TEMP/upload-$name.log" || status=1
             echo "::endgroup::"
