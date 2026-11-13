@@ -39,10 +39,6 @@ export function withContentResponseHeaders(proxyRes, req, res) {
     xFrame: !isLiveSample,
   });
 
-  if (req.url?.endsWith("/contributors.txt")) {
-    res.setHeader("X-Robots-Tag", "noindex, nofollow");
-  }
-
   if (res.statusCode === 200 && req.url?.endsWith("/sitemap.xml.gz")) {
     res.setHeader("Content-Type", "application/xml");
     res.setHeader("Content-Encoding", "gzip");
@@ -62,7 +58,7 @@ export function withContentResponseHeaders(proxyRes, req, res) {
  * @param {string} url - Request URL
  * @returns {string | null} Cache control value
  */
-function getCacheControl(statusCode, url) {
+export function getCacheControl(statusCode, url) {
   if (
     statusCode === 404 ||
     url.endsWith("/service-worker.js") ||

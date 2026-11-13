@@ -401,6 +401,7 @@ jobs:
           npm ci
           npm run build-redirects
           npm run build-canonicals
+          npm run build-wikihistory
 
       - name: Deploy Function
         if: ${{ ! vars.SKIP_FUNCTION }}

@@ -32,10 +32,6 @@ const BUCKET_FILES = {
     body: '{"meta":"data"}',
     contentType: "application/json",
   },
-  "en-us/docs/web/api/contributors.txt": {
-    body: "contributors",
-    contentType: "text/plain",
-  },
   // A doc page whose slug ends in ".json" (e.g. the WebExtensions manifest.json
   // page). The page itself lives in a folder; only the sidecar files are objects.
   "en-us/docs/mozilla/add-ons/webextensions/manifest.json/index.html": {
@@ -165,11 +161,6 @@ describe("proxied content routes", () => {
       "docs metadata (metadata.json)",
       "/en-US/docs/Web/API/metadata.json",
       "en-us/docs/web/api/metadata.json",
-    ],
-    [
-      "docs contributors (contributors.txt)",
-      "/en-US/docs/Web/API/contributors.txt",
-      "en-us/docs/web/api/contributors.txt",
     ],
     [
       // The slug ends in ".json", so no index.html is appended and the verbatim

@@ -51,6 +51,9 @@ export const CANONICALS_FILE =
 export const REDIRECTS_FILE =
   process.env["REDIRECTS_FILE"] ||
   new URL("../redirects.json", import.meta.url).pathname;
+export const WIKIHISTORY_DIR =
+  process.env["WIKIHISTORY_DIR"] ||
+  new URL("../wikihistory", import.meta.url).pathname;
 
 export const SOURCE_CONTENT = process.env["SOURCE_CONTENT"] || LOCAL_CONTENT;
 export const SOURCE_API =
