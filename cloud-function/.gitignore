@@ -4,3 +4,4 @@ node_modules
 *.log
 /canonicals.json
 /redirects.json
+/wikihistory/

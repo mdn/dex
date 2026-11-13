@@ -12,6 +12,7 @@ import { handleStripePlans } from "./handlers/handle-stripe-plans.js";
 import { handleSearchSuggestions } from "./handlers/handle-search-suggestions.js";
 import { handleSearchRedirect } from "./handlers/handle-search-redirect.js";
 import { handleOpenSearch } from "./handlers/handle-opensearch.js";
+import { handleContributors } from "./handlers/handle-contributors.js";
 import { proxyTelemetry } from "./handlers/proxy-telemetry.js";
 import { lowercasePathname } from "./middlewares/lowercase-pathname.js";
 import { resolveIndexHTML } from "./middlewares/resolve-index-html.js";
@@ -139,6 +140,16 @@ router.get(
 );
 // Pages.
 router.use(redirectNonCanonicals);
+router.get(
+  "/:locale/docs/*path/contributors.txt",
+  requireOrigin(Origin.main),
+  redirectFundamental,
+  redirectLocale,
+  redirectPreferredLocale,
+  redirectTrailingSlash,
+  redirectMovedPages,
+  handleContributors
+);
 router.get(
   "/:locale/docs/*splat",
   requireOrigin(Origin.main),
