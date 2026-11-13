@@ -525,6 +525,7 @@ jobs:
           DESTINATION: gs://${{ vars.GCP_BUCKET_NAME }}/${{ steps.deployment-prefix.outputs.prefix }}-rs
           VARIANTS: |-
             gzip1|--concurrency 1024 --max-concurrency 4096 --gzip-level 1
+            gzip0|--concurrency 1024 --max-concurrency 4096 --gzip-level 0
             gzip6|--concurrency 1024 --max-concurrency 4096
         run: |-
           set -o pipefail
