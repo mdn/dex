@@ -361,20 +361,47 @@ jobs:
           node scripts/reorder-search-index.mjs "$FRED_ROOT/out/en-us/search-index.json" "$FRED_ROOT/out/de/search-index.json"
 
       - name: Authenticate with GCP
+        id: auth
         uses: google-github-actions/auth@7c6bc770dae815cd3e89ee6cdf493a5fab2cc093 # v3.0.0
         with:
           token_format: access_token
           service_account: deploy-test-content@${{ secrets.GCP_PROJECT_NAME }}.iam.gserviceaccount.com
           workload_identity_provider: projects/${{ secrets.WIP_PROJECT_ID }}/locations/global/workloadIdentityPools/github-actions/providers/github-actions
 
-      - name: Setup gcloud
-        uses: google-github-actions/setup-gcloud@aa5489c8933f4cc7a4f7d45035b3b1440c9c10db # v3.0.1
+      - name: Checkout rucs
+        id: rucs
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          repository: mdn/rucs
+          path: mdn/rucs
+          # mdn/rucs is private for now; read-only fine-grained token.
+          token: ${{ secrets.MDN_RUCS_PAT }}
+          persist-credentials: false
 
-      - name: Sync build
-        working-directory: mdn/fred
+      - name: Cache rucs binary
+        id: rucs-cache
+        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+        with:
+          path: mdn/rucs/target/release/rucs
+          key: rucs-${{ runner.os }}-${{ steps.rucs.outputs.commit }}
+
+      - uses: dtolnay/rust-toolchain@5d458579430fc14a04a08a1e7d3694f545e91ce6 # stable
+        if: ${{ steps.rucs-cache.outputs.cache-hit != 'true' }}
+
+      - name: Build rucs
+        if: ${{ steps.rucs-cache.outputs.cache-hit != 'true' }}
+        working-directory: mdn/rucs
+        run: cargo build --release --locked
+
+      - name: Upload build
+        env:
+          GCS_ACCESS_TOKEN: ${{ steps.auth.outputs.access_token }}
+          DESTINATION: gs://${{ vars.GCP_BUCKET_NAME }}/fred
         run: |-
-          gsutil -q -m -h "Cache-Control: public, max-age=3600" cp -r out/static gs://${{ vars.GCP_BUCKET_NAME }}/fred/
-          gsutil -q -m -h "Cache-Control: public, max-age=3600" rsync -cdrj html,json,txt -y "^static/" out gs://${{ vars.GCP_BUCKET_NAME }}/fred
+          mdn/rucs/target/release/rucs mdn/fred/out "$DESTINATION" \
+            --cache-control "public, max-age=3600, no-transform" \
+            --concurrency 1024 --max-concurrency 4096 \
+            --delete-obsolete --keep static/
 
       - name: Authenticate with GCP
         if: ${{ ! vars.SKIP_FUNCTION }}
