@@ -210,6 +210,21 @@ const code_partial_analyzer = Object.freeze({
   filter: [...code_analyzer.filter, "code_edge_ngram"],
 });
 
+// `text_analyzer` drops symbols, so "Remainder (%)" has no `%` token. Splits on
+// whitespace, `(`, `)`, `,` and `: ` ("EventTarget: addEventListener() method"),
+// so `<a>` and `:has` stay intact.
+const punctuation_tokenizer = Object.freeze({
+  type: "pattern",
+  pattern: String.raw`(?:[\s(),]|:(?=\s|$))+`,
+});
+
+// For `title.code` and `summary.code`, queried for symbol-only searches.
+const punctuation_analyzer = Object.freeze({
+  type: "custom",
+  tokenizer: "punctuation_tokenizer",
+  filter: ["lowercase", "asciifolding"],
+});
+
 const lowercase_normalizer = Object.freeze({
   type: "custom",
   filter: ["lowercase"],
@@ -218,7 +233,14 @@ const lowercase_normalizer = Object.freeze({
 /** @type {import("@elastic/elasticsearch/lib/api/types").MappingTypeMapping} */
 export const mappings = {
   properties: {
-    title: { type: "text", analyzer: "text_analyzer" },
+    title: {
+      type: "text",
+      analyzer: "text_analyzer",
+      fields: {
+        // Matches symbol queries like `%` against "Remainder (%)".
+        code: { type: "text", analyzer: "punctuation_analyzer" },
+      },
+    },
     body: {
       type: "text",
       analyzer: "text_analyzer",
@@ -241,7 +263,14 @@ export const mappings = {
       // https://www.elastic.co/guide/en/elasticsearch/guide/current/scoring-theory.html#field-norm
       norms: false,
     },
-    summary: { type: "text", analyzer: "text_analyzer" },
+    summary: {
+      type: "text",
+      analyzer: "text_analyzer",
+      fields: {
+        // Summaries often spell out the symbol ("a hash # prefix").
+        code: { type: "text", analyzer: "punctuation_analyzer" },
+      },
+    },
     inline_code: {
       type: "text",
       analyzer: "code_analyzer",
@@ -287,6 +316,10 @@ export const settings = {
       text_analyzer,
       code_analyzer,
       code_partial_analyzer,
+      punctuation_analyzer,
+    },
+    tokenizer: {
+      punctuation_tokenizer,
     },
     normalizer: {
       lowercase_normalizer,
