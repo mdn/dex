@@ -40,6 +40,13 @@ on:
         required: false
         default: false
 
+      # TEMP: iterate on the upload without rebuilding.
+      build-run-id:
+        description: "Reuse the build output of this run ID (skips the build)"
+        type: string
+        required: false
+        default: ""
+
   workflow_call:
     secrets:
       GCP_PROJECT_NAME:
@@ -48,6 +55,7 @@ on:
         required: true
 
 permissions:
+  actions: read # download artifacts from another run
   contents: read
   id-token: write
 
@@ -65,12 +73,10 @@ jobs:
 
   build:
     environment: test
-    outputs:
-      prefix: ${{ steps.deployment-prefix.outputs.prefix }}
     runs-on: ubuntu-latest
 
     # When run from `main` branch, only trigger workflow on `test` branch (see above).
-    if: github.repository == 'mdn/dex' && github.ref_name != 'main'
+    if: github.repository == 'mdn/dex' && github.ref_name != 'main' && inputs.build-run-id == ''
 
     steps:
       - name: Print information about build
@@ -388,7 +394,47 @@ jobs:
           name: cloud-function
           path: ${{ runner.temp }}/cloud-function.tar.zst
           compression-level: 0
-          retention-days: 1
+          retention-days: 7
+
+      - name: Pack build output
+        run: tar -C mdn/fred -I 'zstd -T0 -3' -cf "$RUNNER_TEMP/build-out.tar.zst" out
+
+      - name: Upload build output artifact
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: build-out
+          path: ${{ runner.temp }}/build-out.tar.zst
+          compression-level: 0
+          retention-days: 7
+
+  upload:
+    needs: build
+    # Runs after a fresh build, or alone when reusing `build-run-id`.
+    if: ${{ !cancelled() && github.repository == 'mdn/dex' && github.ref_name != 'main' && (needs.build.result == 'success' || (needs.build.result == 'skipped' && inputs.build-run-id != '')) }}
+    environment: test
+    outputs:
+      prefix: ${{ steps.deployment-prefix.outputs.prefix }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Download build output artifact
+        uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
+        with:
+          name: build-out
+          path: ${{ runner.temp }}/artifact
+          run-id: ${{ inputs.build-run-id || github.run_id }}
+          github-token: ${{ github.token }}
+
+      - name: Unpack build output
+        run: |-
+          mkdir -p mdn/fred
+          tar -C mdn/fred -I zstd -xf "$RUNNER_TEMP/artifact/build-out.tar.zst"
+          rm "$RUNNER_TEMP/artifact/build-out.tar.zst"
+
+      - name: Print information about CPU
+        run: |-
+          grep -m1 'model name' /proc/cpuinfo
+          nproc
+          df -h
 
       - name: Determine deployment prefix
         id: deployment-prefix
@@ -503,8 +549,8 @@ jobs:
         run: df -h
 
   deploy:
-    needs: build
-    if: ${{ !vars.SKIP_FUNCTION }}
+    needs: upload
+    if: ${{ !cancelled() && !vars.SKIP_FUNCTION && needs.upload.result == 'success' }}
     environment: test
     runs-on: ubuntu-latest
     steps:
@@ -513,6 +559,8 @@ jobs:
         with:
           name: cloud-function
           path: ${{ runner.temp }}/artifact
+          run-id: ${{ inputs.build-run-id || github.run_id }}
+          github-token: ${{ github.token }}
 
       - name: Unpack cloud function
         run: |-
@@ -555,7 +603,7 @@ jobs:
             --set-env-vars="ORIGIN_MAIN=test.developer.allizom.org" \
             --set-env-vars="ORIGIN_LIVE_SAMPLES=live.test.mdnyalp.dev" \
             --set-env-vars="ORIGIN_PLAY=test.mdnyalp.dev" \
-            --set-env-vars="SOURCE_CONTENT=https://storage.googleapis.com/${{ vars.GCP_BUCKET_NAME }}/${{ needs.build.outputs.prefix }}/" \
+            --set-env-vars="SOURCE_CONTENT=https://storage.googleapis.com/${{ vars.GCP_BUCKET_NAME }}/${{ needs.upload.outputs.prefix }}/" \
             --set-env-vars="SOURCE_STATIC_CONTENT=https://storage.googleapis.com/${{ vars.GCP_BUCKET_NAME }}/fred/" \
             --set-env-vars="SOURCE_API=https://api.developer.allizom.org/" \
             --set-env-vars="SENTRY_DSN=${{ secrets.SENTRY_DSN_CLOUD_FUNCTION }}" \
