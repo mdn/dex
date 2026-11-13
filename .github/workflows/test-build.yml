@@ -67,7 +67,7 @@ jobs:
     environment: test
     outputs:
       prefix: ${{ steps.deployment-prefix.outputs.prefix }}
-    runs-on: ubuntu-latest-dex-builder
+    runs-on: ubuntu-latest
 
     # When run from `main` branch, only trigger workflow on `test` branch (see above).
     if: github.repository == 'mdn/dex' && github.ref_name != 'main'
@@ -447,11 +447,41 @@ jobs:
             --concurrency 1024 --max-concurrency 4096 \
             --stats-file "$RUNNER_TEMP/upload-stats.csv" 2>&1 | tee "$RUNNER_TEMP/upload.log"
           {
-            echo '### Upload build'
+            echo '### Upload build (CRC32C on)'
             echo '```'
             sed -n '/^Uploaded /,$p' "$RUNNER_TEMP/upload.log"
             echo '```'
           } >> "$GITHUB_STEP_SUMMARY"
+
+      # TEMP: one `<name>|<args>` line per variant, uploaded to separate prefixes.
+      # The step above is the control (CRC32C checks on).
+      - name: Upload build with dex-uploader (experiment)
+        continue-on-error: true
+        env:
+          GCS_ACCESS_TOKEN: ${{ steps.auth.outputs.access_token }}
+          DESTINATION: gs://${{ vars.GCP_BUCKET_NAME }}/${{ steps.deployment-prefix.outputs.prefix }}-rs
+          VARIANTS: |-
+            nocrc|--concurrency 1024 --max-concurrency 4096 --no-crc32c
+        run: |-
+          set -o pipefail
+          ulimit -n 65536 || true
+          status=0
+          while IFS='|' read -r name args; do
+            echo "::group::$name ($args)"
+            # shellcheck disable=SC2086
+            mdn/dex/uploader/target/release/dex-uploader mdn/fred/out "$DESTINATION-$name" \
+              --cache-control "public, max-age=3600, no-transform" \
+              --stats-file "$RUNNER_TEMP/upload-stats-$name.csv" $args 2>&1 | tee "$RUNNER_TEMP/upload-$name.log" || status=1
+            echo "::endgroup::"
+            {
+              echo "### $name (\`$args\`)"
+              echo '```'
+              grep -E '^first retry' "$RUNNER_TEMP/upload-$name.log" | cut -c1-200 || true
+              sed -n '/^Uploaded /,$p' "$RUNNER_TEMP/upload-$name.log"
+              echo '```'
+            } >> "$GITHUB_STEP_SUMMARY"
+          done <<< "$VARIANTS"
+          exit "$status"
 
       - name: Print disk usage (final)
         if: ${{ always() }}
@@ -530,32 +560,3 @@ jobs:
       - name: Invalidate CDN
         if: ${{ github.event.inputs.invalidate }}
         run: gcloud compute url-maps invalidate-cdn-cache ${{ secrets.GCP_LOAD_BALANCER_NAME }} --path "/*" --async
-
-  # TEMP: one-off removal of the copies uploaded by the dex-uploader experiments.
-  cleanup-experiments:
-    needs: deploy
-    if: ${{ always() }}
-    environment: test
-    runs-on: ubuntu-latest
-    steps:
-      - name: Authenticate with GCP
-        uses: google-github-actions/auth@7c6bc770dae815cd3e89ee6cdf493a5fab2cc093 # v3.0.0
-        with:
-          token_format: access_token
-          service_account: deploy-test-content@${{ secrets.GCP_PROJECT_NAME }}.iam.gserviceaccount.com
-          workload_identity_provider: projects/${{ secrets.WIP_PROJECT_ID }}/locations/global/workloadIdentityPools/github-actions/providers/github-actions
-
-      - name: Setup gcloud
-        uses: google-github-actions/setup-gcloud@aa5489c8933f4cc7a4f7d45035b3b1440c9c10db # v3.0.1
-
-      - name: Delete experimental copies
-        env:
-          BUCKET: gs://${{ vars.GCP_BUCKET_NAME }}
-        run: |-
-          # Deployment prefixes end in `-<run id>-<attempt>`; only the experiments
-          # appended `-rs` or `-rs-<variant>`.
-          gcloud storage ls "$BUCKET/deployments/" | grep -E -- '-[0-9]+-[0-9]+-rs(-[a-z0-9-]+)?/$' > copies.txt || true
-          cat copies.txt
-          while read -r copy; do
-            time gcloud storage rm --recursive --no-user-output-enabled "$copy"
-          done < copies.txt
