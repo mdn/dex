@@ -428,6 +428,8 @@ jobs:
           repository: mdn/rucs
           ref: send-crc32c
           path: mdn/rucs
+          # mdn/rucs is private for now; read-only fine-grained token.
+          token: ${{ secrets.RUCS_READ_TOKEN }}
           persist-credentials: false
 
       - name: Get rucs commit
