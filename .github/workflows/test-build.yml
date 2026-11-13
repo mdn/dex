@@ -421,20 +421,33 @@ jobs:
           headers: |-
             cache-control: public, max-age=3600
 
-      - name: Cache dex-uploader binary
+      # TEMP: unreleased `rucs` branch with CRC32C support.
+      - name: Checkout rucs
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          repository: mdn/rucs
+          ref: send-crc32c
+          path: mdn/rucs
+          persist-credentials: false
+
+      - name: Get rucs commit
+        id: rucs
+        run: echo "sha=$(git -C mdn/rucs rev-parse HEAD)" >> "$GITHUB_OUTPUT"
+
+      - name: Cache rucs binary
         id: uploader-cache
         uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
         with:
-          path: mdn/dex/uploader/target/release/dex-uploader
-          key: dex-uploader-${{ runner.os }}-${{ hashFiles('mdn/dex/uploader/Cargo.lock', 'mdn/dex/uploader/Cargo.toml', 'mdn/dex/uploader/src/**') }}
+          path: mdn/rucs/target/release/rucs
+          key: rucs-${{ runner.os }}-${{ steps.rucs.outputs.sha }}
 
       - uses: dtolnay/rust-toolchain@5d458579430fc14a04a08a1e7d3694f545e91ce6 # stable
         if: ${{ steps.uploader-cache.outputs.cache-hit != 'true' }}
 
-      - name: Build dex-uploader
+      - name: Build rucs
         if: ${{ steps.uploader-cache.outputs.cache-hit != 'true' }}
-        working-directory: mdn/dex/uploader
-        run: cargo build --release
+        working-directory: mdn/rucs
+        run: cargo build --release --locked
 
       - name: Upload build
         env:
@@ -442,7 +455,7 @@ jobs:
           DESTINATION: gs://${{ vars.GCP_BUCKET_NAME }}/${{ steps.deployment-prefix.outputs.prefix }}
         run: |-
           set -o pipefail
-          mdn/dex/uploader/target/release/dex-uploader mdn/fred/out "$DESTINATION" \
+          mdn/rucs/target/release/rucs mdn/fred/out "$DESTINATION" \
             --cache-control "public, max-age=3600, no-transform" \
             --concurrency 1024 --max-concurrency 4096 \
             --stats-file "$RUNNER_TEMP/upload-stats.csv" 2>&1 | tee "$RUNNER_TEMP/upload.log"
@@ -455,7 +468,7 @@ jobs:
 
       # TEMP: one `<name>|<args>` line per variant, uploaded to separate prefixes.
       # The step above is the control (CRC32C checks on).
-      - name: Upload build with dex-uploader (experiment)
+      - name: Upload build with rucs (experiment)
         continue-on-error: true
         env:
           GCS_ACCESS_TOKEN: ${{ steps.auth.outputs.access_token }}
@@ -469,7 +482,7 @@ jobs:
           while IFS='|' read -r name args; do
             echo "::group::$name ($args)"
             # shellcheck disable=SC2086
-            mdn/dex/uploader/target/release/dex-uploader mdn/fred/out "$DESTINATION-$name" \
+            mdn/rucs/target/release/rucs mdn/fred/out "$DESTINATION-$name" \
               --cache-control "public, max-age=3600, no-transform" \
               --stats-file "$RUNNER_TEMP/upload-stats-$name.csv" $args 2>&1 | tee "$RUNNER_TEMP/upload-$name.log" || status=1
             echo "::endgroup::"
