@@ -457,7 +457,7 @@ jobs:
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           repository: mdn/rucs
-          ref: upload-order
+          ref: main
           path: mdn/rucs
           # mdn/rucs is private for now; read-only fine-grained token.
           token: ${{ secrets.MDN_RUCS_PAT }}
@@ -482,35 +482,37 @@ jobs:
         working-directory: mdn/rucs
         run: cargo build --release --locked
 
-      # TEMP: one upload per line, each into its own fresh prefix. The warm-up fills the
-      # page cache. `random` is the control; it opens every round and runs once more at
-      # the end to expose drift, and the other orders take each position once.
+      # TEMP: one `<name>|<args>` upload per line, each into its own fresh prefix. The
+      # warm-up fills the page cache; every round starts three variants further on.
       - name: Upload build with rucs (experiment)
         env:
           DESTINATION: gs://${{ vars.GCP_BUCKET_NAME }}/${{ steps.deployment-prefix.outputs.prefix }}-rs
           VARIANTS: |-
-            warmup-0|random
-            random-1|random
-            seed-1|seed
-            spread-1|spread
-            large-seed-1|large-seed
-            small-seed-1|small-seed
-            random-2|random
-            small-seed-2|small-seed
-            seed-2|seed
-            spread-2|spread
-            large-seed-2|large-seed
-            random-3|random
-            large-seed-3|large-seed
-            small-seed-3|small-seed
-            seed-3|seed
-            spread-3|spread
-            random-4|random
-            spread-4|spread
-            large-seed-4|large-seed
-            small-seed-4|small-seed
-            seed-4|seed
-            random-5|random
+            warmup-0|--order random --concurrency 1024
+            large-c1024-1|--order large-seed --concurrency 1024
+            large-c1024-nocut-1|--order large-seed --concurrency 1024 --no-cut-on-conflict
+            large-c2048-1|--order large-seed --concurrency 2048
+            large-c2048-nocut-1|--order large-seed --concurrency 2048 --no-cut-on-conflict
+            large-c4096-1|--order large-seed --concurrency 4096
+            large-c4096-nocut-1|--order large-seed --concurrency 4096 --no-cut-on-conflict
+            random-c1024-1|--order random --concurrency 1024
+            random-c1024-nocut-1|--order random --concurrency 1024 --no-cut-on-conflict
+            large-c2048-nocut-2|--order large-seed --concurrency 2048 --no-cut-on-conflict
+            large-c4096-2|--order large-seed --concurrency 4096
+            large-c4096-nocut-2|--order large-seed --concurrency 4096 --no-cut-on-conflict
+            random-c1024-2|--order random --concurrency 1024
+            random-c1024-nocut-2|--order random --concurrency 1024 --no-cut-on-conflict
+            large-c1024-2|--order large-seed --concurrency 1024
+            large-c1024-nocut-2|--order large-seed --concurrency 1024 --no-cut-on-conflict
+            large-c2048-2|--order large-seed --concurrency 2048
+            random-c1024-3|--order random --concurrency 1024
+            random-c1024-nocut-3|--order random --concurrency 1024 --no-cut-on-conflict
+            large-c1024-3|--order large-seed --concurrency 1024
+            large-c1024-nocut-3|--order large-seed --concurrency 1024 --no-cut-on-conflict
+            large-c2048-3|--order large-seed --concurrency 2048
+            large-c2048-nocut-3|--order large-seed --concurrency 2048 --no-cut-on-conflict
+            large-c4096-3|--order large-seed --concurrency 4096
+            large-c4096-nocut-3|--order large-seed --concurrency 4096 --no-cut-on-conflict
         run: |-
           set -o pipefail
           ulimit -n 65536 || true
@@ -518,19 +520,20 @@ jobs:
           mkdir -p "$RUNNER_TEMP/upload-order"
           grep -m1 'model name' /proc/cpuinfo | tee "$RUNNER_TEMP/upload-order/cpu.txt"
           status=0
-          while IFS='|' read -r name order; do
+          while IFS='|' read -r name args; do
             echo "::group::$name"
             # The job outlives one access token.
             GCS_ACCESS_TOKEN="$(gcloud auth print-access-token)"
             export GCS_ACCESS_TOKEN
             date -u +"start %Y-%m-%dT%H:%M:%SZ" | tee "$RUNNER_TEMP/upload-order/$name.log"
+            # shellcheck disable=SC2086
             time mdn/rucs/target/release/rucs mdn/fred/out "$DESTINATION-$name" \
               --cache-control "public, max-age=3600, no-transform" \
-              --concurrency 1024 --max-concurrency 4096 --order "$order" \
+              --max-concurrency 4096 $args \
               --stats-file "$RUNNER_TEMP/upload-order/$name.csv" 2>&1 | tee -a "$RUNNER_TEMP/upload-order/$name.log" || status=1
             echo "::endgroup::"
             {
-              echo "### $name"
+              echo "### $name (\`$args\`)"
               echo '```'
               grep -E '^(first retry|rucs:)' "$RUNNER_TEMP/upload-order/$name.log" | cut -c1-200 || true
               sed -n '/^Uploaded /,$p' "$RUNNER_TEMP/upload-order/$name.log"
