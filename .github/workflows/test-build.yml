@@ -482,28 +482,35 @@ jobs:
         working-directory: mdn/rucs
         run: cargo build --release --locked
 
-      # TEMP: one upload per line, each into its own fresh prefix. `random` is the
-      # control; it runs first in every round and once more at the end to expose drift.
+      # TEMP: one upload per line, each into its own fresh prefix. The warm-up fills the
+      # page cache. `random` is the control; it opens every round and runs once more at
+      # the end to expose drift, and the other orders take each position once.
       - name: Upload build with rucs (experiment)
         env:
           DESTINATION: gs://${{ vars.GCP_BUCKET_NAME }}/${{ steps.deployment-prefix.outputs.prefix }}-rs
           VARIANTS: |-
+            warmup-0|random
             random-1|random
             seed-1|seed
-            shallow-seed-1|shallow-seed
-            deep-seed-1|deep-seed
             spread-1|spread
+            large-seed-1|large-seed
+            small-seed-1|small-seed
             random-2|random
-            spread-2|spread
-            deep-seed-2|deep-seed
-            shallow-seed-2|shallow-seed
+            small-seed-2|small-seed
             seed-2|seed
+            spread-2|spread
+            large-seed-2|large-seed
             random-3|random
-            shallow-seed-3|shallow-seed
-            spread-3|spread
+            large-seed-3|large-seed
+            small-seed-3|small-seed
             seed-3|seed
-            deep-seed-3|deep-seed
+            spread-3|spread
             random-4|random
+            spread-4|spread
+            large-seed-4|large-seed
+            small-seed-4|small-seed
+            seed-4|seed
+            random-5|random
         run: |-
           set -o pipefail
           ulimit -n 65536 || true
