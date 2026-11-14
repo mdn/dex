@@ -401,7 +401,7 @@ jobs:
           mdn/rucs/target/release/rucs mdn/fred/out "$DESTINATION" \
             --cache-control "public, max-age=3600, no-transform" \
             --concurrency 1024 --max-concurrency 4096 \
-            --delete-obsolete --keep static/
+            --delete-obsolete --dry-run --keep static/
 
       - name: Authenticate with GCP
         if: ${{ ! vars.SKIP_FUNCTION }}
