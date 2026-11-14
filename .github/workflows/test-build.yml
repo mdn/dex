@@ -415,6 +415,7 @@ jobs:
     outputs:
       prefix: ${{ steps.deployment-prefix.outputs.prefix }}
     runs-on: ubuntu-latest
+    timeout-minutes: 90
     steps:
       - name: Download build output artifact
         uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
@@ -451,28 +452,12 @@ jobs:
       - name: Setup gcloud
         uses: google-github-actions/setup-gcloud@aa5489c8933f4cc7a4f7d45035b3b1440c9c10db # v3.0.1
 
-      # Static assets are also uploaded here so clients on a cached page from an
-      # earlier deployment can still load their hashed bundles.
-      - name: Upload shared files
-        uses: google-github-actions/upload-cloud-storage@6397bd7208e18d13ba2619ee21b9873edc94427a # v3.0.0
-        with:
-          path: mdn/fred/out
-          destination: ${{ vars.GCP_BUCKET_NAME }}/fred
-          parent: false
-          glob: "{issues.json,*/metadata.json,static/**}"
-          gzip: true
-          resumable: false
-          concurrency: 250
-          process_gcloudignore: false
-          headers: |-
-            cache-control: public, max-age=3600
-
       # TEMP: unreleased `rucs` branch under test.
       - name: Checkout rucs
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           repository: mdn/rucs
-          ref: zstd-compression
+          ref: upload-order
           path: mdn/rucs
           # mdn/rucs is private for now; read-only fine-grained token.
           token: ${{ secrets.MDN_RUCS_PAT }}
@@ -489,94 +474,71 @@ jobs:
           path: mdn/rucs/target/release/rucs
           key: rucs-${{ runner.os }}-${{ steps.rucs.outputs.sha }}
 
-      # TEMP: `rucs` main as the control.
-      - name: Checkout rucs main
-        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-        with:
-          repository: mdn/rucs
-          ref: main
-          path: mdn/rucs-main
-          # mdn/rucs is private for now; read-only fine-grained token.
-          token: ${{ secrets.MDN_RUCS_PAT }}
-          persist-credentials: false
-
-      - name: Get rucs main commit
-        id: rucs-main
-        run: echo "sha=$(git -C mdn/rucs-main rev-parse HEAD)" >> "$GITHUB_OUTPUT"
-
-      - name: Cache rucs main binary
-        id: uploader-cache-main
-        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
-        with:
-          path: mdn/rucs-main/target/release/rucs
-          key: rucs-${{ runner.os }}-${{ steps.rucs-main.outputs.sha }}
-
       - uses: dtolnay/rust-toolchain@5d458579430fc14a04a08a1e7d3694f545e91ce6 # stable
-        if: ${{ steps.uploader-cache.outputs.cache-hit != 'true' || steps.uploader-cache-main.outputs.cache-hit != 'true' }}
+        if: ${{ steps.uploader-cache.outputs.cache-hit != 'true' }}
 
       - name: Build rucs
         if: ${{ steps.uploader-cache.outputs.cache-hit != 'true' }}
         working-directory: mdn/rucs
         run: cargo build --release --locked
 
-      - name: Build rucs main
-        if: ${{ steps.uploader-cache-main.outputs.cache-hit != 'true' }}
-        working-directory: mdn/rucs-main
-        run: cargo build --release --locked
-
-      - name: Upload build
-        env:
-          GCS_ACCESS_TOKEN: ${{ steps.auth.outputs.access_token }}
-          DESTINATION: gs://${{ vars.GCP_BUCKET_NAME }}/${{ steps.deployment-prefix.outputs.prefix }}
-        run: |-
-          set -o pipefail
-          # TEMP: CPU time vs wall time shows whether the cores are saturated.
-          TIMEFORMAT='rucs: %R s real, %U s user, %S s sys'
-          time mdn/rucs/target/release/rucs mdn/fred/out "$DESTINATION" \
-            --cache-control "public, max-age=3600, no-transform" \
-            --concurrency 1024 --max-concurrency 4096 --zstd-level 3 \
-            --stats-file "$RUNNER_TEMP/upload-stats.csv" 2>&1 | tee "$RUNNER_TEMP/upload.log"
-          {
-            echo '### Upload build (zstd 3, deployed)'
-            echo '```'
-            sed -n '/^Uploaded /,$p' "$RUNNER_TEMP/upload.log"
-            echo '```'
-          } >> "$GITHUB_STEP_SUMMARY"
-
-      # TEMP: one `<name>|<rucs dir>|<args>` line per variant, uploaded to separate prefixes.
-      # `rucs-main` is the control; repeating zstd 3 last exposes drift.
+      # TEMP: one upload per line, each into its own fresh prefix. `random` is the
+      # control; it runs first in every round and once more at the end to expose drift.
       - name: Upload build with rucs (experiment)
-        continue-on-error: true
         env:
-          GCS_ACCESS_TOKEN: ${{ steps.auth.outputs.access_token }}
           DESTINATION: gs://${{ vars.GCP_BUCKET_NAME }}/${{ steps.deployment-prefix.outputs.prefix }}-rs
           VARIANTS: |-
-            main-gzip6|rucs-main|--concurrency 1024 --max-concurrency 4096
-            zlibrs-gzip6|rucs|--concurrency 1024 --max-concurrency 4096
-            zlibrs-gzip1|rucs|--concurrency 1024 --max-concurrency 4096 --gzip-level 1
-            zstd1|rucs|--concurrency 1024 --max-concurrency 4096 --zstd-level 1
-            zstd3|rucs|--concurrency 1024 --max-concurrency 4096 --zstd-level 3
+            random-1|random
+            seed-1|seed
+            shallow-seed-1|shallow-seed
+            deep-seed-1|deep-seed
+            spread-1|spread
+            random-2|random
+            spread-2|spread
+            deep-seed-2|deep-seed
+            shallow-seed-2|shallow-seed
+            seed-2|seed
+            random-3|random
+            shallow-seed-3|shallow-seed
+            spread-3|spread
+            seed-3|seed
+            deep-seed-3|deep-seed
+            random-4|random
         run: |-
           set -o pipefail
           ulimit -n 65536 || true
           TIMEFORMAT='rucs: %R s real, %U s user, %S s sys'
+          mkdir -p "$RUNNER_TEMP/upload-order"
+          grep -m1 'model name' /proc/cpuinfo | tee "$RUNNER_TEMP/upload-order/cpu.txt"
           status=0
-          while IFS='|' read -r name bin args; do
-            echo "::group::$name ($args)"
-            # shellcheck disable=SC2086
-            time "mdn/$bin/target/release/rucs" mdn/fred/out "$DESTINATION-$name" \
+          while IFS='|' read -r name order; do
+            echo "::group::$name"
+            # The job outlives one access token.
+            GCS_ACCESS_TOKEN="$(gcloud auth print-access-token)"
+            export GCS_ACCESS_TOKEN
+            date -u +"start %Y-%m-%dT%H:%M:%SZ" | tee "$RUNNER_TEMP/upload-order/$name.log"
+            time mdn/rucs/target/release/rucs mdn/fred/out "$DESTINATION-$name" \
               --cache-control "public, max-age=3600, no-transform" \
-              --stats-file "$RUNNER_TEMP/upload-stats-$name.csv" $args 2>&1 | tee "$RUNNER_TEMP/upload-$name.log" || status=1
+              --concurrency 1024 --max-concurrency 4096 --order "$order" \
+              --stats-file "$RUNNER_TEMP/upload-order/$name.csv" 2>&1 | tee -a "$RUNNER_TEMP/upload-order/$name.log" || status=1
             echo "::endgroup::"
             {
-              echo "### $name (\`$args\`)"
+              echo "### $name"
               echo '```'
-              grep -E '^first retry' "$RUNNER_TEMP/upload-$name.log" | cut -c1-200 || true
-              sed -n '/^Uploaded /,$p' "$RUNNER_TEMP/upload-$name.log"
+              grep -E '^(first retry|rucs:)' "$RUNNER_TEMP/upload-order/$name.log" | cut -c1-200 || true
+              sed -n '/^Uploaded /,$p' "$RUNNER_TEMP/upload-order/$name.log"
               echo '```'
             } >> "$GITHUB_STEP_SUMMARY"
           done <<< "$VARIANTS"
           exit "$status"
+
+      - name: Upload experiment logs
+        if: ${{ always() }}
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: upload-order
+          path: ${{ runner.temp }}/upload-order
+          retention-days: 7
 
       - name: Print disk usage (final)
         if: ${{ always() }}
@@ -584,7 +546,8 @@ jobs:
 
   deploy:
     needs: upload
-    if: ${{ !cancelled() && !vars.SKIP_FUNCTION && needs.upload.result == 'success' }}
+    # TEMP: the experiment uploads nothing deployable.
+    if: ${{ false }}
     environment: test
     runs-on: ubuntu-latest
     steps:
