@@ -27,6 +27,7 @@ describe("rejectDotSegments", () => {
     { label: "mixed-case encoded segment", url: "/assets/.%2E/x" },
     { label: "backslash", url: String.raw`/assets/..\..\other/x` },
     { label: "parent segment before a fragment", url: "/assets/x/..#frag" },
+    { label: "parent segment after a raw hash", url: "/assets/x#/../../y" },
   ];
 
   for (const { label, url } of rejected) {

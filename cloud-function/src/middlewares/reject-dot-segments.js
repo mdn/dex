@@ -13,10 +13,11 @@ const DOT_SEGMENT = /^(?:\.|%2e){1,2}$/i;
  * @returns {Promise<void>}
  */
 export async function rejectDotSegments(req, res, next) {
-  const [pathname = ""] = req.url.split(/[?#]/, 1);
+  const [pathname = ""] = req.url.split("?", 1);
   if (
     pathname.includes("\\") ||
-    pathname.split("/").some((segment) => DOT_SEGMENT.test(segment))
+    // Servers pass a raw `#` through as path, but URL parsers start a fragment there.
+    pathname.split(/[/#]/).some((segment) => DOT_SEGMENT.test(segment))
   ) {
     res.sendStatus(400).end();
     return;
