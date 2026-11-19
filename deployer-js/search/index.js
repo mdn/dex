@@ -15,6 +15,7 @@ import { INDEX_ALIAS_NAME, indexName, settings, mappings } from "./models.js";
  * @property {string[]} inline_code
  * @property {string} summary
  * @property {string} slug
+ * @property {string} slug_leaf
  * @property {string} locale
  * @property {number | undefined} popularity
  */
@@ -189,8 +190,19 @@ async function toSearch(file) {
     // But all of this means; remember to lowercase your `slug` before using
     // it as a filter.
     slug: slug.toLowerCase(),
+    slug_leaf: slugLeaf(slug),
     locale: locale.toLowerCase(),
   };
+}
+
+/**
+ * Last segment of a slug, lowercased (e.g. `then` for `Web/.../Promise/then`).
+ *
+ * @param {string} slug
+ * @returns {string}
+ */
+export function slugLeaf(slug) {
+  return slug.slice(slug.lastIndexOf("/") + 1).toLowerCase();
 }
 
 const _displayNoneRegex = /display:\s*none/;
