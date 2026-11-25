@@ -16,20 +16,30 @@ const notFoundBufferCache = new Map();
 const target = sourceUri(Source.content);
 
 /**
- * Router function that handles wildcard subdomain targeting
+ * Resolve the content bucket base URL for a request, including the review
+ * subdomain prefix when review routing is enabled.
  * @param {import("http").IncomingMessage} req
+ * @returns {string} Trailing-slashed base URL
  */
-const router = (req) => {
-  let actualTarget = target;
-
+export function getContentTarget(req) {
   if (REVIEW_ROUTING) {
     const { host } = req.headers;
 
     if (typeof host === "string") {
       const subdomain = host.split(".")[0];
-      actualTarget = `${target}${subdomain}/`;
+      return `${target}${subdomain}/`;
     }
   }
+
+  return target;
+}
+
+/**
+ * Router function that handles wildcard subdomain targeting
+ * @param {import("http").IncomingMessage} req
+ */
+const router = (req) => {
+  const actualTarget = getContentTarget(req);
 
   req.headers["target"] = actualTarget;
 

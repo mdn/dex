@@ -10,6 +10,7 @@
   "scripts": {
     "build-canonicals": "node src/build-canonicals.js",
     "build-redirects": "node src/build-redirects.js",
+    "build-wikihistory": "node src/build-wikihistory.js",
     "check": "tsc --noEmit",
     "proxy": "node src/proxy.js",
     "server": "functions-framework --target=mdnHandler --ignored-routes \"\"",
