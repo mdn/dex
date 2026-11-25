@@ -1,52 +1,79 @@
-# Cloud Function
+# `@mdn/dex-cloud-server`
 
-This is MDN's HTTP request handler, deployed using
-[Cloud Functions](https://cloud.google.com/functions/) behind
-[Cloud CDN](https://cloud.google.com/cdn/). It mostly proxies requests and
-handles some special routes directly.
+MDN's HTTP request handler, packaged for standalone use or deployment through
+Google Cloud Functions.
 
-## Quickstart
+## Install
 
-Run `npm start` to serve the Cloud Function at http://localhost:7100/.
+```sh
+npm install @mdn/dex-cloud-server
+```
 
-By default, it will use your local `client/build` directory, serving it at
-http://localhost:8100/, and proxy API requests to the stage API at
-`https://developer.allizom.org/`.
+## Start the server
 
-### How to use a local Rumba?
+The published package does not include `canonicals.json` or `redirects.json`.
+Provide those files separately and set both paths before starting the server:
 
-Set `SOURCE_API=http://localhost:8000/` in your `.env.`
+```sh
+CANONICALS_FILE=/absolute/path/to/canonicals.json \
+REDIRECTS_FILE=/absolute/path/to/redirects.json \
+npx dex-cloud-server
+```
 
-### How to use Glean?
+The server listens on `PORT`, which defaults to `8080`. It also loads a `.env`
+file from the current working directory. `ENV_FILE` can specify a different
+path.
 
-To use Glean, the Cloud Function must be accessed via HTTPS. Otherwise the
-Glean.js SDK throws an uncaught error that prevents execution of JavaScript.
+The handler factory is available for applications that need to mount the handler
+themselves:
 
-We recommend using [mkcert](https://github.com/FiloSottile/mkcert) to create a
-locally-trusted development certificate. Add the key and certificate paths as
-`HTTPS_KEY_FILE` and `HTTPS_CERT_FILE` variables to your `.env` file. This will
-automatically enable an HTTPS proxy at https://localhost/ in addition to
-`http://localhost:7100/`.
+```js
+import { createHandler } from "@mdn/dex-cloud-server";
 
-## Environment variables
+const handler = createHandler();
+```
 
-The function uses the following environment variables:
+## Deploy to Google Cloud Functions
 
-- `ORIGIN_MAIN` (default: `"localhost"`) - The expected `Host` header value for
-  requests to the main site.
-- `ORIGIN_LIVE_SAMPLES` (default: `"localhost"`) - The expected `Host` header
-  value for requests to live samples.
-- `SOURCE_CONTENT` (default: `"http://localhost:8100"`) - The URL at which the
-  client build is served.
-- `SOURCE_API` (default: `"https://developer.allizom.org/"`) - The URL at which
-  the API is served.
-- `REVIEW_ROUTING` (default: `false`) - If enabled, accepts any `Host` header
-  value, uses the leftmost subdomain to route into a subdirectory of
-  `SOURCE_CONTENT`, falls back to production for missing assets, and disables
-  response caching.
+The package keeps `src/index.js` as its main entry point and registers the
+`mdnHandler` HTTP function. When deploying from a Dex checkout, the deployment
+workflow generates `canonicals.json` and `redirects.json` at their default
+paths. When deploying an installed npm package, provide the files separately and
+set `CANONICALS_FILE` and `REDIRECTS_FILE` to their locations.
 
-The placement handler uses the following environment variables:
+## Configuration
 
-- `SIGN_SECRET` (default: `""`) - Required for serving placements.
+The handler uses these environment variables:
 
-You can override the defaults by adding a `.env` file with `KEY=value` lines.
+- `CANONICALS_FILE` and `REDIRECTS_FILE` set paths to the required JSON data
+  files. The published package does not provide them.
+- `SOURCE_CONTENT` sets the content server URL. It defaults to
+  `http://localhost:8100/`.
+- `SOURCE_API` sets the API URL. It defaults to
+  `https://developer.allizom.org/`.
+- `SOURCE_SHARED_ASSETS` sets the shared assets URL. It defaults to
+  `https://mdn.github.io/shared-assets/`.
+- `ORIGIN_MAIN`, `ORIGIN_LIVE_SAMPLES`, and `ORIGIN_PLAY` set accepted
+  hostnames.
+- `REVIEW_ROUTING` enables review subdomain routing and disables response
+  caching.
+- `SIGN_SECRET` is required for serving placements.
+
+Other optional variables and their defaults are defined in
+[`src/env.js`](src/env.js).
+
+## Development
+
+In a Dex checkout, `npm start` serves the handler at http://localhost:7100/. By
+default, it serves the local `client/build` directory at http://localhost:8100/
+and proxies API requests to the stage API at `https://developer.allizom.org/`.
+Override defaults through a `.env` file with `KEY=value` lines.
+
+To use a local Rumba, set `SOURCE_API=http://localhost:8000/`.
+
+To use Glean, the handler must be accessed via HTTPS. Otherwise the Glean.js SDK
+throws an uncaught error that prevents execution of JavaScript. Create a
+locally-trusted certificate with [mkcert](https://github.com/FiloSottile/mkcert)
+and set `HTTPS_KEY_FILE` and `HTTPS_CERT_FILE` to the key and certificate paths.
+This enables an HTTPS proxy at https://localhost/ in addition to
+http://localhost:7100/.

@@ -6,7 +6,7 @@ import { cwd } from "node:process";
 import dotenv from "dotenv";
 
 dotenv.config({
-  path: path.join(cwd(), process.env["ENV_FILE"] || ".env"),
+  path: path.resolve(cwd(), process.env["ENV_FILE"] || ".env"),
   quiet: true,
 });
 
