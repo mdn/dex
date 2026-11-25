@@ -75,7 +75,106 @@ test("inline code mapping supports exact punctuation and identifier prefixes", (
   });
 });
 
+test("search field mappings", async (t) => {
+  const properties = mappings.properties ?? {};
+  /** @param {string} path */
+  const field = (path) => {
+    const [name = "", sub] = path.split(".");
+    const property = properties[name];
+    return sub && property && "fields" in property
+      ? property.fields?.[sub]
+      : property;
+  };
+  const cases = [
+    {
+      path: "title.code",
+      expected: { type: "text", analyzer: "punctuation_analyzer" },
+    },
+    {
+      path: "summary.code",
+      expected: { type: "text", analyzer: "punctuation_analyzer" },
+    },
+  ];
+  for (const { path, expected } of cases) {
+    await t.test(path, () => assert.deepEqual(field(path), expected));
+  }
+});
+
 const searchTestUrl = process.env["SEARCH_TEST_ELASTICSEARCH_URL"];
+
+test(
+  "search analyzers tokenize titles and summaries",
+  {
+    skip:
+      !searchTestUrl &&
+      "set SEARCH_TEST_ELASTICSEARCH_URL to run Elasticsearch analyzer tests",
+  },
+  async (t) => {
+    if (!searchTestUrl) {
+      return;
+    }
+    const { Client } = await import("@elastic/elasticsearch");
+    const client = new Client({ node: searchTestUrl });
+    t.after(() => client.close());
+    const analysis = settings.analysis ?? {};
+
+    // Inline definitions, so that no index needs to be created.
+    /** @param {string} name */
+    const inline = (name) => {
+      const analyzer = analysis.analyzer?.[name];
+      assert.ok(analyzer && analyzer.type === "custom");
+      const tokenizer =
+        typeof analyzer.tokenizer === "string"
+          ? (analysis.tokenizer?.[analyzer.tokenizer] ?? analyzer.tokenizer)
+          : analyzer.tokenizer;
+      const filter = [analyzer.filter ?? []]
+        .flat()
+        .map((f) => (typeof f === "string" ? (analysis.filter?.[f] ?? f) : f));
+      return { tokenizer, filter };
+    };
+
+    const cases = [
+      {
+        analyzer: "punctuation_analyzer",
+        text: "Remainder (%)",
+        expected: ["remainder", "%"],
+      },
+      {
+        analyzer: "punctuation_analyzer",
+        text: "EventTarget: addEventListener() method",
+        expected: ["eventtarget", "addeventlistener", "method"],
+      },
+      {
+        analyzer: "punctuation_analyzer",
+        text: "<a>: The Anchor element",
+        expected: ["<a>", "the", "anchor", "element"],
+      },
+      {
+        analyzer: "punctuation_analyzer",
+        text: "using a hash # prefix",
+        expected: ["using", "a", "hash", "#", "prefix"],
+      },
+      {
+        analyzer: "punctuation_analyzer",
+        text: ":has()",
+        expected: [":has"],
+      },
+    ];
+    for (const { analyzer, text, expected } of cases) {
+      await t.test(`${analyzer}: ${text}`, async () => {
+        const { tokens = [] } = await client.indices.analyze({
+          ...inline(analyzer),
+          text,
+        });
+        assert.deepEqual(
+          tokens.map(({ token }) => token),
+          expected
+        );
+      });
+    }
+  }
+);
+
 test(
   "inline code relevance ranks exact syntax and partial identifiers above body-only matches",
   {
